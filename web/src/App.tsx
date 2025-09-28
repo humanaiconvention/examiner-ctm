@@ -1,3 +1,4 @@
+// Deployment trigger: updating comment to publish full app over minimal placeholder
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react'
 
 import './App.css'
