@@ -66,6 +66,10 @@ jobs:
           echo "Dist index.html preview:" 
           sed -n '1,120p' web/dist/index.html || true
           echo "Deploy marker:"; cat web/dist/DEPLOY_MARKER.txt || echo "(missing)"
+          echo "Health file:"; cat web/dist/health.txt || echo "(missing)"
+          # Enforce presence (fail early if not there)
+          [ -f web/dist/DEPLOY_MARKER.txt ] || { echo "ERROR: DEPLOY_MARKER.txt missing"; exit 1; }
+          [ -f web/dist/health.txt ] || { echo "ERROR: health.txt missing"; exit 1; }
       - name: Inject CNAME (main only, if custom domain)
         if: github.ref == 'refs/heads/main'
         run: |
@@ -74,6 +78,10 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: web/dist
+      - name: Show artifact file list (post-upload)
+        run: |
+          echo "(Re)listing dist for sanity before deploy stage:" 
+          find web/dist -maxdepth 2 -type f -print
   deploy:
     environment:
       name: ${{ github.ref == 'refs/heads/main' && 'github-pages' || 'preview' }}
