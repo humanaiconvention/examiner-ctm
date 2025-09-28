@@ -48,12 +48,16 @@ jobs:
             echo "No custom domain; using base $PUBLIC_BASE_PATH"
           fi
           PUBLIC_BASE_PATH=$PUBLIC_BASE_PATH npm run build
+          echo "Commit: $GITHUB_SHA" > dist/DEPLOY_MARKER.txt
+          # Ensure health file exists (should already be copied if in public/)
+          if [ -f public/health.txt ]; then cp public/health.txt dist/health.txt; fi
       - name: Debug Dist Contents
         run: |
           echo "Listing built dist files:" 
           ls -R web/dist | head -100
           echo "Dist index.html preview:" 
           sed -n '1,120p' web/dist/index.html || true
+          echo "Deploy marker:"; cat web/dist/DEPLOY_MARKER.txt || echo "(missing)"
       - name: Inject CNAME (main only, if custom domain)
         if: github.ref == 'refs/heads/main'
         run: |
