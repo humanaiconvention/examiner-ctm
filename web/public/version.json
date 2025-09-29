@@ -1,7 +1,6 @@
 {
   "name": "web",
-  "version": "0.0.0",
-  "commit": "e598d45aaa3b",
-  "fullCommit": "e598d45aaa3bae938c458b9ce0096b6615fd8815",
-  "buildTime": "2025-09-28T22:27:57.466Z"
+  "version": "0.1.0",
+  "commit": "48540df101ea",
+  "fullCommit": "48540df101ea02a4d1737a8957e82460c1700316"
 }

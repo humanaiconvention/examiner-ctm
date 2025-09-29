@@ -20,14 +20,13 @@ const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
 const version = pkg.version || '0.0.0'
 const commit = process.env.GITHUB_SHA || safe('git rev-parse --short=12 HEAD') || 'unknown'
 const fullCommit = process.env.GITHUB_SHA || safe('git rev-parse HEAD') || 'unknown'
-const buildTime = new Date().toISOString()
 
+// Note: buildTime intentionally excluded from content hashed region to ensure reproducible index.html.
 const data = {
   name: pkg.name,
   version,
   commit,
   fullCommit,
-  buildTime,
 }
 
 const publicDir = join(root, 'public')

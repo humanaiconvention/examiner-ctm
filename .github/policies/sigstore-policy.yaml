@@ -1,0 +1,42 @@
+# sigstore-policy.yaml
+# Initial verification policy (audit mode) for build artifacts.
+# This is a forward-looking configuration; current pipeline produces and verifies
+# signatures inline, but external policy engines or future admission controllers
+# can consume this to enforce provenance & identity.
+
+apiVersion: policy.sigstore.dev/v1beta1
+kind: Policy
+metadata:
+  name: web-artifact-policy
+spec:
+  mode: audit   # 'enforce' in future once stability proven
+  prerequisites: []
+  identities:
+    # Require GitHub Actions OIDC identity of deploy workflow on main.
+    - issuer: https://token.actions.githubusercontent.com
+      subjectPattern: "https://github.com/${REPO}/.github/workflows/deploy-unified.yml@refs/heads/main"
+  resources:
+    # Subject mapping; the primary artifact we attest is dist/index.html via its sha256 digest.
+    - pattern: "dist/index.html"
+      verify:
+        - artifact: integrity
+          required: true
+          attestations:
+            - type: slsa-provenance
+              predicateType: https://slsa.dev/provenance/v1
+              # Minimal key path checks can be added later (builder.id, subject digest)
+            - type: generic-attestation
+              name: integrity-sbom-link
+        - artifact: sbom
+          required: false   # SBOM may be absent early in pipeline; promote to true later
+        - artifact: attestation
+          required: true
+        - artifact: slsa-provenance
+          required: true
+  transparency:
+    rekor:
+      required: true
+      # Future: include log public key / STAGE to enforce inclusion proof verification externally.
+  notes:
+    - "Policy is informational; enforcement occurs via pipeline cosign verify today."
+    - "Promote spec.mode to 'enforce' after 2025-11 once stability validated."

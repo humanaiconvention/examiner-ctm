@@ -66,6 +66,17 @@ jobs:
           if grep -R "@/config/quotes" -n src/sections/VoicesSection.tsx >/dev/null 2>&1; then
             echo "Alias reference '@/config/quotes' present in VoicesSection.tsx"
           fi
+      - name: Compute Integrity Hash
+        run: |
+          cd web
+            node scripts/verify-inline-version.mjs --with-hash || exit 1
+          cat dist/version-integrity.json || { echo "Integrity artifact missing"; exit 1; }
+      - name: Upload Integrity Artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: version-integrity
+          path: web/dist/version-integrity.json
+          retention-days: 10
       - name: Debug Dist Contents
         run: |
           echo "Listing built dist files:" 
@@ -89,6 +100,18 @@ jobs:
         run: |
           echo "(Re)listing dist for sanity before deploy stage:" 
           find web/dist -maxdepth 2 -type f -print
+      - name: Append to Transparency Log Issue
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          issueTitle="Deployment Transparency Log"
+          bodyLine=$(jq -r '. | "- $(.generatedAt) commit=${{ github.sha }} sha256=" + .sha256' web/dist/version-integrity.json)
+          number=$(gh issue list --search "$issueTitle" --state open --json number,title --jq '.[0].number' || true)
+          if [ -z "$number" ]; then
+            gh issue create --title "$issueTitle" --body "### Transparency Log\n$bodyLine" --label observability || true
+          else
+            gh issue comment "$number" --body "$bodyLine" || true
+          fi
   deploy:
     environment:
       name: ${{ github.ref == 'refs/heads/main' && 'github-pages' || 'preview' }}

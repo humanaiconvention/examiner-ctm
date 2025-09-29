@@ -1,88 +1,91 @@
 #!/usr/bin/env node
 /**
  * check-lighthouse-thresholds.mjs
- * Enforces category-specific Lighthouse minimum scores using MIN_LH_* env variables.
- * Exits non-zero if any configured threshold is not met.
- * On full pass, writes badges/lighthouse-last-success.json with scores + timestamp.
+ * Enforces Lighthouse category minimum scores and (optionally) warns on budget violations.
+ * Priority: Fail fast if any category score drops below its configured minimum.
  *
- * Env Vars:
- *  MIN_LH_PERF, MIN_LH_A11Y, MIN_LH_SEO, MIN_LH_BEST, MIN_LH_PWA
- *  LIGHTHOUSE_LAST_SUCCESS_PATH (optional override for output path)
+ * Default minimums (can be overridden via env):
+ *  MIN_LH_PERF=90 MIN_LH_A11Y=95 MIN_LH_SEO=90 MIN_LH_BEST=95 (scores are 0-100 integer form)
+ *
+ * Exit codes:
+ *  0 success
+ *  1 no report / unexpected error
+ *  2 threshold failure
  */
-import { existsSync, readdirSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { resolve, join } from 'node:path';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
-function findLatestLhr() {
+function loadLatestLhr() {
   if (!existsSync('.lighthouseci')) return null;
-  const files = readdirSync('.lighthouseci').filter(f => f.endsWith('.json'));
-  for (const f of files.reverse()) {
+  const files = readdirSync('.lighthouseci')
+    .filter(f => f.endsWith('.report.json') || f.endsWith('.lhr.json') || f.endsWith('.json'))
+    .sort((a, b) => b.localeCompare(a)); // reverse lexicographic (timestamps usually in name)
+  for (const f of files) {
     try {
       const data = JSON.parse(readFileSync(join('.lighthouseci', f), 'utf8'));
+      // Support possible lhci-wrapper structure
       if (data?.lhr?.categories) return data.lhr;
-      if (data?.categories) return data; // already an LHR root
-    } catch { /* ignore */ }
+      if (data?.categories?.performance) return data;
+    } catch {
+      // ignore parse errors
+    }
   }
   return null;
 }
 
-const lhr = findLatestLhr();
+const lhr = loadLatestLhr();
 if (!lhr) {
-  console.error('[lh-thresholds] No Lighthouse report found.');
+  console.error('[lh-thresholds] No Lighthouse report found in .lighthouseci');
   process.exit(1);
 }
 
-const categories = {
-  performance: lhr.categories?.performance?.score,
-  accessibility: lhr.categories?.accessibility?.score,
-  seo: lhr.categories?.seo?.score,
-  bestPractices: lhr.categories?.['best-practices']?.score,
-  pwa: lhr.categories?.pwa?.score,
+// Extract scores (0-1 floats) then convert to integer percentage for comparison
+const scores = {
+  performance: lhr.categories?.performance?.score ?? null,
+  accessibility: lhr.categories?.accessibility?.score ?? null,
+  seo: lhr.categories?.seo?.score ?? null,
+  best: lhr.categories?.['best-practices']?.score ?? null,
+  pwa: lhr.categories?.pwa?.score ?? null,
 };
 
+// Resolve thresholds (integer 0-100). If env missing, use defaults; pwa optional
+function envInt(name, fallback) {
+  if (process.env[name] && /^\d+$/.test(process.env[name])) return parseInt(process.env[name], 10);
+  return fallback;
+}
 const thresholds = {
-  performance: process.env.MIN_LH_PERF ? parseInt(process.env.MIN_LH_PERF, 10) : null,
-  accessibility: process.env.MIN_LH_A11Y ? parseInt(process.env.MIN_LH_A11Y, 10) : null,
-  seo: process.env.MIN_LH_SEO ? parseInt(process.env.MIN_LH_SEO, 10) : null,
-  bestPractices: process.env.MIN_LH_BEST ? parseInt(process.env.MIN_LH_BEST, 10) : null,
-  pwa: process.env.MIN_LH_PWA ? parseInt(process.env.MIN_LH_PWA, 10) : null,
+  performance: envInt('MIN_LH_PERF', 90),
+  accessibility: envInt('MIN_LH_A11Y', 95),
+  seo: envInt('MIN_LH_SEO', 90),
+  best: envInt('MIN_LH_BEST', 95),
+  // PWA often volatile; only enforce if user specified env
+  pwa: process.env.MIN_LH_PWA ? envInt('MIN_LH_PWA', 50) : null,
 };
 
-let anyConfigured = false;
 let allPass = true;
-const results = {};
-for (const key of Object.keys(categories)) {
-  const raw = categories[key];
-  const score = raw == null ? null : Math.round(raw * 100);
-  const threshold = thresholds[key];
-  if (threshold != null) anyConfigured = true;
-  const passed = threshold == null ? true : (score != null && score >= threshold);
-  if (threshold != null && !passed) allPass = false;
-  results[key] = { score, threshold, passed };
-}
-
-if (!anyConfigured) {
-  console.log('[lh-thresholds] No MIN_LH_* thresholds configured; skipping enforcement.');
-  process.exit(0);
-}
-
-console.log('[lh-thresholds] Evaluating Lighthouse thresholds:');
-for (const k of Object.keys(results)) {
-  const r = results[k];
-  if (r.threshold == null) continue;
-  console.log(`  ${k}: ${r.score ?? 'n/a'} / ${r.threshold} -> ${r.passed ? 'PASS' : 'FAIL'}`);
+console.log('[lh-thresholds] Evaluating category scores:');
+for (const key of Object.keys(scores)) {
+  const raw = scores[key];
+  const pct = raw == null ? null : Math.round(raw * 100);
+  const min = thresholds[key];
+  if (min == null) {
+    console.log(`  ${key.padEnd(14)}: ${pct ?? 'n/a'} (no min)`);
+    continue;
+  }
+  const pass = pct != null && pct >= min;
+  if (!pass) allPass = false;
+  console.log(`  ${key.padEnd(14)}: ${pct ?? 'n/a'} / ${min} -> ${pass ? 'PASS' : 'FAIL'}`);
 }
 
 if (!allPass) {
-  console.error('[lh-thresholds] One or more Lighthouse thresholds FAILED');
+  console.error('[lh-thresholds] One or more category thresholds FAILED');
   process.exit(2);
 }
 
-// All pass: write last-success artifact
-const outPath = resolve(process.env.LIGHTHOUSE_LAST_SUCCESS_PATH || 'badges/lighthouse-last-success.json');
-mkdirSync(resolve(outPath, '..'), { recursive: true });
-writeFileSync(outPath, JSON.stringify({
-  timestamp: new Date().toISOString(),
-  results,
-}, null, 2));
-console.log(`[lh-thresholds] Success artifact written: ${outPath}`);
+// Optional: basic budgets presence notice (actual enforcement handled by Lighthouse run with --budgetsPath)
+if (existsSync('lighthouse-budgets.json')) {
+  console.log('[lh-thresholds] Budgets file detected (enforced during Lighthouse run).');
+}
+
+console.log('[lh-thresholds] All thresholds satisfied.');
 process.exit(0);

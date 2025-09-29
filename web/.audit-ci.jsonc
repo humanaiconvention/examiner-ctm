@@ -1,0 +1,31 @@
+// audit-ci policy configuration
+// This governs dependency vulnerability enforcement in CI.
+// Strategy:
+//  - Fail immediately on any Critical or High severity vulnerabilities.
+//  - Moderate enforcement is staged separately by date in workflow logic.
+//  - Low severities are informational.
+//  - Allowlist stays empty; individual advisories can be added with justification.
+// Docs: https://github.com/IBM/audit-ci
+{
+  // Minimum npm audit level we care to parse (does not itself cause failure)
+  "auditLevel": "low",
+  // Explicit severity failure switches (we also layer workflow date gating for moderates)
+  "failOn": {
+    "critical": true,
+    "high": true,
+    "moderate": false,
+    "low": false
+  },
+  // Advisory IDs (GHSA / npm IDs) that are temporarily allowlisted with justification comments
+  "allowlist": [
+    // Example: "GHSA-xxxx-xxxx-xxxx" // <reason + planned removal date>
+  ],
+  // Output style: summary is concise for logs
+  "reportType": "summary",
+  // Do not attempt autofix in CI (determinism / reproducibility)
+  "runAutofix": false,
+  // Ignore dev dependencies for production attack surface (align with --omit=dev on raw audit)
+  "omit": ["dev"],
+  // If the registry returns ENOAUDIT, treat as pass (common for private registries)
+  "passEnoAudit": true
+}

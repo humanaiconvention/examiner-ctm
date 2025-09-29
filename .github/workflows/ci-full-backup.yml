@@ -215,14 +215,15 @@ jobs:
           npm --workspace web ci || (cd web && npm install)
       - name: Run Lighthouse CI
         working-directory: web
-        run: npm run lhci
+        run: |
+          if [ -f lighthouse-budgets.json ]; then echo 'Using performance budgets'; else echo 'No budgets file'; fi
+          npm run lhci -- --budgetsPath=./lighthouse-budgets.json || (echo "Lighthouse run failed" && exit 1)
       - name: Enforce Performance Budget
         working-directory: web
         run: npm run perf:check
       - name: Enforce Lighthouse Category Thresholds
         working-directory: web
-        run: |
-          node scripts/check-lighthouse-thresholds.mjs
+        run: node scripts/check-lighthouse-thresholds.mjs
       - name: Compute Week Key (for baseline cache)
         id: week_lh
         run: echo "WEEK_KEY=$(date +%G-%V)" >> $GITHUB_ENV && echo "week=$WEEK_KEY" >> $GITHUB_OUTPUT

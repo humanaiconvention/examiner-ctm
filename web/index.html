@@ -9,21 +9,26 @@
       name="description"
       content="HumanAI Convention builds trauma-informed, community-led governance frameworks for responsible artificial intelligence."
     />
+    <link rel="canonical" href="https://www.humanaiconvention.com/" />
+    <!-- Open Graph -->
+    <meta property="og:title" content="HumanAI Convention" />
+    <meta property="og:description" content="Trauma-informed, community-led governance for responsible AI." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.humanaiconvention.com/" />
+    <meta property="og:image" content="https://www.humanaiconvention.com/hero-preview.png" />
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="HumanAI Convention" />
+    <meta name="twitter:description" content="Trauma-informed, community-led governance for responsible AI." />
+    <meta name="twitter:image" content="https://www.humanaiconvention.com/hero-preview.png" />
+    <meta name="robots" content="index,follow" />
+    <!-- Basic security headers cannot be fully set via HTML; placeholder CSP meta (supplement with real header at CDN) -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none';" />
     <meta name="x-app-version" content="" />
   </head>
   <body>
     <div id="root"></div>
-    <script>
-      // Will be replaced at runtime after version.json loads (fallback) or inlined by future enhancement
-      (function attachVersion(){
-        fetch('/version.json').then(r=>r.ok?r.json():null).then(data=>{
-          if(!data) return;
-          window.__APP_VERSION__ = data;
-          const meta = document.querySelector('meta[name="x-app-version"]');
-          if(meta) meta.setAttribute('content', data.version + '+' + (data.commit||''));
-        }).catch(()=>{});
-      })();
-    </script>
+    <script>window.__APP_VERSION__ = undefined;</script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -1,7 +1,7 @@
 {
   "name": "web",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,7 +12,16 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lhci": "lhci autorun --upload.target=filesystem",
+    "perf:check": "node scripts/check-lighthouse-thresholds.mjs",
+    "preview:build": "npm run build && npm run preview",
+    "serve:dist": "npx serve -l 5000 dist",
+    "security:audit": "npm audit --omit=dev --json > audit.json || true",
+  "security:audit:ci": "audit-ci --config .audit-ci.jsonc --json --output audit-ci.json || true",
+    "security:convert-sarif": "node scripts/audit-to-sarif.mjs",
+  "verify:inline-version": "node scripts/verify-inline-version.mjs",
+  "verify:inline-version:hash": "node scripts/verify-inline-version.mjs --with-hash"
   },
   "dependencies": {
     "react": "^19.1.1",
@@ -26,6 +35,8 @@
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.3",
     "@cyclonedx/cyclonedx-npm": "^1.18.0",
+    "@lhci/cli": "^0.14.0",
+    "audit-ci": "^7.0.1",
     "eslint": "^9.36.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
@@ -33,6 +44,7 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.44.0",
     "vite": "^7.1.7",
-    "vitest": "^2.1.4"
+    "vitest": "^2.1.4",
+    "zxcvbn": "^4.4.2"
   }
 }

@@ -1,0 +1,204 @@
+name: 'Preview Protect'
+description: 'Injects preview password gate, verifies script and entropy, outputs JSON report, optional signing'
+inputs:
+  dist:
+    description: 'Path to built index.html'
+    required: true
+    default: 'web/dist/index.html'
+  password:
+    description: 'Preview password or __DISABLED__'
+    required: true
+  require-password:
+    description: 'If true, fail when password missing/disabled'
+    required: false
+    default: 'true'
+  min-length:
+    description: 'Minimum password length when enabled'
+    required: false
+    default: '10'
+  require-classes:
+    description: 'Character classes required (comma list of: upper,lower,digit,symbol)'
+    required: false
+    default: 'upper,lower,digit'
+  report-path:
+    description: 'Where to write JSON report'
+    required: false
+    default: 'web/dist/preview-lock-report.json'
+  working-directory:
+    description: 'Directory containing scripts'
+    required: false
+    default: 'web'
+  sign-report:
+    description: 'Sign the JSON report with cosign keyless'
+    required: false
+    default: 'true'
+  min-score:
+    description: 'Minimum zxcvbn score (0-4) required when password enabled'
+    required: false
+    default: '3'
+  max-script-bytes:
+    description: 'Maximum allowed injected script size in bytes'
+    required: false
+    default: '8192'
+  oci-push:
+    description: 'Push signed JSON report as OCI artifact to GHCR'
+    required: false
+    default: 'true'
+  oci-name:
+    description: 'OCI artifact name (repository suffix)'
+    required: false
+    default: 'preview-lock-report'
+outputs:
+  report-path:
+    description: 'Path of produced JSON report'
+    value: ${{ inputs.report-path }}
+  script-hash:
+    description: 'SHA256 of injected script'
+    value: ${{ steps.meta.outputs.script_hash }}
+  index-hash:
+    description: 'SHA256 of final index.html'
+    value: ${{ steps.meta.outputs.index_hash }}
+  pre-index-hash:
+    description: 'SHA256 of index.html before injection'
+    value: ${{ steps.meta.outputs.pre_index_hash }}
+runs:
+  using: 'composite'
+  steps:
+    - name: Validate inputs / entropy
+      shell: bash
+      run: |
+        set -euo pipefail
+        PW='${{ inputs.password }}'
+        REQ='${{ inputs.require-password }}'
+        MIN_LEN='${{ inputs.min-length }}'
+        CLASSES='${{ inputs.require-classes }}'
+        MIN_SCORE='${{ inputs.min-score }}'
+        if [ "$PW" = "__DISABLED__" ]; then
+          if [ "$REQ" = "true" ]; then
+            echo "Password required but explicitly disabled" >&2; exit 1; fi
+          echo "Preview protection disabled by sentinel"; exit 0
+        fi
+        if [ -z "$PW" ]; then
+          if [ "$REQ" = "true" ]; then
+            echo "Password required but empty" >&2; exit 1; else echo "No password; unlocked preview"; exit 0; fi
+        fi
+        if [ ${#PW} -lt $MIN_LEN ]; then echo "Password too short (<$MIN_LEN)" >&2; exit 1; fi
+        need_upper=0; need_lower=0; need_digit=0; need_symbol=0
+        IFS=',' read -ra reqs <<< "$CLASSES"
+        for r in "${reqs[@]}"; do case "$r" in upper) need_upper=1;; lower) need_lower=1;; digit) need_digit=1;; symbol) need_symbol=1;; esac; done
+        has_upper=0; has_lower=0; has_digit=0; has_symbol=0
+        [[ $PW =~ [A-Z] ]] && has_upper=1
+        [[ $PW =~ [a-z] ]] && has_lower=1
+        [[ $PW =~ [0-9] ]] && has_digit=1
+        [[ $PW =~ [^A-Za-z0-9] ]] && has_symbol=1
+        if [ $need_upper -eq 1 ] && [ $has_upper -eq 0 ]; then echo "Missing uppercase" >&2; exit 1; fi
+        if [ $need_lower -eq 1 ] && [ $has_lower -eq 0 ]; then echo "Missing lowercase" >&2; exit 1; fi
+        if [ $need_digit -eq 1 ] && [ $has_digit -eq 0 ]; then echo "Missing digit" >&2; exit 1; fi
+        if [ $need_symbol -eq 1 ] && [ $has_symbol -eq 0 ]; then echo "Missing symbol" >&2; exit 1; fi
+        # zxcvbn scoring (Node inline)
+        cat > /tmp/zxcvbn-check.mjs <<'EOF'
+import zxcvbn from 'zxcvbn';
+const pw = process.env.PW || '';
+const min = parseInt(process.env.MIN_SCORE || '3',10);
+const res = zxcvbn(pw);
+if (res.score < min) {
+  console.error(`Password zxcvbn score ${res.score} below minimum ${min}`);
+  process.exit(1);
+}
+console.log(`zxcvbn score ${res.score} >= ${min} (ok)`);
+EOF
+        node /tmp/zxcvbn-check.mjs || { echo 'Entropy scoring failed'; exit 1; }
+        echo "Password entropy checks passed (len=${#PW})"
+    - name: Inject & verify
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        set -euo pipefail
+        PRE_HASH=""
+        if [ -f dist/index.html ]; then PRE_HASH=$(sha256sum dist/index.html | awk '{print $1}'); fi
+        echo "$PRE_HASH" > dist/.pre_injection_hash
+        if [ '${{ inputs.password }}' = '__DISABLED__' ] || [ -z '${{ inputs.password }}' ]; then
+          echo "Skipping injection (disabled/unset)"
+          node scripts/verify-preview-lock.mjs --dist dist/index.html --json --out '${{ inputs.report-path }}'
+        else
+          node scripts/preview-protect.mjs --password '${{ inputs.password }}' --dist dist/index.html
+          node scripts/verify-preview-lock.mjs --dist dist/index.html --json --out '${{ inputs.report-path }}' --require-password
+        fi
+    - name: Compute hashes & enrich report
+      id: meta
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        set -euo pipefail
+        dist='${{ inputs.dist }}'
+        if [ ! -f "$dist" ]; then echo "Index missing: $dist" >&2; exit 1; fi
+        index_hash=$(sha256sum "$dist" | awk '{print $1}')
+        script_hash=$(jq -r '.scriptHashSha256 // empty' '${{ inputs.report-path }}' || true)
+        pre_hash=""; if [ -f dist/.pre_injection_hash ]; then pre_hash=$(cat dist/.pre_injection_hash); fi
+        # Enforce script size if present
+        if grep -q '__PREVIEW_LOCK__' "$dist"; then
+          bytes=$(grep -o '<script[^>]*id="__PREVIEW_LOCK__"[^>]*>.*</script>' -a "$dist" | wc -c | tr -d ' ')
+          max='${{ inputs.max-script-bytes }}'
+          if [ "$bytes" -gt "$max" ]; then
+            echo "Injected script size $bytes exceeds max $max" >&2; exit 1
+          fi
+        fi
+        tmp=$(mktemp)
+        jq --arg ih "$index_hash" --arg sh "$script_hash" --arg pre "$pre_hash" '.indexHtmlSha256=$ih | .scriptHashSha256=$sh | .preInjectionHtmlSha256=$pre' '${{ inputs.report-path }}' > "$tmp" && mv "$tmp" '${{ inputs.report-path }}'
+        echo "script_hash=$script_hash" >> $GITHUB_OUTPUT
+        echo "index_hash=$index_hash" >> $GITHUB_OUTPUT
+        echo "pre_index_hash=$pre_hash" >> $GITHUB_OUTPUT
+    - name: Sign report (cosign keyless)
+      if: inputs.sign-report == 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        set -euo pipefail
+        export COSIGN_EXPERIMENTAL=1
+        cosign sign-blob --yes '${{ inputs.report-path }}' \
+          --output-signature '${{ inputs.report-path }}.sig' \
+          --output-certificate '${{ inputs.report-path }}.cert'
+        cosign verify-blob \
+          --certificate-identity-regexp ".*" \
+          --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+          --signature '${{ inputs.report-path }}.sig' '${{ inputs.report-path }}'
+    - name: Push OCI artifact
+      if: inputs.oci-push == 'true'
+      shell: bash
+      env:
+        CR_NAME: ${{ inputs.oci-name }}
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        set -euo pipefail
+        if ! command -v oras >/dev/null; then
+          v=1.2.0
+          curl -sL https://github.com/oras-project/oras/releases/download/v${v}/oras_${v}_linux_amd64.tar.gz | tar -xz -C /tmp
+          mv /tmp/oras $GITHUB_WORKSPACE/oras
+          chmod +x $GITHUB_WORKSPACE/oras
+          PATH="$GITHUB_WORKSPACE:$PATH"
+        fi
+        echo "$GITHUB_TOKEN" | $GITHUB_WORKSPACE/oras login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+        REF="ghcr.io/${GITHUB_REPOSITORY}/${CR_NAME}:${GITHUB_SHA}"
+        echo "Pushing $REF"
+        $GITHUB_WORKSPACE/oras push "$REF" '${{ inputs.report-path }}:application/json'
+        if [ '${{ inputs.sign-report }}' = 'true' ]; then
+          export COSIGN_EXPERIMENTAL=1
+          cosign sign --yes "$REF"
+        fi
+    - name: Upload artifacts
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: preview-lock-assets
+        path: |
+          ${{ inputs.report-path }}
+          ${{ inputs.report-path }}.sig
+          ${{ inputs.report-path }}.cert
+        if-no-files-found: ignore
+    - name: Summary
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        if [ -f '${{ inputs.report-path }}' ]; then
+          echo "### Preview Lock Report" >> $GITHUB_STEP_SUMMARY
+          jq -r '["Field","Value"], ["Status", .status], ["PasswordProvided", .passwordProvided], ["Disabled", .passwordDisabled], ["HasMarker", .hasMarker], ["ScriptHash", (.scriptHashSha256 // "-")], ["IndexHash", (.indexHtmlSha256 // "-")], ["Length", (.scriptLength|tostring)] | @tsv' '${{ inputs.report-path }}' | column -t -s $'\t' >> $GITHUB_STEP_SUMMARY || true
+        fi

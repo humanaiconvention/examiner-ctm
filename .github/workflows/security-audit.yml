@@ -1,0 +1,188 @@
+name: Daily Security Audit
+
+# Action Pin Table
+# | Action | Version | Commit SHA |
+# | actions/checkout | v5.0.0 | 08c6903cd8c0fde910a37f88322edcfb5dd907a8 |
+# | actions/setup-node | v5.0.0 | a0853c24544627f65ddf259abe73b1d18a591444 |
+# | actions/upload-artifact | v4.6.2 | ea165f8d65b6e75b540449e92b4886f43607fa02 |
+
+on:
+  schedule:
+    - cron: '27 5 * * *' # Daily 05:27 UTC (staggered)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  security-events: read
+
+env:
+  NODE_VERSION: '20'
+  STAGE_MODERATE_FAIL_DATE: '2025-11-01' # After this date moderate vulns will be included in SARIF & failure logic
+  SBOM_ENFORCE_DATE: '2025-10-15' # Mirror deploy enforcement date for SBOM drift
+
+jobs:
+  audit:
+    name: npm audit (web workspace)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Setup Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - name: Install (clean)
+        run: npm ci
+      - name: Build (for integrity hash)
+        run: npm run build
+      - name: Compute current integrity hash
+        run: node scripts/verify-inline-version.mjs --with-hash
+      - name: Persist current integrity file (copy out of workspace)
+        run: cp dist/version-integrity.json ../current-version-integrity.json
+      - name: Compute SBOM (CycloneDX)
+        run: |
+          mkdir -p sbom
+          npx @cyclonedx/cyclonedx-npm --spec-version 1.5 --output-format json --output-file sbom/sbom.json || echo "SBOM generation failed (non-fatal)"
+          if [ -f sbom/sbom.json ]; then sha256sum sbom/sbom.json | awk '{print "SBOM current SHA256=" $1}'; fi
+      - name: SBOM Component Diff (informational)
+        run: |
+          if [ -f sbom/sbom.json ]; then
+            # Attempt to fetch baseline SBOM from main branch (if present)
+            if git show HEAD:web/sbom/sbom.json > baseline-sbom.json 2>/dev/null; then
+              echo "Baseline SBOM retrieved.";
+              node scripts/compare-sbom.mjs --current sbom/sbom.json --baseline baseline-sbom.json --license --out sbom-diff.json || echo "SBOM diff failed"
+            else
+              echo "No baseline SBOM available for diff.";
+              node scripts/compare-sbom.mjs --current sbom/sbom.json --license --out sbom-diff.json || echo "SBOM diff failed"
+            fi
+            if [ -f sbom-diff.json ]; then echo "SBOM Diff Summary:"; jq -r '.summary' sbom-diff.json; fi
+          else
+            echo "No current SBOM present; skipping diff.";
+          fi
+      - name: Run audit-ci (policy enforcement)
+        run: npm run security:audit:ci
+      - name: Fallback generate audit.json for SARIF (npm audit)
+        run: |
+          if [ ! -f audit.json ]; then npm run security:audit; fi
+      - name: Convert audit to SARIF
+        env:
+          STAGE_MODERATE_FAIL_DATE: ${{ env.STAGE_MODERATE_FAIL_DATE }}
+        run: npm run security:convert-sarif
+      - name: Summarize & enforce policy (layered)
+        id: summarize
+        run: |
+          node -e "
+            const fs=require('fs');
+            const data=JSON.parse(fs.readFileSync('audit.json','utf8'));
+            const vulns=Object.values(data.vulnerabilities||{});
+            let c=0,h=0,m=0,l=0; for(const v of vulns){
+              const s=v.severity||v.severityValue; if(s==='critical') c++; else if(s==='high') h++; else if(s==='moderate') m++; else if(s==='low') l++; }
+            const summary={critical:c,high:h,moderate:m,low:l,total:c+h+m+l};
+            fs.writeFileSync('audit-summary.json', JSON.stringify(summary,null,2));
+            console.log('[audit-summary]', summary);
+            const stageDate=new Date(process.env.STAGE_MODERATE_FAIL_DATE||'2099-12-31');
+            const now=new Date();
+            let fail=false; if(c>0||h>0) fail=true; if(now>=stageDate && m>0) fail=true; if(fail) process.exit(2);
+          "
+      - name: Compare integrity hash with repo (drift signal)
+        id: hashdiff
+        run: |
+          echo "Looking for prior version-integrity.json in repo history..."
+          if git show HEAD:web/dist/version-integrity.json > prev.json 2>/dev/null; then
+            echo "Found previous integrity file."; cat prev.json
+            echo "--- Current ---"; cat ../current-version-integrity.json
+            prevSha=$(jq -r '.sha256' prev.json || echo 'none')
+            currSha=$(jq -r '.sha256' ../current-version-integrity.json || echo 'none')
+            echo "prevSha=$prevSha" >> $GITHUB_OUTPUT
+            echo "currSha=$currSha" >> $GITHUB_OUTPUT
+            if [ "$prevSha" = "$currSha" ]; then
+              echo "No drift detected";
+            else
+              echo "Potential drift (hash changed).";
+            fi
+          else
+            echo "No previous integrity file present (first run or not yet committed).";
+            currSha=$(jq -r '.sha256' ../current-version-integrity.json || echo 'none')
+            echo "prevSha=absent" >> $GITHUB_OUTPUT
+            echo "currSha=$currSha" >> $GITHUB_OUTPUT
+          fi
+      - name: Fail if drift without new commit
+        run: |
+          set -e
+          if [ -f web/version-integrity.json ]; then
+            baseSha=$(jq -r '.sha256' web/version-integrity.json || echo 'none')
+            currSha=$(jq -r '.sha256' current-version-integrity.json || echo 'none')
+            baseCommit=$(jq -r '.commit' web/version-integrity.json || echo 'unknown')
+            currCommit=$(jq -r '.commit' current-version-integrity.json || echo 'unknown')
+            echo "Baseline commit: $baseCommit hash: $baseSha";
+            echo "Current  commit: $currCommit hash: $currSha";
+            if [ "$baseCommit" = "$currCommit" ] && [ "$baseSha" != "$currSha" ]; then
+              echo "ERROR: Non-reproducible build detected (same commit different dist/index.html hash).";
+              exit 42
+            else
+              echo "Reproducibility check passed.";
+            fi
+          else
+            echo "No committed baseline version-integrity.json present; skipping reproducibility gate.";
+          fi
+      - name: SBOM Drift Compare (date-gated enforcement)
+        run: |
+          set -e
+          enforceDate=${SBOM_ENFORCE_DATE:-2099-12-31}
+          today=$(date -u +%Y-%m-%d)
+          if [ ! -f sbom/sbom.json ]; then echo "No current SBOM generated; skipping."; exit 0; fi
+          currentSha=$(sha256sum sbom/sbom.json | awk '{print $1}')
+          echo "Current SBOM SHA: $currentSha"
+          # Attempt to retrieve baseline SBOM from main (same path as produced in deploy job)
+          if git show HEAD:web/sbom/sbom.json > baseline-sbom.json 2>/dev/null; then
+            baseSha=$(sha256sum baseline-sbom.json | awk '{print $1}')
+            echo "Baseline SBOM SHA: $baseSha"
+            if [ "$baseSha" != "$currentSha" ]; then
+              if [ "$today" \> "$enforceDate" ] || [ "$today" = "$enforceDate" ]; then
+                echo "ERROR: SBOM hash drift detected after enforcement date ($enforceDate)."; exit 56
+              else
+                echo "::warning::SBOM hash drift detected (will be fatal after $enforceDate)"
+              fi
+            else
+              echo "SBOM hashes match (no drift)."
+            fi
+          else
+            echo "No baseline SBOM found in repo (first run or not yet committed)."
+          fi
+      # TODO: Add SARIF upload step once correct action repo & commit are confirmed.
+      # (GitHub native: github/codeql-action/upload-sarif requires inclusion via codeql init or proper path.)
+      - name: Upload SARIF (dependency scan)
+        uses: github/codeql-action/upload-sarif@3599b3baa15b485a2e49ef411a7a4bb2452e7f93 # v3.30.5
+        with:
+          sarif_file: web/audit.sarif
+      - name: Upload raw audit artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: audit-artifacts
+          path: |
+            web/audit.json
+            web/audit-summary.json
+            web/audit.sarif
+            current-version-integrity.json
+          retention-days: 5
+      - name: Open / Update Issue on Failure
+        if: failure()
+        run: |
+          bodyFile=.github/audit-issue-body.md
+          echo '### Daily Security Audit Failure' > $bodyFile
+          echo '' >> $bodyFile
+            echo '\nHigh or Critical vulnerabilities detected. See attached artifact for details.' >> $bodyFile
+          issueNumber=$(gh issue list --search "Daily Security Audit" --state open --json number,title --jq '.[0].number' || true)
+          if [ -z "$issueNumber" ]; then
+            gh issue create --title "Daily Security Audit" --body-file $bodyFile --label security
+          else
+            gh issue comment $issueNumber --body-file $bodyFile
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

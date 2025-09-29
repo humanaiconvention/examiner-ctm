@@ -71,6 +71,8 @@ jobs:
     environment: github-pages
     env:
       NODE_VERSION: '20'
+      # After this date SBOM mismatch in verify job becomes a failure (promoted from warning)
+      SBOM_ENFORCE_DATE: '2025-10-15'
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -101,6 +103,291 @@ jobs:
           # Inject meta tag (before closing head) & window.__APP_VERSION__
           if grep -q '</head>' dist/index.html; then
             sed -i "s#</head>#<meta name=\"x-app-version\" content=\"$GITHUB_SHA\" />\n<script>window.__APP_VERSION__=$(cat dist/version.json)</script>\n</head>#" dist/index.html || true
+          fi
+      - name: Compute Integrity Hash
+        run: |
+          cd web
+          node scripts/verify-inline-version.mjs --with-hash || exit 1
+          cat dist/version-integrity.json
+      - name: Compute SBOM (CycloneDX minimal for attestation)
+        run: |
+          cd web
+          mkdir -p sbom
+          npx @cyclonedx/cyclonedx-npm --spec-version 1.5 --output-format json --output-file sbom/sbom.json
+          jq -r ".components | length as $n | \"SBOM components: \" + ($n|tostring)" sbom/sbom.json || true
+      - name: SBOM Component Diff (pre-baseline commit)
+        run: |
+          cd web
+          if [ -f sbom/sbom.json ]; then
+            if git show HEAD:web/sbom/sbom.json > baseline-sbom.json 2>/dev/null; then
+              node scripts/compare-sbom.mjs --current sbom/sbom.json --baseline baseline-sbom.json --license --out sbom-diff.json || echo "SBOM diff failed"
+            else
+              node scripts/compare-sbom.mjs --current sbom/sbom.json --license --out sbom-diff.json || echo "SBOM diff failed"
+            fi
+            if [ -f sbom-diff.json ]; then echo "SBOM Diff:"; jq -r '.summary' sbom-diff.json; fi
+          else
+            echo "No current SBOM present; skipping diff.";
+          fi
+      - name: Derive SBOM & Integrity Hash Attestation
+        id: attest
+        run: |
+          cd web
+          sbomSha=$(sha256sum sbom/sbom.json | awk '{print $1}')
+          integSha=$(jq -r '.sha256' dist/version-integrity.json)
+          jq -n --arg sbom "$sbomSha" --arg integrity "$integSha" --arg commit "$GITHUB_SHA" --arg time "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '{commit:$commit,time:$time,integritySha256:$integrity,sbomSha256:$sbom,format:"cyclonedx-1.5"}' > web/attestation.json
+          cat web/attestation.json
+          echo "sbomSha=$sbomSha" >> $GITHUB_OUTPUT
+          echo "integritySha=$integSha" >> $GITHUB_OUTPUT
+      - name: Generate Provenance (SLSA-lite in-toto statement)
+        id: provenance
+        run: |
+          cd web
+          integSha=$(jq -r '.sha256' dist/version-integrity.json)
+          sbomSha=$(sha256sum sbom/sbom.json | awk '{print $1}')
+          attSha=$(sha256sum attestation.json | awk '{print $1}')
+          buildType="https://github.com/${GITHUB_REPOSITORY}/actions/workflows/deploy-unified.yml@${GITHUB_SHA}"
+          started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          # Minimal in-toto / SLSA style provenance
+          jq -n --arg commit "$GITHUB_SHA" --arg integ "$integSha" --arg sbom "$sbomSha" --arg att "$attSha" --arg started "$started" --arg builder "$buildType" '{_type:"https://in-toto.io/Statement/v0.1", subject:[{name:"dist/index.html", digest:{sha256:$integ}}], predicateType:"https://slsa.dev/provenance/v1", predicate:{buildDefinition:{buildType:$builder, externalParameters:{}, resolvedDependencies:[{name:"sbom.json", digest:{sha256:$sbom}}, {name:"attestation.json", digest:{sha256:$att}}]}, runDetails:{builder:{id:$builder}, metadata:{invocationId:$commit, startedOn:$started}}}}' > provenance.json
+          cat provenance.json
+          echo "provenanceSha=$(sha256sum provenance.json | awk '{print $1}')" >> $GITHUB_OUTPUT
+      - name: Generate SLSA v1 Predicate (consolidated)
+        id: slsa
+        run: |
+          cd web
+          integSha=$(jq -r '.sha256' dist/version-integrity.json)
+          buildWorkflow="https://github.com/${GITHUB_REPOSITORY}/.github/workflows/deploy-unified.yml@${GITHUB_SHA}"
+          started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          sbomSha=$(sha256sum sbom/sbom.json | awk '{print $1}')
+          attSha=$(sha256sum attestation.json | awk '{print $1}')
+          provLiteSha=$(sha256sum provenance.json | awk '{print $1}')
+          jq -n --arg integ "$integSha" --arg sbom "$sbomSha" --arg att "$attSha" --arg prov "$provLiteSha" --arg builder "$buildWorkflow" --arg commit "$GITHUB_SHA" --arg started "$started" '{"_type":"https://in-toto.io/Statement/v0.1","subject":[{"name":"dist/index.html","digest":{"sha256":$integ}}],"predicateType":"https://slsa.dev/provenance/v1","predicate":{"buildDefinition":{"buildType":$builder,"externalParameters":{},"resolvedDependencies":[{name:"sbom.json",digest:{sha256:$sbom}},{name:"attestation.json",digest:{sha256:$att}},{name:"provenance.json",digest:{sha256:$prov}}]},"runDetails":{"builder":{"id":$builder},"metadata":{"invocationId":$commit,"startedOn":$started}}}}' > slsa-provenance.json
+          cat slsa-provenance.json
+          echo "slsaProvenanceSha=$(sha256sum slsa-provenance.json | awk '{print $1}')" >> $GITHUB_OUTPUT
+      # SLSA predicate: Add a dedicated job in future for official generator if required.
+      - name: Upload Attestation Artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: attestation
+          path: web/attestation.json
+          retention-days: 15
+      - name: Upload Provenance Artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: provenance
+          path: web/provenance.json
+          retention-days: 15
+      - name: Commit baseline integrity & attestation (fast-forward)
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cp web/dist/version-integrity.json web/version-integrity.json
+          cp web/attestation.json web/attestation-latest.json
+          cp web/provenance.json web/provenance-latest.json || true
+          cp web/slsa-provenance.json web/slsa-provenance-latest.json || true
+          # Commit SBOM baseline for drift detection in daily audit
+          if [ -f web/sbom/sbom.json ]; then
+            mkdir -p web/sbom
+            cp web/sbom/sbom.json web/sbom/sbom.json
+            git add web/sbom/sbom.json || true
+          fi
+          git add web/version-integrity.json web/attestation-latest.json || true
+          git add web/provenance-latest.json web/slsa-provenance-latest.json || true
+          if git diff --cached --quiet; then echo "No baseline changes to commit"; exit 0; fi
+          git commit -m "chore: update integrity baseline (ci)" || exit 0
+          git pull --ff-only origin main || true
+          git push origin HEAD:main || echo "Non-fatal: push failed (race)"
+      - name: Install Cosign
+        run: |
+          COSIGN_VERSION=v2.4.0
+          curl -sSL -o cosign.tgz https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux-amd64.tgz
+          tar -xzf cosign.tgz cosign
+          sudo mv cosign /usr/local/bin/cosign
+          cosign version || true
+      - name: Sign Artifacts (keyless)
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          set -e
+          cd web
+          # Capture signature, certificate (OIDC leaf cert), and bundle (Rekor inclusion proof) for each artifact
+          sign_one() {
+            local file=$1 base=$2
+            echo "Signing $file -> $base"
+            cosign sign-blob --yes "$file" \
+              --output-signature "$base.sig" \
+              --output-certificate "$base.cert" \
+              --bundle "$base.bundle" || { echo "Signing failed for $file"; exit 1; }
+          }
+          sign_one attestation.json attestation
+          sign_one dist/version-integrity.json version-integrity
+          if [ -f sbom/sbom.json ]; then sign_one sbom/sbom.json sbom; fi
+          if [ -f provenance.json ]; then sign_one provenance.json provenance; fi
+          if [ -f slsa-provenance.json ]; then sign_one slsa-provenance.json slsa-provenance; fi
+      - name: Verify Signatures & Rekor Inclusion
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          set -e
+          cd web
+          IDENTITY_SUB="https://github.com/${GITHUB_REPOSITORY}/.github/workflows/deploy-unified.yml@refs/heads/main"
+          ISSUER="https://token.actions.githubusercontent.com"
+          verify_blob() {
+            local file=$1 sig=$2
+            if [ ! -f "$file" ]; then echo "Missing $file"; exit 1; fi
+            if [ ! -f "$sig" ]; then echo "Missing signature $sig"; exit 1; fi
+            echo "Verifying $file";
+            cosign verify-blob --signature "$sig" "$file" \
+              --certificate-identity "$IDENTITY_SUB" \
+              --certificate-oidc-issuer "$ISSUER" || { echo "cosign verify-blob failed for $file"; exit 1; }
+          }
+          verify_blob attestation.json attestation.sig
+          verify_blob dist/version-integrity.json version-integrity.sig
+          [ -f sbom/sbom.json ] && verify_blob sbom/sbom.json sbom.sig || echo "No SBOM to verify"
+          [ -f provenance.json ] && verify_blob provenance.json provenance.sig || echo "No provenance to verify"
+          [ -f slsa-provenance.json ] && verify_blob slsa-provenance.json slsa-provenance.sig || echo "No slsa-provenance to verify"
+          echo "Signatures verified. Validating Rekor inclusion proofs (bundles)."
+          bundle_check() {
+            local base=$1
+            if [ ! -f "$base.bundle" ]; then echo "Missing bundle for $base"; return 1; fi
+            # Basic JSON sanity & required fields
+            if ! jq -e '.Payload.body | length > 0 and .LogID and .IntegratedTime' "$base.bundle" >/dev/null 2>&1; then
+              echo "Bundle validation failed for $base (missing required fields)"; return 2; fi
+            echo "Bundle OK for $base (LogID=$(jq -r '.LogID' $base.bundle) Index=$(jq -r '.Verification.InclusionProof.LogIndex // "?"' $base.bundle))";
+          }
+          bundle_check attestation || exit 1
+          bundle_check version-integrity || exit 1
+          [ -f sbom.bundle ] && bundle_check sbom || echo "No SBOM bundle"
+            [ -f provenance.bundle ] && bundle_check provenance || echo "No provenance bundle"
+          [ -f slsa-provenance.bundle ] && bundle_check slsa-provenance || echo "No slsa-provenance bundle"
+          # Additional lightweight cert sanity: ensure OIDC issuer present in cert PEM
+          cert_check() {
+            local base=$1
+            if [ -f "$base.cert" ]; then
+              if ! grep -q "sigstore" "$base.cert"; then echo "Warning: cert for $base lacks expected 'sigstore' marker"; fi
+            fi
+          }
+          cert_check attestation
+          cert_check version-integrity
+          cert_check sbom || true
+          cert_check provenance || true
+          cert_check slsa-provenance || true
+          echo "Rekor inclusion & certificate sanity checks complete."
+      - name: Upload Signatures
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: signatures
+          path: |
+            web/attestation.sig
+            web/version-integrity.sig
+            web/sbom/sbom.sig
+            web/provenance.sig
+            web/slsa-provenance.sig
+            web/attestation.cert
+            web/version-integrity.cert
+            web/sbom/sbom.cert
+            web/provenance.cert
+            web/slsa-provenance.cert
+            web/attestation.bundle
+            web/version-integrity.bundle
+            web/sbom/sbom.bundle
+            web/provenance.bundle
+            web/slsa-provenance.bundle
+          if-no-files-found: ignore
+          retention-days: 15
+      - name: Policy Enforcement (lightweight)
+        run: |
+          set -e
+          echo "Evaluating policy: .github/policies/sigstore-policy.yaml"
+          if [ ! -f .github/policies/sigstore-policy.yaml ]; then echo "Policy file missing"; exit 1; fi
+          required=("web/dist/version-integrity.json:version-integrity" "web/attestation.json:attestation" "web/provenance.json:provenance" "web/slsa-provenance.json:slsa-provenance")
+          failures=0
+          for pair in "${required[@]}"; do
+            file=${pair%%:*}; base=${pair##*:}
+            if [ -f "$file" ]; then
+              for ext in sig cert bundle; do
+                path="web/${base}.${ext}"
+                if [ ! -f "$path" ]; then echo "Missing $ext for $base ($path)"; failures=$((failures+1)); fi
+              done
+            else
+              echo "Artifact file absent (optional or not generated): $file";
+            fi
+          done
+          if [ $failures -gt 0 ]; then
+            echo "Policy enforcement: FAILED ($failures missing signature assets)"; exit 87
+          fi
+          echo "Policy enforcement: PASSED"
+      - name: OCI Reference Signature Verification (cosign verify)
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          set -e
+          repoLower="${GITHUB_REPOSITORY,,}"
+          base="ghcr.io/${repoLower}"
+          tag="$GITHUB_SHA"
+          IDENTITY_SUB="https://github.com/${GITHUB_REPOSITORY}/.github/workflows/deploy-unified.yml@refs/heads/main"
+          ISSUER="https://token.actions.githubusercontent.com"
+          verify_ref() {
+            local ref=$1
+            echo "Verifying OCI ref: $ref"
+            cosign verify "$ref" \
+              --certificate-identity "$IDENTITY_SUB" \
+              --certificate-oidc-issuer "$ISSUER" >/dev/null || { echo "cosign verify failed for $ref"; exit 1; }
+          }
+          verify_ref ${base}/attestation:${tag}
+          verify_ref ${base}/integrity:${tag}
+          if oras manifest fetch ${base}/sbom:${tag} >/dev/null 2>&1; then verify_ref ${base}/sbom:${tag}; else echo "No sbom ref found"; fi
+          if oras manifest fetch ${base}/provenance:${tag} >/dev/null 2>&1; then verify_ref ${base}/provenance:${tag}; else echo "No provenance ref found"; fi
+          if oras manifest fetch ${base}/slsa-provenance:${tag} >/dev/null 2>&1; then verify_ref ${base}/slsa-provenance:${tag}; else echo "No slsa-provenance ref found"; fi
+          echo "OCI reference verification complete."
+      - name: Push OCI Artifacts (attestation & integrity)
+        env:
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          repoLower="${GITHUB_REPOSITORY,,}" # lowercase
+          base="ghcr.io/${repoLower}"
+          echo "Logging into ghcr.io as $GHCR_USER"
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+          # Pack simple OCI images using tar layers (fallback: oras if available)
+          mkdir -p oci
+          cp web/attestation.json oci/attestation.json
+          cp web/dist/version-integrity.json oci/version-integrity.json
+          if [ -f web/sbom/sbom.json ]; then cp web/sbom/sbom.json oci/sbom.json; fi
+          if [ -f web/provenance.json ]; then cp web/provenance.json oci/provenance.json; fi
+          if [ -f web/slsa-provenance.json ]; then cp web/slsa-provenance.json oci/slsa-provenance.json; fi
+          # Use oras if present, else install
+          if ! command -v oras >/dev/null 2>&1; then
+            curl -sSL https://github.com/oras-project/oras/releases/download/v1.2.0/oras_1.2.0_linux_amd64.tar.gz | tar -xz oras && sudo mv oras /usr/local/bin/
+          fi
+          tag="$GITHUB_SHA"
+          oras push ${base}/attestation:${tag} oci/attestation.json:application/json
+          oras push ${base}/integrity:${tag} oci/version-integrity.json:application/json
+          if [ -f oci/sbom.json ]; then oras push ${base}/sbom:${tag} oci/sbom.json:application/json; fi
+          if [ -f oci/provenance.json ]; then oras push ${base}/provenance:${tag} oci/provenance.json:application/json; fi
+          if [ -f oci/slsa-provenance.json ]; then oras push ${base}/slsa-provenance:${tag} oci/slsa-provenance.json:application/json; fi
+      - name: Upload Integrity Artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: version-integrity
+          path: web/dist/version-integrity.json
+          retention-days: 10
+      - name: Append to Transparency Log Issue
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          issueTitle="Deployment Transparency Log"
+          bodyLine=$(jq -r '. | "- $(.generatedAt) commit=${{ github.sha }} sha256=" + .sha256' web/dist/version-integrity.json)
+          number=$(gh issue list --search "$issueTitle" --state open --json number,title --jq '.[0].number' || true)
+          if [ -z "$number" ]; then
+            gh issue create --title "$issueTitle" --body "### Transparency Log\n$bodyLine" --label observability || true
+          else
+            gh issue comment "$number" --body "$bodyLine" || true
           fi
       - name: Dist Diagnostics
         run: |
@@ -138,6 +425,9 @@ jobs:
           echo "Commit: $GITHUB_SHA" >> $GITHUB_STEP_SUMMARY
           echo "Base Path: ${PUBLIC_BASE_PATH:-/(computed by vite)}" >> $GITHUB_STEP_SUMMARY
           echo "Version JSON: ${{ steps.deployment.outputs.page_url }}/version.json" >> $GITHUB_STEP_SUMMARY
+          echo "Integrity Hash: $(jq -r '.sha256' web/dist/version-integrity.json)" >> $GITHUB_STEP_SUMMARY
+          echo "SBOM SHA256: ${{ steps.attest.outputs.sbomSha }}" >> $GITHUB_STEP_SUMMARY
+          echo "Attestation Integrity SHA256: ${{ steps.attest.outputs.integritySha }}" >> $GITHUB_STEP_SUMMARY
       - name: Slack Notify (optional)
         if: success() && env.SLACK_WEBHOOK_URL != ''
         env:
@@ -145,6 +435,64 @@ jobs:
         run: |
           payload=$(jq -n --arg url "${{ steps.deployment.outputs.page_url }}" --arg sha "$GITHUB_SHA" '{text:"Deploy succeeded", url:$url, commit:$sha}')
           curl -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL" || echo "Slack notify failed"
+
+  verify:
+    name: Rebuild & Verify (Determinism)
+    needs: deploy
+    if: needs.deploy.result == 'success'
+    runs-on: ubuntu-latest
+    env:
+      NODE_VERSION: '20'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Setup Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - name: Install deps
+        run: |
+          npm ci
+          npm --workspace web ci || (cd web && npm install)
+      - name: Rebuild
+        run: |
+          cd web
+          npm run build
+          node scripts/verify-inline-version.mjs --with-hash
+      - name: Compare Integrity Hash
+        run: |
+          set -e
+          baseHash=$(jq -r '.sha256' web/version-integrity.json || echo 'none')
+          newHash=$(jq -r '.sha256' web/dist/version-integrity.json || echo 'none')
+          echo "Baseline: $baseHash"
+          echo "Rebuild : $newHash"
+          if [ "$baseHash" != "$newHash" ]; then
+            echo "Integrity hash mismatch (non-deterministic build?)"; exit 1; fi
+      - name: SBOM Recompute & Compare (best-effort)
+        run: |
+          cd web
+            mkdir -p sbom
+          npx @cyclonedx/cyclonedx-npm --spec-version 1.5 --output-format json --output-file sbom/sbom-verify.json || true
+          newSbomSha=$(sha256sum sbom/sbom-verify.json | awk '{print $1}' || echo 'none')
+          if [ -f sbom/sbom.json ]; then baseSbomSha=$(sha256sum sbom/sbom.json | awk '{print $1}'); else baseSbomSha='unknown'; fi
+          echo "SBOM baseline: $baseSbomSha"; echo "SBOM rebuild : $newSbomSha";
+          if [ "$baseSbomSha" != "unknown" ] && [ "$baseSbomSha" != "$newSbomSha" ]; then
+            enforceDate=${SBOM_ENFORCE_DATE:-2099-12-31}
+            now=$(date -u +%Y-%m-%d)
+            if [ "$now" \> "$enforceDate" ] || [ "$now" = "$enforceDate" ]; then
+              echo "ERROR: SBOM hash mismatch after enforcement date ($enforceDate)."; exit 55
+            else
+              echo "::warning::SBOM hash differs (transitive changes?) - will become fatal after $enforceDate";
+            fi
+          fi
+      - name: Verification Summary
+        run: |
+          echo "Integrity hash reproduced successfully." >> $GITHUB_STEP_SUMMARY
+          echo "Baseline hash: $(jq -r '.sha256' web/version-integrity.json)" >> $GITHUB_STEP_SUMMARY
+          echo "Rebuild  hash: $(jq -r '.sha256' web/dist/version-integrity.json)" >> $GITHUB_STEP_SUMMARY
+          echo "SBOM enforcement date: ${SBOM_ENFORCE_DATE:-2025-10-15}" >> $GITHUB_STEP_SUMMARY
+
 
   lighthouse:
     name: Lighthouse & Perf (gradual)
@@ -203,14 +551,27 @@ jobs:
           npm ci
           npm --workspace web ci || (cd web && npm install)
       - name: Build (PR preview base)
+        env:
+          PREVIEW_PASSWORD: ${{ secrets.PREVIEW_PASSWORD }}
         run: |
           cd web
           export PUBLIC_BASE_PATH="/pr-${{ github.event.pull_request.number }}"
-          echo "Preview base: $PUBLIC_BASE_PATH"
+            echo "Preview base: $PUBLIC_BASE_PATH"
           PUBLIC_BASE_PATH=$PUBLIC_BASE_PATH npm run build
           echo "Commit: $GITHUB_SHA" > dist/DEPLOY_MARKER.txt
           echo "OK" > dist/health.txt
           echo "PR Preview for #${{ github.event.pull_request.number }}" > dist/preview-info.txt
+      - name: Preview protection & report
+        uses: ./.github/actions/preview-protect
+        with:
+          dist: web/dist/index.html
+          password: ${{ secrets.PREVIEW_PASSWORD }}
+          require-password: true
+          min-length: 10
+          require-classes: upper,lower,digit
+          report-path: web/dist/preview-lock-report.json
+          working-directory: web
+          sign-report: true
       - name: Upload Preview Artifact
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
         with:
