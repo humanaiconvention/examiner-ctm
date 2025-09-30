@@ -6,6 +6,7 @@
 
 apiVersion: policy.sigstore.dev/v1beta1
 kind: Policy
+terms: []  # top-level terms required by schema (moved from spec)
 metadata:
   name: web-artifact-policy
 spec:

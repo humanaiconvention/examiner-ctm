@@ -23,6 +23,9 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
+  "noImplicitOverride": true,
+  "exactOptionalPropertyTypes": true,
+  "forceConsistentCasingInFileNames": true,
     // Set baseUrl to project root so path aliases resolve consistently in tsc and vite build
     "baseUrl": ".",
     "paths": {

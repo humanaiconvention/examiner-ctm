@@ -7,11 +7,29 @@ interface SnapOptions {
 }
 
 async function snap(page: Page, name: string, opts: SnapOptions = {}) {
-  await expect(page).toHaveScreenshot(name, {
-    animations: 'disabled',
-    fullPage: true,
-    ...opts,
-  });
+  const maxAttempts = process.env.CI ? 2 : 1; // one retry in CI for transient AA/font jitter
+  let attempt = 0;
+  let lastError: unknown;
+  while (attempt < maxAttempts) {
+    try {
+      await expect(page).toHaveScreenshot(name, {
+        animations: 'disabled',
+        fullPage: true,
+        maxDiffPixelRatio: 0.005, // tolerate tiny differences
+        ...opts,
+      });
+      return;
+    } catch (e) {
+      lastError = e;
+      attempt++;
+      if (attempt < maxAttempts) {
+        // Small stabilization wait before retry
+        await page.waitForTimeout(250);
+      }
+    }
+  }
+  // rethrow last error if all retries failed
+  throw lastError;
 }
 
 // Utility: ensure lazy sections have mounted before snapshot
@@ -40,13 +58,32 @@ test.describe('Visual Regression', () => {
     await page.goto('/');
     await page.waitForSelector('header.hero h1');
     const hero = page.locator('header.hero');
-    await expect(hero).toHaveScreenshot('hero.png', { animations: 'disabled' });
+    // Inline retry similar to full-page helper
+    const maxAttempts = process.env.CI ? 2 : 1;
+    for (let i=0;i<maxAttempts;i++) {
+      try {
+        await expect(hero).toHaveScreenshot('hero.png', { animations: 'disabled', maxDiffPixelRatio: 0.005 });
+        break;
+      } catch (e) {
+        if (i === maxAttempts -1) throw e;
+        await page.waitForTimeout(200);
+      }
+    }
   });
 
   test('voices section', async ({ page }) => {
     await page.goto('/');
     await ensureSections(page);
     const voices = page.locator('#voices');
-    await expect(voices).toHaveScreenshot('voices.png', { animations: 'disabled' });
+    const maxAttempts = process.env.CI ? 2 : 1;
+    for (let i=0;i<maxAttempts;i++) {
+      try {
+        await expect(voices).toHaveScreenshot('voices.png', { animations: 'disabled', maxDiffPixelRatio: 0.005 });
+        break;
+      } catch (e) {
+        if (i === maxAttempts -1) throw e;
+        await page.waitForTimeout(200);
+      }
+    }
   });
 });

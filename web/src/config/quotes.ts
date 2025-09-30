@@ -46,7 +46,7 @@ export const consciousnessQuotes: ConsciousnessQuote[] = [
     author: 'Marvin Minsky',
     source: 'Society of Mind',
     year: '1986',
-    context: 'Encourages multi-modal learning, mirroring the ensemble of perspectives behind Aggie.'
+    context: 'Encourages multi-modal learning, mirroring the ensemble of perspectives needed for robust AI systems.'
   },
   {
     text: 'Learning is not the product of teaching. Learning is the product of the activity of learners.',
@@ -102,7 +102,7 @@ export const consciousnessQuotes: ConsciousnessQuote[] = [
     author: 'Andy Clark',
     source: 'Surfing Uncertainty',
     year: '2016',
-    context: 'Frames perception as prediction, echoing how Aggie anticipates human needs.'
+    context: 'Frames perception as prediction, echoing how AI systems can anticipate human needs.'
   },
   {
     text: 'The mind is what the brain does.',
@@ -121,7 +121,7 @@ export const consciousnessQuotes: ConsciousnessQuote[] = [
     text: 'If I have seen further it is by standing on the shoulders of giants.',
     author: 'Isaac Newton',
     year: '1675',
-    context: 'Acknowledges collective knowledge, just as Aggie is built from shared insight.'
+    context: 'Acknowledges collective knowledge, just as AI systems are built from shared human insight.'
   },
   {
     text: 'Consciousness is somehow a by-product of the simultaneous, high frequency firing of neurons in different parts of the brain... like a symphony orchestra.',
@@ -148,7 +148,7 @@ export const consciousnessQuotes: ConsciousnessQuote[] = [
     author: 'Wang Yangming',
     source: 'Instructions for Practical Living',
     year: '1527',
-    context: 'Unites insight and action—the ethos behind deploying Aggie responsibly.'
+    context: 'Unites insight and action—the ethos behind deploying artificial general intelligence responsibly.'
   },
   {
     text: 'Start with an open mind, then read one theory... what is right and wrong will become apparent of itself.',
@@ -181,7 +181,7 @@ export const consciousnessQuotes: ConsciousnessQuote[] = [
     author: 'Alhazen (Ibn al-Haytham)',
     source: 'Book of Optics',
     year: 'c. 1021',
-    context: 'Advocates critical inquiry—mirrored in auditing Aggie\'s outputs.'
+    context: 'Advocates critical inquiry—mirrored in auditing AI system outputs.'
   },
   {
     text: 'That which is easiest to grasp and most useful in calculation is what we must seek.',
@@ -200,7 +200,7 @@ export const consciousnessQuotes: ConsciousnessQuote[] = [
     text: 'A mathematician is a device for turning coffee into theorems.',
     author: 'Paul Erdős',
     year: '1960s',
-    context: 'Playfully celebrates collaborative creation—a nod to Aggie\'s collective builders.'
+    context: 'Playfully celebrates collaborative creation—a nod to AI development as collective endeavor.'
   },
   {
     text: 'The teacher is a needle, the disciple is as thread. You must practice constantly.',

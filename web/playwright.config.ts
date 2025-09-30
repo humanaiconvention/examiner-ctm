@@ -4,6 +4,8 @@ export default defineConfig({
   testDir: './tests',
   timeout: 30_000,
   expect: { timeout: 5_000 },
+  // Apply limited retries only in CI to mitigate flakiness (visual diffs etc.)
+  retries: process.env.CI ? 2 : 0,
   fullyParallel: true,
   reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
   use: {

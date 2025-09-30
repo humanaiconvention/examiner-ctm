@@ -1,0 +1,11 @@
+{
+  "generatedAt": "2025-09-29T18:37:18.725Z",
+  "targetFile": "D:\\humanaiconvention\\web\\src\\App.tsx",
+  "ancestorConfigs": [
+    "D:\\humanaiconvention\\web\\eslint.config.js"
+  ],
+  "debugFirst400": [
+    ""
+  ],
+  "debugLineCount": 1
+}

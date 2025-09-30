@@ -1,7 +1,9 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type PluginOption } from 'vite'
 import path from 'node:path'
 import fs from 'node:fs'
+import { execSync } from 'node:child_process'
 import react from '@vitejs/plugin-react'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 // Derive base path for GitHub Pages or custom domain deployments.
 // PUBLIC_BASE_PATH is set in the deploy workflow:
@@ -39,12 +41,57 @@ function inlineVersionPlugin() {
   }
 }
 
-export default defineConfig({
-  plugins: [react(), inlineVersionPlugin()],
-  base,
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
+// SRI injection plugin: reads dist/sri-manifest.json after build generate step (assumes script run pre-build or via hook)
+function sriInjectPlugin(): PluginOption {
+  return {
+    name: 'sri-inject',
+    enforce: 'post',
+    transformIndexHtml(html) {
+      // We only inject during build
+      if (process.env.NODE_ENV !== 'production') return html;
+      try {
+        const manifestPath = path.resolve(__dirname, 'dist', 'sri-manifest.json');
+        if (!fs.existsSync(manifestPath)) return html;
+        const data = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as { files: Record<string,string> };
+        // Replace matching <script type="module" src="..."> and <link rel="stylesheet" href="...">
+        return html.replace(/<script([^>]*?)src="([^"]+)"([^>]*)><\/script>/g, (full, pre, src, post) => {
+          const integrity = data.files[src.replace(/^\//,'').replace(/^\.\//,'')];
+          if (!integrity || /integrity=/.test(full)) return full;
+            return `<script${pre}src="${src}" integrity="${integrity}" crossorigin="anonymous"${post}></script>`;
+        }).replace(/<link([^>]*?)href="([^"]+)"([^>]*?)>/g, (full, pre, href, post) => {
+          if (!/rel=["']stylesheet["']/.test(full)) return full;
+          const integrity = data.files[href.replace(/^\//,'').replace(/^\.\//,'')];
+          if (!integrity || /integrity=/.test(full)) return full;
+          return `<link${pre}href="${href}" integrity="${integrity}" crossorigin="anonymous"${post}>`;
+        });
+      } catch (e) {
+        console.warn('[sri-inject] failed', e);
+        return html;
+      }
+    }
+  };
+}
+
+const analyzerPlugin = visualizer({ filename: 'dist/analysis/stats.html', gzipSize: true, brotliSize: true }) as unknown as PluginOption;
+
+export default defineConfig(({ mode }) => {
+  const plugins: PluginOption[] = [react(), inlineVersionPlugin(), sriInjectPlugin()];
+  if (mode === 'analyze') plugins.push(analyzerPlugin);
+  let commit = 'dev';
+  try {
+    commit = execSync('git rev-parse --short HEAD').toString().trim();
+  } catch { /* fallback */ }
+  const buildStamp = Date.now().toString(36);
+  return {
+    plugins,
+    base,
+    define: {
+      'self.BUILD_REV': JSON.stringify(`${commit}.${buildStamp}`)
     },
-  },
-})
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, 'src'),
+      },
+    },
+  };
+});

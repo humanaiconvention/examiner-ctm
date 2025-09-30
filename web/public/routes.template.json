@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/azure-static-web-apps/routes.json",
+  "globalHeaders": {
+    "Content-Security-Policy": "__CSP__",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload"
+  },
+  "mimeTypes": {
+    ".json": "application/json; charset=utf-8"
+  },
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/index.html",
+      "statusCode": 200
+    }
+  }
+}

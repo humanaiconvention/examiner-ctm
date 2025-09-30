@@ -1,0 +1,84 @@
+name: build-and-push-container
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'web/**'
+      - 'Dockerfile'
+      - 'nginx.conf'
+      - '.github/workflows/container-build.yml'
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: humanaiconvention-web
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write  # for OIDC login to Azure
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node (for potential pre-build scripts)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install deps & run tests
+        working-directory: web
+        run: |
+          npm ci
+          npm test --silent
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: ACR login
+        uses: azure/CLI@v2
+        with:
+          inlineScript: |
+            az acr login -n ${{ secrets.ACR_NAME }}
+
+      - name: Derive image tag
+        id: vars
+        run: |
+          SHORT_SHA=${GITHUB_SHA::7}
+          echo "tag=${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "timestamp=$(date -u +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+
+      - name: Build image
+        run: |
+          docker build \
+            --build-arg VITE_APPINSIGHTS_KEY="${{ secrets.APPINSIGHTS_KEY }}" \
+            --build-arg VITE_APPINSIGHTS_CONNECTION_STRING="${{ secrets.APPINSIGHTS_CONNECTION_STRING }}" \
+            -t ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.tag }} .
+          docker tag ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.tag }} ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
+
+      - name: Push image
+        run: |
+          docker push ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.tag }}
+          docker push ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
+
+      - name: Output image references
+        run: |
+          echo "Pushed: ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.tag }}"
+          echo "Latest: ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest"
+
+      - name: (Optional) Deploy to Container App
+        if: ${{ false }} # Enable by setting to ${{ github.ref == 'refs/heads/main' }} and adding env vars
+        uses: azure/CLI@v2
+        with:
+          inlineScript: |
+            az containerapp update -n ${{ secrets.CONTAINER_APP_NAME }} -g ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --image ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.tag }}

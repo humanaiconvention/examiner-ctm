@@ -24,6 +24,10 @@ permissions:
   id-token: write
   pull-requests: write
 
+env:
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  PREVIEW_PASSWORD_SECRET: ${{ secrets.PREVIEW_PASSWORD }}
+
 concurrency:
   group: unified-${{ github.ref }}
   cancel-in-progress: true
@@ -47,13 +51,108 @@ jobs:
           npm ci
           npm --workspace web ci || (cd web && npm install)
       - name: Lint
-        run: npm run lint
+        run: |
+          npm run lint --workspace web -- --max-warnings=0 || (echo "Lint failed"; exit 1)
+        continue-on-error: false
       - name: Typecheck
         run: npm run typecheck
       - name: Unit Tests
-        run: npm test
+        run: |
+          npm test --workspaces --if-present -- --run --reporter=basic || (echo "Tests failed"; exit 1)
       - name: Coverage (non-blocking)
         run: npm run test:coverage || echo "Coverage step failed or not present"
+      - name: Generate ESLint & Test Reports (scripts)
+        run: |
+          npm run lint:report --workspace web || echo '{"note":"lint:report failed"}' > web/eslint-report.json
+          npm run test:report --workspace web || echo '{"note":"test:report failed"}' > web/test-report/results.json
+          # Ensure junit exists (vitest reporter path)
+          if [ ! -f web/test-report/junit.xml ]; then
+            echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?><testsuite name=\"placeholder\" tests=\"0\" failures=\"0\"/>" > web/test-report/junit.xml
+          fi
+      - name: Aggregate Problem Budget
+        run: |
+          node web/scripts/problem-budget.mjs || (echo "Problem budget failed"; exit 1)
+      - name: Upload Problem Budget Summary
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: problem-budget
+          path: web/problem-budget-summary.json
+          if-no-files-found: error
+      - name: Summarize Test Results
+        if: always()
+        id: test_summary
+        run: |
+          set -e
+          SUMMARY_JSON=web/test-report/summary.json
+          if [ -f web/test-report/junit.xml ]; then
+            # Parse simple metrics from junit (tests, failures, skipped) via awk/grep (avoid extra deps)
+            LINE=$(grep -m1 '<testsuite' web/test-report/junit.xml || true)
+            TOTAL=$(echo "$LINE" | sed -n 's/.*tests="\([0-9]\+\)".*/\1/p')
+            FAIL=$(echo "$LINE" | sed -n 's/.*failures="\([0-9]\+\)".*/\1/p')
+            SKIP=$(echo "$LINE" | sed -n 's/.*skipped="\([0-9]\+\)".*/\1/p')
+            [ -z "$TOTAL" ] && TOTAL=0; [ -z "$FAIL" ] && FAIL=0; [ -z "$SKIP" ] && SKIP=0
+            PASS=$((TOTAL-FAIL-SKIP))
+            echo "{\"tests\":$TOTAL,\"passes\":$PASS,\"failures\":$FAIL,\"skipped\":$SKIP}" > $SUMMARY_JSON
+          else
+            echo '{"tests":0,"passes":0,"failures":0,"skipped":0}' > $SUMMARY_JSON
+          fi
+          echo "summary=$(cat $SUMMARY_JSON | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          echo "Test Summary:" >> $GITHUB_STEP_SUMMARY
+          cat $SUMMARY_JSON | jq -r '. | "Total: \(.tests)  Pass: \(.passes)  Fail: \(.failures)  Skip: \(.skipped)"' >> $GITHUB_STEP_SUMMARY
+      - name: Post PR Comment (Test Summary)
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ✅ Test Summary
+            ````
+            ${{ steps.test_summary.outputs.summary }}
+            ````
+            _artifact: quality-reports / junit.xml_
+            (Updates on new commits.)
+          edit-mode: replace
+      - name: Generate Quality Badge JSON
+        if: always()
+        run: |
+          mkdir -p build-metrics
+            if [ -f web/test-report/summary.json ]; then
+              cp web/test-report/summary.json build-metrics/test-summary.json
+            fi
+          if [ -f web/eslint-report.json ]; then
+            WARN=$(jq '[.[]? | select(.severity==1)] | length' web/eslint-report.json 2>/dev/null || echo 0)
+            ERR=$(jq '[.[]? | select(.severity==2)] | length' web/eslint-report.json 2>/dev/null || echo 0)
+          else
+            WARN=0; ERR=0;
+          fi
+          if [ -f build-metrics/test-summary.json ]; then
+            TOTAL=$(jq '.tests' build-metrics/test-summary.json); PASS=$(jq '.passes' build-metrics/test-summary.json); FAIL=$(jq '.failures' build-metrics/test-summary.json)
+          else
+            TOTAL=0; PASS=0; FAIL=0;
+          fi
+          COLOR=green
+          if [ "$FAIL" -gt 0 ]; then COLOR=red; elif [ "$WARN" -gt 0 ]; then COLOR=yellow; fi
+          jq -n --arg tests "$TOTAL" --arg pass "$PASS" --arg fail "$FAIL" --arg warn "$WARN" --arg err "$ERR" --arg color "$COLOR" '{schema:1,tests:$tests|tonumber,passes:$pass|tonumber,failures:$fail|tonumber,warnings:$warn|tonumber,errors:$err|tonumber,color:$color}' > build-metrics/quality-badge.json
+      - name: Upload Quality Badge JSON
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: quality-badge
+          path: build-metrics/quality-badge.json
+          if-no-files-found: warn
+      - name: Upload Quality Reports (incl JUnit)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: quality-reports
+          path: |
+            web/eslint-report.json
+            web/test-report/results.json
+            web/test-report/junit.xml
+            web/problem-budget-summary.json
+          if-no-files-found: warn
+          retention-days: 5
       - name: Upload Coverage Artifact
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -62,10 +161,24 @@ jobs:
           path: web/coverage
           if-no-files-found: ignore
           retention-days: 5
+      - name: Slack Notify (Quality Gate)
+        if: always() && env.SLACK_WEBHOOK_URL != ''
+        run: |
+          status="success"
+          if [ "${{ job.status }}" != "success" ]; then status="failure"; fi
+          node .github/scripts/slack-notify.mjs \
+            --webhook "$SLACK_WEBHOOK_URL" \
+            --event quality \
+            --status "$status" \
+            --summary-file web/problem-budget-summary.json \
+            --commit "$GITHUB_SHA" \
+            --repo "$GITHUB_REPOSITORY" \
+            --run-id "$GITHUB_RUN_ID" \
+            --workflow "$GITHUB_WORKFLOW" || echo "Slack quality notify failed"
 
   deploy:
     name: Build & Deploy Pages
-    needs: quality
+    needs: [quality]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: github-pages
@@ -104,6 +217,28 @@ jobs:
           if grep -q '</head>' dist/index.html; then
             sed -i "s#</head>#<meta name=\"x-app-version\" content=\"$GITHUB_SHA\" />\n<script>window.__APP_VERSION__=$(cat dist/version.json)</script>\n</head>#" dist/index.html || true
           fi
+      - name: Bundle Size Manifest
+        run: |
+          cd web
+          node scripts/bundle-size.mjs manifest
+          cp dist-size-manifest.json dist/bundle-size-manifest.json || true
+      - name: Bundle Size Check
+        run: |
+          cd web
+          # Attempt to fetch previous manifest from main (best-effort)
+          if git show HEAD:web/dist-size-manifest.json > prev-manifest.json 2>/dev/null; then
+            export SIZE_BASELINE=prev-manifest.json
+          fi
+          node scripts/bundle-size.mjs check
+      - name: Upload Bundle Size Artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: bundle-size
+          path: |
+            web/dist-size-manifest.json
+            web/bundle-size-result.json
+          if-no-files-found: warn
       - name: Compute Integrity Hash
         run: |
           cd web
@@ -377,6 +512,22 @@ jobs:
           name: version-integrity
           path: web/dist/version-integrity.json
           retention-days: 10
+      - name: Commit bundle size baseline (fast-forward)
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          if [ ! -f web/dist-size-manifest.json ]; then echo "No dist-size-manifest.json present; skipping baseline commit"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Only add if changed vs HEAD to avoid noise
+          cp web/dist-size-manifest.json web/dist-size-manifest.json
+          git add web/dist-size-manifest.json || true
+          if git diff --cached --quiet; then echo "No bundle size baseline changes"; exit 0; fi
+          git commit -m "chore: update bundle size baseline (ci)" || exit 0
+          git pull --ff-only origin main || true
+          git push origin HEAD:main || echo "Non-fatal: push failed (race)"
       - name: Append to Transparency Log Issue
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -428,13 +579,27 @@ jobs:
           echo "Integrity Hash: $(jq -r '.sha256' web/dist/version-integrity.json)" >> $GITHUB_STEP_SUMMARY
           echo "SBOM SHA256: ${{ steps.attest.outputs.sbomSha }}" >> $GITHUB_STEP_SUMMARY
           echo "Attestation Integrity SHA256: ${{ steps.attest.outputs.integritySha }}" >> $GITHUB_STEP_SUMMARY
+          if [ -f web/bundle-size-result.json ]; then echo "Bundle Size: $(jq -r '.totalBytes // "n/a"' web/bundle-size-result.json) bytes" >> $GITHUB_STEP_SUMMARY; fi
       - name: Slack Notify (optional)
         if: success() && env.SLACK_WEBHOOK_URL != ''
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           payload=$(jq -n --arg url "${{ steps.deployment.outputs.page_url }}" --arg sha "$GITHUB_SHA" '{text:"Deploy succeeded", url:$url, commit:$sha}')
           curl -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL" || echo "Slack notify failed"
+      - name: Slack Notify (Deploy)
+        if: always() && env.SLACK_WEBHOOK_URL != ''
+        run: |
+          status="success"; [ "${{ job.status }}" = "success" ] || status="failure"
+          SUMMARY_FILE=web/problem-budget-summary.json
+          node .github/scripts/slack-notify.mjs \
+            --webhook "$SLACK_WEBHOOK_URL" \
+            --event deploy \
+            --status "$status" \
+            --url "${{ steps.deployment.outputs.page_url }}" \
+            --summary-file "$SUMMARY_FILE" \
+            --commit "$GITHUB_SHA" \
+            --repo "$GITHUB_REPOSITORY" \
+            --run-id "$GITHUB_RUN_ID" \
+            --workflow "$GITHUB_WORKFLOW" || echo "Slack deploy notify failed"
 
   verify:
     name: Rebuild & Verify (Determinism)
@@ -492,17 +657,60 @@ jobs:
           echo "Baseline hash: $(jq -r '.sha256' web/version-integrity.json)" >> $GITHUB_STEP_SUMMARY
           echo "Rebuild  hash: $(jq -r '.sha256' web/dist/version-integrity.json)" >> $GITHUB_STEP_SUMMARY
           echo "SBOM enforcement date: ${SBOM_ENFORCE_DATE:-2025-10-15}" >> $GITHUB_STEP_SUMMARY
+      - name: Slack Notify (Verify)
+        if: always() && env.SLACK_WEBHOOK_URL != ''
+        run: |
+          status="success"; [ "${{ job.status }}" = "success" ] || status="failure"
+          node .github/scripts/slack-notify.mjs \
+            --webhook "$SLACK_WEBHOOK_URL" \
+            --event verify \
+            --status "$status" \
+            --commit "$GITHUB_SHA" \
+            --repo "$GITHUB_REPOSITORY" \
+            --run-id "$GITHUB_RUN_ID" \
+            --workflow "$GITHUB_WORKFLOW" || echo "Slack verify notify failed"
 
 
   lighthouse:
     name: Lighthouse & Perf (gradual)
     needs: quality
+    # Only run on main; internal first step will short-circuit if no relevant path changes
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
       NODE_VERSION: '20'
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Detect relevant path changes
+        id: path_filter
+        run: |
+          set -e
+          # Determine diff range: for push compare with prev commit; for workflow_dispatch just proceed
+          if [ "${{ github.event_name }}" = "push" ]; then
+            prev=$(git rev-parse HEAD^ || echo '')
+          else
+            prev="" # will cause run
+          fi
+          echo "Previous commit: $prev"
+          runLh="false"
+          if [ -z "$prev" ]; then
+            runLh="true"
+          else
+            # List changed files
+            changed=$(git diff --name-only "$prev" HEAD || true)
+            echo "Changed files:\n$changed"
+            # Iterate through changed file list
+            printf '%s\n' "$changed" | while IFS= read -r f; do
+              case "$f" in
+                web/src/*|web/public/*|web/vite.config.*|web/package.json|web/tsconfig.*) runLh="true"; break;;
+              esac
+            done || true
+          fi
+          echo "run-lh=$runLh" >> $GITHUB_OUTPUT
+          if [ "$runLh" != "true" ]; then echo "No relevant frontend changes detected; skipping Lighthouse job early."; fi
+      - name: Skip if not needed
+        if: steps.path_filter.outputs.run-lh != 'true'
+        run: echo "Skipping remaining steps." && exit 0
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -516,11 +724,12 @@ jobs:
       - name: Run Lighthouse (if script exists)
         working-directory: web
         run: |
-          if npm run | grep -q 'lhci'; then npm run lhci || echo 'Lighthouse failed (non-blocking)'; else echo 'No lhci script'; fi
+          if npm run | grep -q 'lhci'; then npm run lhci || echo 'Lighthouse run had issues'; else echo 'No lhci script'; fi
       - name: Perf budget (if script exists)
         working-directory: web
         run: |
-          if npm run | grep -q 'perf:check'; then npm run perf:check || echo 'Perf check failed (non-blocking)'; else echo 'No perf:check script'; fi
+          # Enforce gradually: allow failure but capture status; future: remove '|| true'
+          if npm run | grep -q 'perf:check'; then npm run perf:check || echo 'Perf check failed (non-fatal)'; else echo 'No perf:check script'; fi
       - name: Upload Lighthouse Artifacts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -528,6 +737,59 @@ jobs:
           name: lighthouse-gradual
           path: web/.lighthouseci
           if-no-files-found: ignore
+      - name: Lighthouse Threshold Gate (future enforcement)
+        if: always()
+        run: |
+          # Soft gate: read perf scores if available and emit warnings; enforce after target date
+          TARGET_DATE=${LIGHTHOUSE_ENFORCE_DATE:-2025-11-01}
+          today=$(date -u +%Y-%m-%d)
+          if [ -d web/.lighthouseci ]; then
+            SUMMARY=$(grep -h '"performance"' web/.lighthouseci/*report.json 2>/dev/null | head -1 || true)
+            if [ -n "$SUMMARY" ]; then echo "Perf snippet: $SUMMARY"; fi
+            # Look for numeric score lines
+            perf=$(jq -r '.categories.performance.score*100|floor' web/.lighthouseci/*report.json 2>/dev/null | head -1 || echo 0)
+            acc=$(jq -r '.categories.accessibility.score*100|floor' web/.lighthouseci/*report.json 2>/dev/null | head -1 || echo 0)
+            best=$(jq -r '.categories["best-practices"].score*100|floor' web/.lighthouseci/*report.json 2>/dev/null | head -1 || echo 0)
+            seo=$(jq -r '.categories.seo.score*100|floor' web/.lighthouseci/*report.json 2>/dev/null | head -1 || echo 0)
+            echo "Perf: $perf Acc: $acc Best: $best SEO: $seo" >> $GITHUB_STEP_SUMMARY
+            minPerf=${MIN_PERF_SCORE:-90}
+            minAcc=${MIN_ACC_SCORE:-95}
+            if [ "$today" \> "$TARGET_DATE" ] || [ "$today" = "$TARGET_DATE" ]; then
+              if [ "$perf" -lt "$minPerf" ] || [ "$acc" -lt "$minAcc" ]; then
+                echo "Lighthouse thresholds not met after enforcement date ($TARGET_DATE)."; exit 64; fi
+            else
+              if [ "$perf" -lt "$minPerf" ]; then echo "::warning::Performance score $perf below $minPerf (will enforce after $TARGET_DATE)"; fi
+              if [ "$acc" -lt "$minAcc" ]; then echo "::warning::Accessibility score $acc below $minAcc (will enforce after $TARGET_DATE)"; fi
+            fi
+          else
+            echo "No lighthouse data; skipping gate.";
+          fi
+      - name: Slack Notify (Lighthouse Warning)
+        if: always() && env.SLACK_WEBHOOK_URL != ''
+        run: |
+          # Only send warning if performance or accessibility below thresholds pre-enforcement
+          TARGET_DATE=${LIGHTHOUSE_ENFORCE_DATE:-2025-11-01}
+          today=$(date -u +%Y-%m-%d)
+          if [ -d web/.lighthouseci ]; then
+            perf=$(jq -r '.categories.performance.score*100|floor' web/.lighthouseci/*report.json 2>/dev/null | head -1 || echo 0)
+            acc=$(jq -r '.categories.accessibility.score*100|floor' web/.lighthouseci/*report.json 2>/dev/null | head -1 || echo 0)
+            minPerf=${MIN_PERF_SCORE:-90}
+            minAcc=${MIN_ACC_SCORE:-95}
+            if { [ "$today" \< "$TARGET_DATE" ] && { [ "$perf" -lt "$minPerf" ] || [ "$acc" -lt "$minAcc" ]; }; } || { [ "$today" \> "$TARGET_DATE" ] && [ "${{ job.status }}" != "success" ]; }; then
+              node .github/scripts/slack-notify.mjs \
+                --webhook "$SLACK_WEBHOOK_URL" \
+                --event lighthouse-warning \
+                --status warning \
+                --commit "$GITHUB_SHA" \
+                --repo "$GITHUB_REPOSITORY" \
+                --run-id "$GITHUB_RUN_ID" \
+                --workflow "$GITHUB_WORKFLOW" || echo "Slack lighthouse notify failed"
+            else
+              echo "No Lighthouse warning to send.";
+            fi
+          else
+            echo "No Lighthouse artifacts; skipping Slack.";
+          fi
 
   pr-preview:
     name: PR Ephemeral Preview
@@ -552,7 +814,7 @@ jobs:
           npm --workspace web ci || (cd web && npm install)
       - name: Build (PR preview base)
         env:
-          PREVIEW_PASSWORD: ${{ secrets.PREVIEW_PASSWORD }}
+          PREVIEW_PASSWORD: ${{ env.PREVIEW_PASSWORD_SECRET }}
         run: |
           cd web
           export PUBLIC_BASE_PATH="/pr-${{ github.event.pull_request.number }}"
@@ -564,12 +826,12 @@ jobs:
       - name: Preview protection & report
         uses: ./.github/actions/preview-protect
         with:
-          dist: web/dist/index.html
-          password: ${{ secrets.PREVIEW_PASSWORD }}
+          dist: dist/index.html
+          password: ${{ env.PREVIEW_PASSWORD_SECRET }}
           require-password: true
           min-length: 10
           require-classes: upper,lower,digit
-          report-path: web/dist/preview-lock-report.json
+          report-path: dist/preview-lock-report.json
           working-directory: web
           sign-report: true
       - name: Upload Preview Artifact

@@ -24,9 +24,127 @@ permissions:
   id-token: write
 
 jobs:
+  quality:
+    name: Quality (Lint & Test)
+    runs-on: ubuntu-latest
+    env:
+      NODE_VERSION: '20'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Setup Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - name: Install Dependencies (root + workspace)
+        run: |
+          npm ci
+          npm --workspace web ci || (cd web && npm install)
+      - name: Lint (No Warnings)
+        run: npm run lint --workspace web -- --max-warnings=0
+      - name: Generate Reports (lint & test)
+        run: |
+          npm run lint:report --workspace web || echo '{"note":"lint:report failed"}' > web/eslint-report.json
+          npm run test:report --workspace web || echo '{"note":"test:report failed"}' > web/test-report/results.json
+          if [ ! -f web/test-report/junit.xml ]; then
+            echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?><testsuite name=\"placeholder\" tests=\"0\" failures=\"0\"/>" > web/test-report/junit.xml
+          fi
+      - name: Summarize Test Results
+        if: always()
+        id: test_summary
+        run: |
+          SUMMARY_JSON=web/test-report/summary.json
+          if [ -f web/test-report/junit.xml ]; then
+            LINE=$(grep -m1 '<testsuite' web/test-report/junit.xml || true)
+            TOTAL=$(echo "$LINE" | sed -n 's/.*tests="\([0-9]\+\)".*/\1/p')
+            FAIL=$(echo "$LINE" | sed -n 's/.*failures="\([0-9]\+\)".*/\1/p')
+            SKIP=$(echo "$LINE" | sed -n 's/.*skipped="\([0-9]\+\)".*/\1/p')
+            [ -z "$TOTAL" ] && TOTAL=0; [ -z "$FAIL" ] && FAIL=0; [ -z "$SKIP" ] && SKIP=0
+            PASS=$((TOTAL-FAIL-SKIP))
+            echo "{\"tests\":$TOTAL,\"passes\":$PASS,\"failures\":$FAIL,\"skipped\":$SKIP}" > $SUMMARY_JSON
+          else
+            echo '{"tests":0,"passes":0,"failures":0,"skipped":0}' > $SUMMARY_JSON
+          fi
+          echo "summary=$(cat $SUMMARY_JSON | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          echo "Test Summary:" >> $GITHUB_STEP_SUMMARY
+          cat $SUMMARY_JSON | jq -r '. | "Total: \(.tests)  Pass: \(.passes)  Fail: \(.failures)  Skip: \(.skipped)"' >> $GITHUB_STEP_SUMMARY
+      - name: Post PR Comment (Test Summary)
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ✅ Test Summary
+            ````
+            ${{ steps.test_summary.outputs.summary }}
+            ````
+            _artifact: quality-reports / junit.xml_
+            (Updates on new commits.)
+          edit-mode: replace
+      - name: Generate Quality Badge JSON
+        if: always()
+        run: |
+          mkdir -p build-metrics
+          if [ -f web/test-report/summary.json ]; then
+            cp web/test-report/summary.json build-metrics/test-summary.json
+          fi
+          if [ -f web/eslint-report.json ]; then
+            WARN=$(jq '[.[]? | select(.severity==1)] | length' web/eslint-report.json 2>/dev/null || echo 0)
+            ERR=$(jq '[.[]? | select(.severity==2)] | length' web/eslint-report.json 2>/dev/null || echo 0)
+          else
+            WARN=0; ERR=0;
+          fi
+          if [ -f build-metrics/test-summary.json ]; then
+            TOTAL=$(jq '.tests' build-metrics/test-summary.json); PASS=$(jq '.passes' build-metrics/test-summary.json); FAIL=$(jq '.failures' build-metrics/test-summary.json)
+          else
+            TOTAL=0; PASS=0; FAIL=0;
+          fi
+          COLOR=green
+          if [ "$FAIL" -gt 0 ]; then COLOR=red; elif [ "$WARN" -gt 0 ]; then COLOR=yellow; fi
+          jq -n --arg tests "$TOTAL" --arg pass "$PASS" --arg fail "$FAIL" --arg warn "$WARN" --arg err "$ERR" --arg color "$COLOR" '{schema:1,tests:$tests|tonumber,passes:$pass|tonumber,failures:$fail|tonumber,warnings:$warn|tonumber,errors:$err|tonumber,color:$color}' > build-metrics/quality-badge.json
+      - name: Upload Quality Badge JSON
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: quality-badge
+          path: build-metrics/quality-badge.json
+          if-no-files-found: warn
+      - name: Upload Quality Reports (incl JUnit)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: quality-reports
+          path: |
+            web/eslint-report.json
+            web/test-report/results.json
+            web/test-report/junit.xml
+          if-no-files-found: warn
+          retention-days: 5
+
+  secrets-preflight:
+    name: Secrets Preflight
+    runs-on: ubuntu-latest
+    outputs:
+      has_token: ${{ steps.detect.outputs.has_token }}
+    env:
+      AZ_SWA_TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+    steps:
+      - name: Detect Azure Static Web Apps token
+        id: detect
+        run: |
+          if [ -n "$AZ_SWA_TOKEN" ]; then
+            echo "has_token=true" >> "$GITHUB_OUTPUT"
+            echo "Token present (length masked)."
+          else
+            echo "has_token=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::AZURE_STATIC_WEB_APPS_API_TOKEN secret not set. Preview deploy will be skipped; production deploy will fail if attempted."
+          fi
+
   build:
     name: Build (Artifact)
     runs-on: ubuntu-latest
+    needs: [quality]
     env:
       NODE_VERSION: '20'
       VITE_ENABLE_PREVIEW_GATE: true # build with gate enabled; app decides runtime gating
@@ -62,8 +180,10 @@ jobs:
   preview:
     name: PR Preview (Static Web Apps)
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, secrets-preflight]
     if: ${{ github.event_name == 'pull_request' }}
+    env:
+      AZ_SWA_TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
     steps:
       - name: Checkout (for action metadata)
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -74,52 +194,58 @@ jobs:
           path: web-dist
 
       - name: Deploy Preview
+        if: needs.secrets-preflight.outputs.has_token == 'true'
         uses: Azure/static-web-apps-deploy@1a947af9992250f3bc2e68ad0754c0b0c11566c9 # v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          azure_static_web_apps_api_token: ${{ env.AZ_SWA_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: 'upload'
           app_location: 'web' # still needed though we deploy dist; action expects structure
           output_location: 'dist'
 
-      - name: Skip Note (Missing Token)
-        if: github.event_name == 'pull_request'
-        run: echo "If preview failed, ensure AZURE_STATIC_WEB_APPS_API_TOKEN secret exists."
+      - name: Skip (Missing Token)
+        if: needs.secrets-preflight.outputs.has_token != 'true'
+        run: echo "Skipping preview deploy because AZURE_STATIC_WEB_APPS_API_TOKEN secret is missing (fork PR or misconfiguration)."
 
   deploy:
     name: Deploy Production
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, secrets-preflight]
     if: github.event_name != 'pull_request'
     env:
       VITE_ENABLE_PREVIEW_GATE: true
+      AZ_SWA_TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
     steps:
-      - name: Validate Token
-        uses: ./.github/actions/preview-env
-        with:
-          set-password: 'false'
-          validate-token: 'true'
+      - name: Enforce Secret Presence (Fail Fast)
+        if: needs.secrets-preflight.outputs.has_token != 'true'
+        run: |
+          echo "::error::AZURE_STATIC_WEB_APPS_API_TOKEN secret missing. Cannot proceed with production deployment." 
+          exit 1
+
       - name: Setup Preview Env
+        if: needs.secrets-preflight.outputs.has_token == 'true'
         uses: ./.github/actions/preview-env
         with:
-            set-password: 'true'
+          set-password: 'true'
 
       - name: Download Artifact
+        if: needs.secrets-preflight.outputs.has_token == 'true'
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           name: web-dist
           path: web-dist
 
       - name: Deploy to Azure Static Web Apps
+        if: needs.secrets-preflight.outputs.has_token == 'true'
         uses: Azure/static-web-apps-deploy@1a947af9992250f3bc2e68ad0754c0b0c11566c9 # v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          azure_static_web_apps_api_token: ${{ env.AZ_SWA_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: 'upload'
           app_location: 'web'
           output_location: 'dist'
 
       - name: Post Deployment Info
-        if: success()
+        if: success() && needs.secrets-preflight.outputs.has_token == 'true'
         run: |
           echo "Deployment completed. If custom domain not yet set, visit portal to configure."

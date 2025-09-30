@@ -2,7 +2,7 @@
 export const APP_VERSION = {
   "name": "web",
   "version": "0.1.0",
-  "commit": "48540df101ea",
-  "fullCommit": "48540df101ea02a4d1737a8957e82460c1700316"
+  "commit": "cbea1df74b29",
+  "fullCommit": "cbea1df74b297dd5f05a9c7e9100e39940af8532"
 } as const;
 export type AppVersion = typeof APP_VERSION;

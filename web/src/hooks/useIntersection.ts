@@ -32,7 +32,11 @@ export function useIntersection<T extends HTMLElement>(options: UseIntersectionO
           setIsIntersecting(entry.isIntersecting)
         }
       }
-    }, { root, rootMargin, threshold })
+    }, {
+      ...(root !== undefined ? { root } : {}),
+      ...(rootMargin !== undefined ? { rootMargin } : {}),
+      ...(threshold !== undefined ? { threshold } : {}),
+    })
     observer.observe(el)
     return () => {
       cancelled = true

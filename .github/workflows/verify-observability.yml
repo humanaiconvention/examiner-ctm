@@ -1,0 +1,200 @@
+name: verify-observability
+
+on:
+  schedule:
+    - cron: '17 3 * * *'  # Daily at 03:17 UTC
+  workflow_dispatch:
+    inputs:
+      resourceGroup:
+        description: 'Azure Resource Group'
+        required: true
+      appInsightsName:
+        description: 'Application Insights resource name'
+        required: true
+      workbookName:
+        description: 'Workbook resource name (Bicep workbookName)'
+        required: true
+      expectedWorkbookSha256:
+        description: 'Expected sha256 of azure-workbook.json (leave blank to compute from repo)'
+        required: false
+      alertNameContains:
+        description: 'Comma-separated substrings expected in alert rule names (e.g. LCP,Fetch,INP)'
+        required: false
+      expectedLcpP75Ms:
+        description: 'Expected LCP p75 threshold (ms). Defaults to 2500.'
+        required: false
+      expectedInpP75Ms:
+        description: 'Expected INP p75 threshold (ms). Defaults to 400.'
+        required: false
+      expectedFetchFailRate:
+        description: 'Expected fetch failure rate threshold. Defaults to 0.05.'
+        required: false
+      strictMode:
+        description: 'If true, fail when extra unexpected observability alerts (haic.observability tag) are present beyond the known catalog.'
+        required: false
+        default: 'false'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      RG: ${{ inputs.resourceGroup }}
+      AI_NAME: ${{ inputs.appInsightsName }}
+      WORKBOOK_NAME: ${{ inputs.workbookName }}
+      ALERT_SUBSTRINGS: ${{ inputs.alertNameContains || 'LCP,Fetch,INP' }}
+      STRICT_MODE: ${{ inputs.strictMode != '' && inputs.strictMode || 'false' }}
+      EXPECT_LCP_P75_MS: ${{ inputs.expectedLcpP75Ms != '' && inputs.expectedLcpP75Ms || 2500 }}
+      EXPECT_INP_P75_MS: ${{ inputs.expectedInpP75Ms != '' && inputs.expectedInpP75Ms || 400 }}
+      EXPECT_FETCH_FAIL_RATE: ${{ inputs.expectedFetchFailRate != '' && inputs.expectedFetchFailRate || 0.05 }}
+    steps:
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Resolve Workbook Id
+        id: wb
+        run: |
+          set -e
+          ID=$(az resource show -g "$RG" -n "$WORKBOOK_NAME" --resource-type microsoft.insights/workbooks --query id -o tsv || true)
+          if [ -z "$ID" ]; then echo "::error::Workbook $WORKBOOK_NAME not found"; exit 1; fi
+          echo "id=$ID" >> $GITHUB_OUTPUT
+
+      - name: Compute Expected Hash
+        id: hash
+        run: |
+          if [ -n "${{ inputs.expectedWorkbookSha256 }}" ]; then
+            echo "sha=${{ inputs.expectedWorkbookSha256 }}" >> $GITHUB_OUTPUT
+          else
+            SHA=$(sha256sum azure-workbook.json | awk '{print $1}')
+            echo "sha=$SHA" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Fetch Deployed Workbook
+        id: live
+        run: |
+          set -e
+          RAW=$(az resource show --ids "${{ steps.wb.outputs.id }}" -o json)
+          DEPLOYED=$(echo "$RAW" | jq -r '.properties.serializedData' | jq -c .)
+          echo "$DEPLOYED" > deployed-workbook.json
+          SHA_DEPLOYED=$(cat deployed-workbook.json | sha256sum | awk '{print $1}')
+          echo "sha=$SHA_DEPLOYED" >> $GITHUB_OUTPUT
+          echo "Deployed workbook sha256: $SHA_DEPLOYED"
+
+      - name: Compare Workbook Hash
+        run: |
+          EXPECTED=${{ steps.hash.outputs.sha }}
+          DEPLOYED=${{ steps.live.outputs.sha }}
+          if [ "$EXPECTED" != "$DEPLOYED" ]; then
+            echo "::error::Workbook hash drift detected. expected=$EXPECTED deployed=$DEPLOYED"; exit 1; fi
+          echo "Workbook hash matches expected ($EXPECTED)"
+
+      - name: Cache Alerts List
+        id: alerts
+        run: |
+          az monitor scheduled-query list -g "$RG" -o json > alerts.json
+          echo "Cached alerts list to alerts.json"
+
+      - name: Verify Alerts (Tag-Based)
+        run: |
+          set -e
+          REQUIRED=(lcp-p75 fetch-fail-rate inp-p75)
+          MISSING=0
+            for metric in "${REQUIRED[@]}"; do
+            jq -e --arg m "$metric" '.[] | select(.tags["haic.metric"] == $m and .tags["haic.observability"] == "true")' alerts.json >/dev/null || { echo "::error::Missing required alert with tag haic.metric=$metric"; MISSING=1; }
+          done
+          if [ $MISSING -eq 1 ]; then exit 1; fi
+          echo "All tagged alerts present"
+          if [ "$STRICT_MODE" = "true" ]; then
+            COUNT=$(jq '[.[] | select(.tags["haic.observability"]=="true")] | length' alerts.json)
+            if [ "$COUNT" -ne 3 ]; then
+              echo "::error::Strict mode enabled: expected exactly 3 observability alerts, found $COUNT"; exit 1;
+            fi
+            echo "Strict mode: catalog size validated (3)"
+          fi
+
+      - name: Assert Alert Thresholds
+        run: |
+          set -e
+          epsilon=0.000001
+          get_threshold_by_metric() {
+            local metric=$1
+            jq -r --arg m "$metric" '.[] | select(.tags["haic.metric"] == $m) | .properties.criteria.allOf[0].threshold' alerts.json
+          }
+          compare_int() {
+            local name=$1 expected=$2 actual=$3
+            if [ "$actual" -ne "$expected" ]; then echo "::error::Threshold drift for $name expected=$expected actual=$actual"; exit 1; fi
+            echo "Threshold OK: $name ($actual)"
+          }
+          compare_float() {
+            local name=$1 expected=$2 actual=$3
+            awk -v a=$actual -v e=$expected -v eps=$epsilon 'BEGIN { diff = a - e; if (diff < 0) diff = -diff; if (diff > eps) exit 1 }' || { echo "::error::Threshold drift for $name expected=$expected actual=$actual"; exit 1; }
+            echo "Threshold OK: $name ($actual)"
+          }
+          LCP_ACTUAL=$(get_threshold_by_metric lcp-p75)
+          INP_ACTUAL=$(get_threshold_by_metric inp-p75)
+          FETCH_ACTUAL=$(get_threshold_by_metric fetch-fail-rate)
+          [ -z "$LCP_ACTUAL" ] && { echo '::error::Missing lcp-p75 threshold'; exit 1; }
+          [ -z "$INP_ACTUAL" ] && { echo '::error::Missing inp-p75 threshold'; exit 1; }
+          [ -z "$FETCH_ACTUAL" ] && { echo '::error::Missing fetch-fail-rate threshold'; exit 1; }
+          compare_int lcp-p75 "$EXPECT_LCP_P75_MS" "$LCP_ACTUAL"
+          compare_int inp-p75 "$EXPECT_INP_P75_MS" "$INP_ACTUAL"
+          compare_float fetch-fail-rate "$EXPECT_FETCH_FAIL_RATE" "$FETCH_ACTUAL"
+
+      - name: Summary
+        if: success()
+        run: |
+          echo "### Observability Verification" >> $GITHUB_STEP_SUMMARY
+          echo "Workbook: $WORKBOOK_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "Workbook SHA: ${{ steps.live.outputs.sha }} (validated)" >> $GITHUB_STEP_SUMMARY
+          echo "Alert substrings validated: $ALERT_SUBSTRINGS" >> $GITHUB_STEP_SUMMARY
+          echo "Thresholds: LCP=${EXPECT_LCP_P75_MS}ms INP=${EXPECT_INP_P75_MS}ms FetchFailRate=${EXPECT_FETCH_FAIL_RATE}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Create / Update Drift Issue
+        if: failure()
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7 commit pin (2025-09 audited)
+        with:
+          script: |
+            const { data: existing } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'observability,drift'
+            });
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const bodyLines = [
+              'One or more observability verification steps failed.',
+              '',
+              `Run: ${runUrl}`,
+              'Scope: workbook hash, alert presence (tag-based), thresholds (with epsilon for float).',
+              'Action: Investigate drift and update IaC or adjust expected inputs if intentional.',
+              ''
+            ];
+            if (existing.length) {
+              const issue = existing[0];
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: bodyLines.concat([`Appended from failed run at ${new Date().toISOString()}`]).join('\n')
+              });
+              core.notice(`Updated existing drift issue #${issue.number}`);
+            } else {
+              const title = `Observability drift detected (${new Date().toISOString()})`;
+              const { data: issue } = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body: bodyLines.join('\n'),
+                labels: ['observability','drift']
+              });
+              core.notice(`Created new drift issue #${issue.number}`);
+            }

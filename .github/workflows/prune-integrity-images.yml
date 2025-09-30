@@ -1,0 +1,51 @@
+name: Prune Integrity Report Images
+on:
+  schedule:
+    - cron: '0 3 * * 0' # weekly Sunday 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  packages: write
+  contents: read
+
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prune old integrity-report images (allowlist constrained)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          repo_lower=$(echo "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')
+          prefix="${repo_lower}-integrity-report"
+          # Determine owner type (user vs org) and construct both endpoints
+          endpoints=(
+            "https://api.github.com/orgs/${GITHUB_REPOSITORY_OWNER}/packages/container/${prefix}/versions"
+            "https://api.github.com/users/${GITHUB_REPOSITORY_OWNER}/packages/container/${prefix}/versions"
+          )
+          KEEP=30
+          PROTECTED_TAG_REGEX='^(latest|protected|keep)$'
+          RUN_ID_TAG_REGEX='^[0-9]+$' # our run_id tags are numeric
+
+          for url in "${endpoints[@]}"; do
+            echo "Querying $url" >&2
+            resp=$(curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "$url")
+            count=$(echo "$resp" | jq 'length // 0')
+            [ "$count" -eq 0 ] && continue
+            echo "Found $count versions" >&2
+            # Collect deletable ids with constraints
+            # Keep entries with any protected tag; only consider entries whose tags array contains a numeric run id tag
+            deletable=$(echo "$resp" | jq -r --argjson keep $KEEP --arg prot "$PROTECTED_TAG_REGEX" --arg rid "$RUN_ID_TAG_REGEX" '
+              sort_by(.created_at) | .[0:-$keep] | .[] | select(.metadata.container.tags | any(test($prot)) | not) | select(.metadata.container.tags | any(test($rid))) | .id'
+            )
+            if [ -z "$deletable" ]; then
+              echo "Nothing qualifies for pruning under constraints"; continue
+            fi
+            echo "$deletable" | while read vid; do
+              [ -z "$vid" ] && continue
+              echo "Deleting version id $vid" >&2
+              curl -s -X DELETE -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "${url%/versions}/versions/$vid" || true
+            done
+          done
+          echo "Prune pass complete"

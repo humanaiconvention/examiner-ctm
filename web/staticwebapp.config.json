@@ -1,5 +1,5 @@
 {
-  "$schema": "https://aka.ms/azure/static-web-apps/config/schema",
+  "$schema": "./swa.schema.json",
   "navigationFallback": {
     "rewrite": "/index.html",
     "exclude": ["/assets/*", "/favicon.ico"]

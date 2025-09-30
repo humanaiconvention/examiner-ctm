@@ -1,0 +1,16 @@
+// Tooling-only: broad include set used to emulate VS Code editor implicit project expansion.
+// Not used in builds or CI gating; avoid adding paths that could cause perf issues.
+{
+  "extends": "./tsconfig.app.json",
+  "include": [
+    "src",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "**/*.d.ts"
+  ]
+}
