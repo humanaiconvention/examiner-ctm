@@ -2,6 +2,195 @@
 
 This package (`web/`) is the front-end for HumanAI Convention. It is built with Vite + React + strict TypeScript settings and integrated into a supply‑chain hardened CI pipeline.
 
+## Quick Navigation
+* [Taglines](#taglines)
+* [Explore / Convene Scaffold](#explore--convene-scaffold)
+* [Temporary Access Gate](#temporary-access-gate-preview-only)
+* [Developer Testing (`testConfig`)](#developer-testing--testconfig-override)
+* [Badges / CI Artifacts](#badges-generated-in-ci)
+* [Key Scripts](#key-scripts)
+* [Quality Gating](#quality-gating)
+* [Preview Password Protection](#preview-password-protection)
+* [Integrity & Attestations](#integrity--attestations)
+* [Analytics & Telemetry](#analytics--telemetry)
+* [Application Insights](#application-insights-integration-optional)
+* [Performance Metrics](#new-performance-action-perf_metric)
+* [Consent Banner](#consent-banner)
+* [Debug Overlay](#debug-overlay)
+* [Testing & Coverage](#testing--coverage)
+* [CI / Quality Gates](#ci--quality-gates)
+* [CSP Generation](#environment-specific-csp-generation)
+* [Chunk Load Boundary](#chunk-load-boundary)
+* [Owner Login (Single User Auth)](#owner-login-single-user-auth)
+
+## Taglines
+Primary (hero): We will know — together.  
+Secondary (lede): Trust isn’t a feeling. It’s evidence.
+
+The primary tagline now appears as the H1; the previous hero line is intentionally retained as the epistemic anchor supporting our integrity & verification modules.
+
+## Temporary Access Gate (Preview Only)
+
+## Explore / Convene Scaffold
+An initial placeholder route (`/explore`) establishes the future "Convene" dashboard surface. Current goals:
+
+* Reuse preserved introductory question prompts for future contextual modules (research share, integrity evidence explorer, collaboration signals).
+* Provide a stable navigation target for hero CTA ("Explore now").
+* Serve as an integration point for upcoming modular panels (metrics, attestations, provenance diffs, session timeline, consent state, analytics debug shortcuts).
+
+Implementation notes:
+* `src/pages/Explore.tsx` renders a lightweight scaffold with headings and TODO markers—intentionally minimal to avoid premature architectural lock-in.
+* Route is registered in `App.tsx`; the password gate (if enabled) still wraps the entire app so gated previews protect the Explore surface equally.
+* No data fetching yet—keeps bundle delta negligible (<1 KB gz) until real panels land.
+
+Planned evolution (non-breaking roadmap):
+1. Introduce a left-edge modular nav (collapsible) once at least two functional panels exist.
+2. Add provenance & integrity diff panel (consuming existing integrity hashing endpoint) with drill‑down semantics.
+3. Integrate analytics debug overlay as an opt-in panel rather than floating button (maintain legacy toggle for dev ergonomics during transition).
+4. Add collaboration primitives (ephemeral share link generation, optional presence beacons) gated behind explicit consent + feature flag.
+5. Gradually extract shared layout primitives into `src/layout/` when duplication emerges (avoid speculative abstraction today).
+
+Testing guidance:
+* Until dynamic modules ship, unit tests only need to confirm route mounting and basic landmark presence.
+* Future panel additions should include: accessibility landmark assertions, lazy chunk load assertions (dynamic `import()` boundaries), and integrity of analytics emissions when user interactions occur.
+
+Security / privacy stance:
+* Avoid prefetching any future panel data until user explicitly navigates to that panel (principle of least surprise & network minimization).
+* All forthcoming collaborative features must route through existing consent gating system; no implicit telemetry expansion.
+
+This section will be updated as panels graduate from prototype to stable.
+\
+
+## Chunk Load Boundary
+`<ChunkLoadBoundary>` standardizes how lazy-loaded route or panel chunks present loading state:
+
+Benefits:
+* Accessible: uses `role="status"` + `aria-live="polite"` for non‑intrusive announcements.
+* Consistent visual skeleton (pulse animation + gradient) across all future modular dashboard panels.
+* Central label override (`label` prop) for context-specific messaging (e.g. "Loading insight panel").
+* Optional `fallback` prop allows bespoke placeholder when a panel has richer skeleton needs.
+* `aria-busy` applied to wrapper (toggle with `busyWrapper={false}`) enabling assistive tech to defer interactions until content hydration.
+
+Usage (routing example):
+```tsx
+// main.tsx
+<BrowserRouter>
+  <ChunkLoadBoundary label="Loading page">
+    <Routes>
+      <Route path="/explore" element={<Explore />} />
+    </Routes>
+  </ChunkLoadBoundary>
+</BrowserRouter>
+```
+
+Panel usage (future modular dashboard panel):
+```tsx
+<ChunkLoadBoundary label="Loading integrity diff">
+  <IntegrityDiffPanel />
+</ChunkLoadBoundary>
+```
+
+Testing guidance:
+* Assert `getByRole('status', { name: /loading module/i })` (default) or custom label before resolution.
+* Use a lazy component with a microtask / timeout to simulate boundary transition.
+
+Performance note:
+* Boundary itself is negligible; skeleton styles reuse existing gradient tokens. Avoid heavy logic inside fallback—keep it static to allow fast paint.
+
+Customization roadmap:
+* Potential addition of reduced‑motion preference adaptation (swap pulse for subtle opacity shift) when we expand panel variety.
+* Optional metrics hook to emit `chunk_loaded` analytics event with timing metadata.
+
+Source: `src/components/ChunkLoadBoundary.tsx`
+
+## Owner Login (Single User Auth)
+Lightweight cryptographically signed login for the sole owner (Option 1). Replaces (or bypasses) the preview password gate once authenticated.
+
+### Flow
+1. Generate a one-time login link: `node web/scripts/gen-owner-link.mjs --base=http://localhost:5060`.
+2. Open the printed `/login?token=...` URL in the browser within the token TTL (default 600s).
+3. Server validates HMAC signature & expiry, then issues an `owner_session` cookie (HttpOnly, SameSite=Strict, optional Secure when HTTPS).
+4. Frontend `useSession` hook (`src/hooks/useSession.ts`) polls `/session` once (no interval by default) to determine authenticated state.
+5. `PasswordGate` short-circuits when `session.authenticated === true`.
+
+### Endpoints
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/login?token=...` | GET | Exchanges time-bounded login token for session cookie |
+| `/session` | GET | Returns `{ authenticated: boolean, email? }` |
+| `/logout` | GET | Clears session cookie then redirects `/` |
+
+### Environment Variables
+| Var | Meaning | Example |
+|-----|---------|---------|
+| `OWNER_EMAIL` | Allowed owner principal | `ben@humanaiconvention.com` |
+| `SESSION_SIGNING_SECRET` | HMAC-SHA256 secret (keep private) | `d3f5...` (64 hex) |
+| `SESSION_MAX_AGE_SECONDS` | Session lifetime | `86400` |
+| `LOGIN_TOKEN_TTL_SECONDS` | One-time login token lifetime | `600` |
+
+### Security Notes
+* HMAC signing (HS256) with constant-time signature comparison.
+* Separate purposes: `owner-login` for one-time token, `owner-session` for cookie.
+* Session cookie does not expose payload (signed token still, but do not rely on secrecy; treat as bearer capability).
+* No refresh endpoint—regenerate link when session expires (intentional minimalism).
+* Add HTTPS (`--https` or `HTTPS=1`) so cookie gains `Secure`.
+
+### Future Hardening (Optional)
+* Bind session to a UA hash + /24 IP (defense-in-depth; may disrupt roaming).
+* Track token jti (ID) to revoke replay if you later store a blacklist.
+* Rotate `SESSION_SIGNING_SECRET` via dual-secret grace period.
+
+### Frontend Usage
+The existing `PasswordGate` requires no changes—once session cookie is valid it renders children directly. To detect auth state elsewhere:
+```ts
+import { useSession } from './hooks/useSession';
+const { authenticated, email } = useSession();
+```
+Avoid rendering privileged tooling until `authenticated` is true.
+
+An optional password gate can restrict access beyond the intro prompt:
+
+1. Set `VITE_ACCESS_PASSWORD` for a plain-text comparison (dev/previews only) OR set `VITE_ACCESS_PASSWORD_HASH` to a SHA-256 hex of the password (preferred).
+2. Build/start. Users must enter the password once per browser; success stored in `localStorage` under `haic:pw-unlock:<hash>`.
+3. To generate a hash:
+```bash
+node scripts/generate-password-hash.mjs "your password"
+```
+
+Security note: This is a UX gate—NOT cryptographic protection. Do not rely on it for safeguarding sensitive data; all bundle assets remain publicly fetchable if deployed. Suitable only for light preview friction.
+
+### Developer: Testing & `testConfig` Override
+
+The `PasswordGate` component supports a `testConfig` prop (not intended for production) that lets tests deterministically exercise gating states without mutating `import.meta.env` between module loads.
+
+```tsx
+// Example in a Vitest/Jest test
+import PasswordGate from '../components/PasswordGate';
+
+// Plain password scenario
+render(
+  <PasswordGate testConfig={{ password: 'secret' }}>
+    <AppContent />
+  </PasswordGate>
+);
+
+// Hash scenario (sha-256 of 'open-sesame')
+render(
+  <PasswordGate testConfig={{ hash: 'a0d4…<256-bit-hex>…' }}>
+    <AppContent />
+  </PasswordGate>
+);
+```
+
+Behavior precedence:
+1. If `testConfig.password` provided it is used for direct comparison.
+2. Else if `testConfig.hash` provided it compares the SHA-256 of entered text to that hash (case-insensitive hex).
+3. Else it falls back to runtime `import.meta.env` values (`VITE_ACCESS_PASSWORD`, `VITE_ACCESS_PASSWORD_HASH`).
+
+Why this exists: Changing `import.meta.env` after a module is imported is brittle (Vite inlines env vars at build time). The earlier approach attempted dynamic re-imports with query strings; the prop-based injection is simpler, explicit, and type-safe. Production bundles should never pass `testConfig`—leaving it undefined retains normal env-driven behavior.
+
+The unlock flag remains `localStorage`-scoped to a composite key `haic:pw-unlock:<hash-or-plain>` so test runs start clean by clearing localStorage in `beforeEach`.
+
 ## Badges (Generated in CI)
 
 The extended CI workflow produces a coverage badge artifact (not yet auto-published). To surface it publicly you can:
