@@ -73,7 +73,8 @@
     "chromatic": "chromatic --exit-zero-on-changes --storybook-build-dir storybook-static",
   "test:a11y:unit": "vitest run src/components/PreLogoSequence.test.tsx",
   "test:visual:update": "PLAYWRIGHT_UPDATE_SNAPSHOTS=1 npm run test:visual",
-  "logo:export": "tsx scripts/export-logo.tsx"
+  "logo:export": "tsx scripts/export-logo.tsx",
+  "logo:repro": "node scripts/verify-logo-repro.mjs"
   },
   "dependencies": {
     "@microsoft/applicationinsights-web": "^3.0.0",

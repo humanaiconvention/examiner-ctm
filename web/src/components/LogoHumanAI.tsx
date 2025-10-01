@@ -581,8 +581,9 @@ export const LogoHumanAI: React.FC<LogoProps> = ({
     embeddedWordmark = (
       <g className="logo-wordmark-embedded" fontFamily="Inter, system-ui, sans-serif" textAnchor="middle" fill={fg}>
         <text x={HEAD_CX} y={baseY} fontSize={primaryFontSize} fontWeight={300} letterSpacing={0.02 * primaryFontSize}>
+          {/* Use a normal space before AI instead of dx offset so total line remains perfectly centered on HEAD_CX */}
           <tspan fill={wordColor}>Human</tspan>
-          <tspan dx={primaryFontSize * 0.15} fontWeight={400} letterSpacing={0.04 * primaryFontSize} fill={aiAccent}>AI</tspan>
+          <tspan fontWeight={400} letterSpacing={0.04 * primaryFontSize} fill={aiAccent}> AI</tspan>
         </text>
         {showConvention && (
           <text x={HEAD_CX} y={baseY + secondaryFontSize * 1.25} fontSize={secondaryFontSize} fontWeight={300} opacity={0.9} letterSpacing={0.015 * secondaryFontSize}>Convention</text>
@@ -602,7 +603,7 @@ export const LogoHumanAI: React.FC<LogoProps> = ({
       preserveAspectRatio="xMidYMid meet"
       shapeRendering="geometricPrecision"
     >
-      <title>{title}</title>
+      {title ? <title>{title}</title> : null}
       <g transform={`translate(${groupTranslateX}, ${OFFSET_Y})`}>
         {/* Head (human dot) */}
         <circle cx={HEAD_CX} cy={HEAD_CY} r={HEAD_R} fill={fg} />
