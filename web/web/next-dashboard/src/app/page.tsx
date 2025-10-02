@@ -1,5 +1,5 @@
 "use client";
-import { ConsciousnessCore } from "@/components/Tile/ConsciousnessCore";
+import { ConsciousnessCore } from "@/components/tile/ConsciousnessCore";
 import { useDashboardStore } from "@/store/dashboardStore";
 
 export default function Home() {
