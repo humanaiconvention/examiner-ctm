@@ -76,12 +76,33 @@ jobs:
       - name: List portals (debug)
         run: pac paportal list
 
-      # Placeholder logic: choose deployment strategy
-      - name: Deploy (placeholder)
+      - name: Deploy (STATIC_WEBFILES)
+        if: ${{ github.event.inputs.deploy_mode == 'STATIC_WEBFILES' }}
         run: |
-          echo "Deployment mode: ${{ github.event.inputs.deploy_mode }}"
-          echo "Implement upload of dashboard-static/* as Web Files or embed via an iframe in a Web Template."
-          echo "For STATIC_WEBFILES: iterate files and use 'pac paportal upload' once mapping is prepared."
+          echo "Uploading exported files as Power Pages Web Files"
+          # Prepare a temp directory structure compatible with portal assets
+          mkdir portal-upload
+          cp -R dashboard-static/* portal-upload/
+          # Iterate files and upload (HTML, CSS, JS, JSON, SVG, PNG)
+          set +e
+          upload_count=0
+          while IFS= read -r -d '' file; do
+            rel="${file#portal-upload/}"
+            size=$(stat -c%s "$file")
+            # Skip directories
+            if [ -d "$file" ]; then continue; fi
+            # Power Pages webfile name: replace slashes with dashes
+            name=$(echo "$rel" | tr '/' '-')
+            echo "Uploading $rel ($size bytes) -> $name"
+            pac paportal upload --path "$file" --webFile "$name" || echo "Failed to upload $rel (continuing)"
+            upload_count=$((upload_count+1))
+          done < <(find portal-upload -type f -print0)
+          echo "Attempted uploads: $upload_count"
+
+      - name: Deploy (EMBED_IFRAME note)
+        if: ${{ github.event.inputs.deploy_mode == 'EMBED_IFRAME' }}
+        run: |
+          echo "EMBED_IFRAME selected. No direct Dataverse upload performed. Use iframe snippet referencing hosted URL."
 
       - name: Logout
         if: always()

@@ -6,9 +6,9 @@ This guide explains how to package and surface the **Next.js Dashboard** (`web/w
 We produce a static export of the Next.js dashboard and embed or upload it into Power Pages.
 
 Supported deployment modes (choose one):
-1. EMBED_IFRAME (default) – Host static build externally (e.g., GitHub Artifact/CDN/Azure Static Web Apps) and embed via `<iframe>` inside a Web Template or Content Snippet.
-2. STATIC_WEBFILES – Upload static assets directly as Power Pages Web Files (Dataverse records) and reference an entry HTML file.
-3. EXTERNAL_CDN – Publish to an external CDN (Azure Storage Static Website / GitHub Pages) and embed (iframe or script injection) without copying into Dataverse.
+1. **EMBED_IFRAME** (default) – Host static build externally (e.g., GitHub Artifact / Azure Static Web Apps) and embed via `<iframe>` inside a Web Template or Content Snippet.
+2. **STATIC_WEBFILES** – Upload static assets directly as Power Pages Web Files (Dataverse records); the workflow now automates per‑file upload.
+3. **EXTERNAL_CDN** – Publish to an external CDN (Azure Storage Static Website / GitHub Pages) and embed (iframe or script) without copying into Dataverse.
 
 ## Prerequisites
 - Azure AD App (Service Principal) with delegated access to the Dataverse environment.
@@ -42,18 +42,19 @@ Triggers manually (`workflow_dispatch`). Steps:
 2. Lint + build + export static site.
 3. Upload artifact `dashboard-static`.
 4. (Conditional) Authenticate to Power Platform with `pac`.
-5. Placeholder for asset deployment logic.
+5. Deploy step: conditional logic
+  - `STATIC_WEBFILES`: Iterates all exported files and calls `pac paportal upload --webFile <name>` (slashes flattened to `-`).
+  - `EMBED_IFRAME`: Skips upload (informational note only).
+  - `EXTERNAL_CDN`: Separate job prints instructions (no Dataverse auth).
 
-## Implementing STATIC_WEBFILES Deployment
-Replace placeholder step with (pseudo):
-```bash
-pac paportal download --path portal-src
-# Map exported files into portal structure
-cp -R dashboard-static/* portal-src/custom/dashboard
-# Optionally create/modify a Web Template referencing dashboard entry file
-pac paportal upload --path portal-src
+## STATIC_WEBFILES Deployment Details
+The workflow flattens directory slashes into `-` for the Web File logical name (Power Pages constraint simplification). Example:
 ```
-For individual file creation you can also: `pac paportal upload --path path/to/file --webFile <name>`.
+_next/static/chunks/app/page.js  ->  _next-static-chunks-app-page.js
+index.html                       ->  index.html
+integrity-manifest.json          ->  integrity-manifest.json
+```
+If you prefer preserving folder structure, replace the upload loop with a portal source sync (`pac paportal download` / modify / `pac paportal upload`).
 
 ## EMBED_IFRAME Approach
 1. Host exported dashboard (e.g., GitHub Pages or Azure Static Web App). 
@@ -70,9 +71,16 @@ For individual file creation you can also: `pac paportal upload --path path/to/f
 - For authenticated Dataverse data in future, prefer a minimal backend (Azure Function) returning JSON consumed client-side using token exchange flows.
 - Enable CSP headers (if hosting externally) narrowing `frame-ancestors` to your Power Pages domain if clickjacking is a concern.
 
-## Versioning & Cache Busting
-- The static export can leverage content hashes if you add next/image or custom asset hashing. For now rely on deployment timestamp.
-- Consider adding a JSON `version.json` file inside `out/` (similar pattern used in root site) for integrity checks.
+## Versioning, Integrity & Cache Busting
+During `export:static` the script `scripts/gen-integrity.mjs` creates:
+| File | Purpose |
+|------|---------|
+| `version.json` | Overall SHA-256 of exported payload + timestamp + file count |
+| `integrity-manifest.json` | Per-file SHA-256 and byte size |
+
+You can expose `version.json` via an iframe query param (e.g., `?v=<sha>`), or read it inside Power Pages for display / cache invalidation logic. For CDN hosting add immutable cache headers and rely on the manifest’s hash.
+
+If hosting under a subpath, set `DASHBOARD_BASE_PATH` env var; build picks it up as `basePath` in `next.config.ts`.
 
 ## Extending the Build
 - Add dynamic data fetch: create an API route externally (cannot run inside exported static bundle) and call via fetch.

@@ -7,7 +7,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "export:static": "next build && next export",
+  "export:static": "next build && next export && node scripts/gen-integrity.mjs",
     "build:analyze": "ANALYZE=true next build"
   },
   "dependencies": {
