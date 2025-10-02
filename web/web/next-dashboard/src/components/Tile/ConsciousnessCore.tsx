@@ -21,7 +21,7 @@ export function ConsciousnessCore({
   return (
     <div
       className={clsx(
-        'rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/70 to-slate-800/40 backdrop-blur p-4 shadow-lg flex flex-col gap-3 w-[320px]';
+        'rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/70 to-slate-800/40 backdrop-blur p-4 shadow-lg flex flex-col gap-3 w-[320px]',
         className,
       )}
     >

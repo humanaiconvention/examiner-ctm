@@ -1,36 +1,49 @@
-import Image from "next/image";
+"use client";
+import { ConsciousnessCore } from "@/components/Tile/ConsciousnessCore";
+import { useDashboardStore } from "@/store/dashboardStore";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            import { ConsciousnessCore } from "@/components/Tile/ConsciousnessCore";
+  const { coreStatus, setCoreStatus, metrics, incrementMetric } = useDashboardStore();
 
-            export default function Home() {
-              return (
-                <main className="min-h-screen flex flex-col items-center justify-start gap-10 py-16 px-6 bg-gradient-to-br from-slate-900 via-slate-950 to-black text-slate-100">
-                  <h1 className="text-2xl font-semibold tracking-tight">Human AI Dashboard</h1>
-                  <div className="flex flex-wrap gap-8">
-                    <ConsciousnessCore status="online" />
-                  </div>
-                </main>
-              );
-            }
-              className="dark:invert"
+  return (
+    <main className="min-h-screen flex flex-col items-center gap-10 py-16 px-6 bg-gradient-to-br from-slate-950 via-slate-900 to-black text-slate-100">
+      <header className="flex flex-col items-center gap-2">
+        <h1 className="text-2xl font-semibold tracking-tight">Human AI Dashboard</h1>
+        <p className="text-xs text-slate-400 font-mono">Core status: {coreStatus}</p>
+      </header>
+      <div className="flex flex-wrap gap-8">
+        <ConsciousnessCore status={coreStatus} />
+        <div className="rounded-xl border border-white/10 bg-slate-900/50 backdrop-blur p-4 w-[320px] flex flex-col gap-3">
+          <h2 className="text-sm font-semibold tracking-wide text-slate-200">Metrics</h2>
+          <ul className="text-[11px] leading-relaxed text-slate-300 font-mono space-y-1">
+            {metrics.map(m => (
+              <li key={m.id} className="flex justify-between">
+                <span>{m.label}</span>
+                <span>{m.value}{m.unit}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="flex gap-2">
+            <button
+              className="text-[10px] px-2 py-1 rounded bg-slate-700/60 hover:bg-slate-600/60 border border-white/10"
+              onClick={() => incrementMetric('alignment', 1)}
+            >+ Alignment</button>
+            <button
+              className="text-[10px] px-2 py-1 rounded bg-slate-700/60 hover:bg-slate-600/60 border border-white/10"
+              onClick={() => incrementMetric('latency', -5)}
+            >- Latency</button>
+          </div>
+          <div className="flex gap-2">
+            {(['online','offline','booting'] as const).map(s => (
+              <button
+                key={s}
+                className="text-[10px] px-2 py-1 rounded bg-slate-800/60 hover:bg-slate-700/60 border border-white/10 capitalize"
+                onClick={() => setCoreStatus(s)}
+              >{s}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
