@@ -18,10 +18,10 @@
       "floorKB": 8.5
     },
     "errors": {
-      "gzipKB": 4.02,
+      "gzipKB": 4,
       "brotliKB": 4,
       "floorKB": 4
     }
   },
-  "notes": "Ratchet 1% applied 2025-10-02T06:24:40.420Z (improvingRuns=2)"
+  "notes": "Ratchet 1% applied 2025-10-02T06:48:08.733Z (improvingRuns=1)"
 }
