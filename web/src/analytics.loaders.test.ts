@@ -10,7 +10,8 @@ vi.mock('./analytics/core', async () => {
   };
 });
 
-import { analyticsLoaders } from './analytics';
+// Import from modular index (was mistakenly importing root analytics.ts earlier)
+import { analyticsLoaders } from './analytics/index';
 import { trackEvent } from './analytics/core';
 
 beforeEach(() => {
