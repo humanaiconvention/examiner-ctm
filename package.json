@@ -6,12 +6,16 @@
     "dev": "npm run dev --workspace web",
     "dev:dashboard": "cd web/web/next-dashboard && npm run dev",
     "build": "npm run build --workspace web",
+    "build:powerplatform": "VITE_DEPLOYMENT_TARGET=powerplatform npm run build --workspace web",
     "lint": "npm run lint --workspace web",
     "preview": "npm run preview --workspace web",
     "test": "npm run test --workspace web",
     "test:watch": "npm run test:watch --workspace web",
     "test:coverage": "npm run test:coverage --workspace web",
-    "typecheck": "npm run typecheck --workspace web"
+    "typecheck": "npm run typecheck --workspace web",
+    "deploy:powerplatform": "node scripts/deploy-powerplatform.mjs",
+    "deploy:powerplatform:build": "node scripts/deploy-powerplatform.mjs --build",
+    "deploy:powerplatform:dry-run": "node scripts/deploy-powerplatform.mjs --dry-run"
   },
   "engines": {
     "node": ">=20 <21"
