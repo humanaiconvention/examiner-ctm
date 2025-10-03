@@ -1,0 +1,44 @@
+{
+  "id": "entropy-weighting-toggle",
+  "kind": "metric",
+  "specVersion": "1.0.0",
+  "title": "Entropy Weighting Control",
+  "description": "Adjustable entropy-weighting parameter for agentic decision continuity. Higher values increase exploration diversity; lower values favor exploitation of known patterns.",
+  "updatedAt": "2025-10-03T15:52:00Z",
+  "contentVersion": "0.1.0",
+  "author": {
+    "name": "HumanAI Convention",
+    "id": "humanaiconvention"
+  },
+  "tags": ["consciousness", "entropy", "control", "agentic-continuity"],
+  "license": "MIT",
+  "notes": "This parameter influences the balance between exploration and exploitation in agentic systems. Changes affect predictability vs. creativity tradeoffs.",
+  "extensions": {
+    "ethics:profileRef": "entropy-weighting@0.1.0",
+    "ethics:retention": "session",
+    "ethics:consent": true,
+    "control:type": "slider",
+    "control:min": 0.0,
+    "control:max": 1.0,
+    "control:default": 0.5,
+    "control:step": 0.01,
+    "powerApps:binding": {
+      "controlType": "Slider",
+      "dataType": "Number",
+      "min": 0.0,
+      "max": 1.0,
+      "default": 0.5,
+      "step": 0.01,
+      "displayName": "Entropy Weighting",
+      "tooltip": "Adjust exploration/exploitation balance"
+    },
+    "consciousness:layer": "decision-modulation",
+    "consciousness:impact": "continuity-variance"
+  },
+  "metric": {
+    "key": "entropy-weight",
+    "unit": "ratio",
+    "value": 0.5,
+    "source": "user-configured"
+  }
+}
