@@ -1,0 +1,54 @@
+name: "Coverage Dry-run — Failure Mode"
+on:
+  push:
+    branches:
+      - 'dryrun/failure-mode'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  simulate-failure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage (generate json-summary)
+        run: npx jest --coverage --coverageReporters=text --coverageReporters=json-summary --coverageReporters=lcov
+
+      - name: Remove coverage JSON to simulate failure
+        run: |
+          echo "Simulating missing coverage JSON for dry-run..."
+          rm -f coverage/coverage-summary.json || true
+          rm -f coverage/coverage-final.json || true
+
+      - name: Check coverage JSON presence (should fail clearly if missing)
+        run: node scripts/ci/check-coverage-json.js
+
+      - name: Try to run coverage diff (best-effort; may be skipped if not present)
+        run: |
+          if [ -f scripts/coverage-diff.js ]; then
+            echo "Running existing coverage-diff.js (may show additional errors...)"
+            node scripts/coverage-diff.js --strict || true
+          else
+            echo "No coverage-diff.js found; skipping."
+          fi
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-dryrun-failure-mode-logs
+          path: |
+            coverage/**
+            **/coverage/*.json

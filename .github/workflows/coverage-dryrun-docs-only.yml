@@ -1,0 +1,48 @@
+name: "Coverage Dry-run — Docs-only PR"
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+
+jobs:
+  docs-only-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Ensure base is fetched
+        run: |
+          BASE_REF="${{ github.event.pull_request.base.ref }}"
+          echo "Fetching origin/${BASE_REF} for diff..."
+          git fetch origin "${BASE_REF}":"refs/remotes/origin/${BASE_REF}" --no-tags --no-recurse-submodules --depth=1
+
+      - name: Determine if PR is docs-only
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          chmod +x scripts/ci/check-docs-only.sh
+          scripts/ci/check-docs-only.sh "origin/${{ github.event.pull_request.base.ref }}" HEAD
+
+      - name: Install dependencies and run coverage if code changed
+        if: ${{ always() && steps['Determine if PR is docs-only'].outcome == 'success' }}
+        run: |
+          npm ci
+          npx jest --coverage --coverageReporters=text --coverageReporters=json-summary --coverageReporters=lcov || true
+
+      - name: Upload coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-dryrun-docs-only-logs
+          path: |
+            coverage/**
+            **/coverage/*.json
