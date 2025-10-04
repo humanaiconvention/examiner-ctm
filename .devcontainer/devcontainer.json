@@ -1,0 +1,22 @@
+{
+  "name": "HumanAI Convention Devcontainer",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "VARIANT": "18-bullseye"
+    }
+  },
+  "settings": {
+    "terminal.integrated.shell.linux": "/bin/bash",
+    "editor.formatOnSave": true
+  },
+  "extensions": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "ms-python.python",
+    "ms-vscode.vscode-node-azure-pack"
+  ],
+  "forwardPorts": [3000, 5173, 9229],
+  "postCreateCommand": "bash .devcontainer/post-create.sh || true",
+  "remoteUser": "vscode"
+}
