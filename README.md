@@ -47,6 +47,25 @@ Compare the two SHA-256 values; they should match. (If post-build injection diff
 
 If DNS is not yet active, GitHub Pages fallback URL: `https://<github-username>.github.io/<repo-name>/`.
 
+## Deployment Options
+
+This project supports multiple deployment targets:
+
+- **Azure Static Web Apps** (Primary) - See [`DEPLOY_AZURE.md`](DEPLOY_AZURE.md)
+  - Fast provisioning, free SSL, GitHub Actions integration
+  - Best for: Static sites, SPAs, global edge distribution
+  
+- **Microsoft Power Platform (Power Pages)** (Enterprise) - See [`DEPLOY_POWERPLATFORM.md`](DEPLOY_POWERPLATFORM.md)
+  - Native Dataverse integration, enterprise authentication
+  - Target Environment: `HumanAI-Pages-Dev`
+  - Best for: Enterprise portals, Dynamics 365 integration
+  
+- **GitHub Pages** (Fallback) - Automatically deployed from `main` branch
+  - Free hosting, simple setup
+  - Best for: Public documentation, previews
+
+Choose the deployment target that best fits your infrastructure and integration needs.
+
 ## Usage
  ### Development
 Ensure you are using Node.js 20+ (see `engines` in `web/package.json`). A recommended workflow:
