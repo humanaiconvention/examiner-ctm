@@ -97,7 +97,7 @@ type EngagementActions = 'focus' | 'visibility_change';
 type ErrorActions = 'exception' | 'unhandled_rejection';
 type LifecycleActions = 'session_start' | 'consent_granted' | 'consent_denied' | 'breaker_open' | 'breaker_half_open' | 'breaker_closed';
 type HeartbeatActions = 'interval_ping';
-type IntroActions = 'intro_impression' | 'intro_stage_view' | 'intro_completed';
+type IntroActions = 'intro_impression' | 'intro_stage_view' | 'intro_completed' | 'intro_safety_fallback';
 
 export type AnalyticsAction =
   | InteractionActions

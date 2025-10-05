@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+  "export:static": "next build && next export && node scripts/gen-integrity.mjs",
+    "build:analyze": "ANALYZE=true next build"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",

@@ -139,7 +139,7 @@ export default function PreviewIntroGate({ onComplete, lingerMs, visibilityDebou
       document.removeEventListener('visibilitychange', visibilityHandler);
       if (visDebounce) window.clearTimeout(visDebounce);
     };
-  }, []);
+  }, [lingerMs, visibilityDebounceMs]);
 
   const complete = useCallback((opts?: { skip?: boolean }) => {
     if (progressedRef.current) return;
@@ -189,31 +189,29 @@ export default function PreviewIntroGate({ onComplete, lingerMs, visibilityDebou
           )}
           <span className={['intro-question', showQ2 ? 'intro-question--active' : ''].join(' ')} aria-hidden={!showQ2}>{Q2}</span>
         </h1>
-        {(ctaVisible || true) && (
-          <div className="preview-intro__actions">
-            <div className="preview-intro__morph" onAnimationEnd={(e) => {
-              if (e.animationName === 'skipRetire') {
-                // Retire end no longer separately emitted (consolidated analytics)
-              }
-            }}>
-              <button
-                type="button"
-                className={`preview-intro__skip ${ctaVisible ? 'preview-intro__skip--retire' : 'preview-intro__skip--bloom'}`}
-                onClick={() => complete({ skip: true })}
-                aria-label="Skip intro and continue"
-                aria-hidden={ctaVisible || undefined}
-                tabIndex={ctaVisible ? -1 : 0}
-              >
-                Skip
+        <div className="preview-intro__actions">
+          <div className="preview-intro__morph" onAnimationEnd={(e) => {
+            if (e.animationName === 'skipRetire') {
+              // Retire end no longer separately emitted (consolidated analytics)
+            }
+          }}>
+            <button
+              type="button"
+              className={`preview-intro__skip ${ctaVisible ? 'preview-intro__skip--retire' : 'preview-intro__skip--bloom'}`}
+              onClick={() => complete({ skip: true })}
+              aria-label="Skip intro and continue"
+              aria-hidden={ctaVisible || undefined}
+              tabIndex={ctaVisible ? -1 : 0}
+            >
+              Skip
+            </button>
+            {ctaVisible && (
+              <button type="button" className="preview-intro__cta" onClick={() => complete()} autoFocus>
+                Answer here
               </button>
-              {ctaVisible && (
-                <button type="button" className="preview-intro__cta" onClick={() => complete()} autoFocus>
-                  Answer here
-                </button>
-              )}
-            </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

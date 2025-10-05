@@ -67,7 +67,7 @@ try {
         // Lazy load analytics only when actually needed (rare path)
         import('./analytics/index').then(m => {
           try {
-            (m.trackEvent as (o: any) => void)({
+            m.trackEvent({
               category: 'intro',
               action: 'intro_safety_fallback',
               metadata: { route: location.pathname, elapsedMs: safetyTimeoutMs }

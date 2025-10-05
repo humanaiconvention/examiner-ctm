@@ -41,6 +41,10 @@ jobs:
         run: |
           npm ci
           npm --workspace web ci || (cd web && npm install)
+      - name: Install Next Workspace Dependencies
+        run: |
+          # Ensure Next.js workspace dependencies are installed (quality phase)
+          npm --workspace next-app ci || (cd apps/next && npm install)
       - name: Lint (No Warnings)
         run: npm run lint --workspace web -- --max-warnings=0
       - name: Generate Reports (lint & test)
@@ -162,13 +166,28 @@ jobs:
         run: |
           npm ci
           npm --workspace web ci || (cd web && npm install)
+      - name: Install Next Workspace Dependencies
+        run: |
+          # Install Next.js workspace dependencies for export during build
+          npm --workspace next-app ci || (cd apps/next && npm install)
       - name: Setup Preview Env
         uses: ./.github/actions/preview-env
         with:
           set-password: 'true'
 
       - name: Build
-        run: npm run build
+        run: |
+          # Build Vite app
+          npm run build
+          # Export Next app (static) to apps/next/out
+          npm run export:next || npm run export:static --workspace next-app
+          # Merge Next export under web/dist/next (namespace to avoid collisions)
+          mkdir -p web/dist/next
+          cp -R apps/next/out/* web/dist/next/
+          # Add integrity manifest from Next export at root of merged dist for reference
+          if [ -f apps/next/out/version.json ]; then cp apps/next/out/version.json web/dist/next-version.json; fi
+          if [ -f apps/next/out/integrity-manifest.json ]; then cp apps/next/out/integrity-manifest.json web/dist/next-integrity-manifest.json; fi
+          echo "Contents of web/dist/next:"; ls -1 web/dist/next | head
 
       - name: Upload Artifact (dist)
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
