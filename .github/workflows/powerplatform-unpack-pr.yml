@@ -1,0 +1,118 @@
+name: "PowerPlatform: export, unpack and PR"
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: '0 4 * * 1' # weekly Monday 04:00 UTC
+
+permissions:
+  contents: write
+
+jobs:
+  export-unpack-pr:
+    runs-on: ubuntu-latest
+    env:
+      PP_OUTPUT_DIR: powerplatform/exports
+      PP_SOLUTION_NAME: ${{ secrets.PP_SOLUTION_NAME }}
+      UNPACK_BASE: powerplatform/unpacked
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pac (Power Platform CLI)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y unzip curl
+          curl -sSL https://aka.ms/install-ppac | sudo bash
+
+      - name: Export solution
+        env:
+          PP_ENV_URL: ${{ secrets.PP_ENV_URL }}
+          PP_SOLUTION_NAME: ${{ secrets.PP_SOLUTION_NAME }}
+          PP_MANAGED: ${{ secrets.PP_MANAGED }}
+          PP_CLIENT_ID: ${{ secrets.PP_CLIENT_ID }}
+          PP_CLIENT_SECRET: ${{ secrets.PP_CLIENT_SECRET }}
+          PP_TENANT_ID: ${{ secrets.PP_TENANT_ID }}
+        run: |
+          mkdir -p powerplatform/exports
+          node scripts/powerplatform/export-solution.mjs
+
+      - name: Locate exported zip
+        id: findzip
+        run: |
+          set -e
+          SOL=${{ secrets.PP_SOLUTION_NAME }}
+          ZIP=$(ls -t powerplatform/exports/*${SOL}*.zip 2>/dev/null | head -n1 || true)
+          if [ -z "$ZIP" ]; then
+            # fallback to any zip
+            ZIP=$(ls -t powerplatform/exports/*.zip 2>/dev/null | head -n1 || true)
+          fi
+          if [ -z "$ZIP" ]; then
+            echo "No exported zip found in powerplatform/exports"
+            exit 1
+          fi
+          echo "zip=$ZIP" >> $GITHUB_OUTPUT
+          echo "EXPORTED_ZIP=$ZIP" >> $GITHUB_ENV
+
+      - name: Unpack solution to diff-friendly folder
+        env:
+          ZIP: ${{ steps.findzip.outputs.zip }}
+          SOL: ${{ secrets.PP_SOLUTION_NAME }}
+        run: |
+          set -e
+          OUT_DIR=${{ env.UNPACK_BASE }}/${SOL}
+          rm -rf "$OUT_DIR"
+          mkdir -p "$OUT_DIR"
+          echo "Unpacking $ZIP -> $OUT_DIR"
+          pac solution unpack --zipFile "$ZIP" --folder "$OUT_DIR" --use-source-control
+
+      - name: Show unpack summary
+        run: |
+          SOL=${{ secrets.PP_SOLUTION_NAME }}
+          OUT_DIR=${{ env.UNPACK_BASE }}/${SOL}
+          echo "Contents of $OUT_DIR:" && ls -la "$OUT_DIR" | sed -n '1,200p'
+
+      - name: Commit unpacked diffs to branch
+        run: |
+          set -e
+          BRANCH="pp-unpacked/${PP_SOLUTION_NAME}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          git add "${UNPACK_BASE}/${PP_SOLUTION_NAME}"
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore(pp): update unpacked solution ${PP_SOLUTION_NAME}"
+          fi
+          git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" HEAD:"$BRANCH" --force
+
+      - name: Create or update PR (native)
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const PP_SOLUTION_NAME = process.env.PP_SOLUTION_NAME;
+            const EXPORTED_ZIP = process.env.EXPORTED_ZIP || '';
+            const UNPACK_BASE = `${process.env.UNPACK_BASE || 'powerplatform/unpacked'}`;
+            const head = `pp-unpacked/${PP_SOLUTION_NAME}`;
+            const base = 'main';
+            const title = `PowerPlatform: unpacked ${PP_SOLUTION_NAME} updates`;
+            const body = `This PR contains the unpacked contents of the Dataverse solution '${PP_SOLUTION_NAME}' exported by the scheduled workflow.\n\n- Exported zip: ${EXPORTED_ZIP}\n- Unpacked to: ${UNPACK_BASE}/${PP_SOLUTION_NAME}\n\nThe workflow runs weekly and will update this branch/PR with new diffs. Review textual changes and accept when ready.`;
+
+            // find existing open PR for this head
+            const pulls = await github.rest.pulls.list({ owner, repo, head: `${owner}:${head}`, state: 'open' });
+            if (pulls.data.length > 0) {
+              const pr = pulls.data[0];
+              await github.rest.pulls.update({ owner, repo, pull_number: pr.number, title, body });
+              return `updated ${pr.html_url}`;
+            }
+            // create new PR
+            const pr = await github.rest.pulls.create({ owner, repo, title, head, base, body });
+            return `created ${pr.data.html_url}`;

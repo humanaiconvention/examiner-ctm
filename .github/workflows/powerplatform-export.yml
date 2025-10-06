@@ -1,0 +1,43 @@
+name: "PowerPlatform: scheduled export"
+
+on:
+  schedule:
+    - cron: '0 3 * * 1' # weekly Monday 03:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  export-solution:
+    runs-on: ubuntu-latest
+    env:
+      PP_OUTPUT_DIR: powerplatform/exports
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Power Platform CLI
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y unzip curl
+          curl -sSL https://aka.ms/install-ppac | sudo bash
+      - name: Run export script
+        env:
+          PP_ENV_URL: ${{ secrets.PP_ENV_URL }}
+          PP_SOLUTION_NAME: ${{ secrets.PP_SOLUTION_NAME }}
+          PP_MANAGED: ${{ secrets.PP_MANAGED }}
+          PP_CLIENT_ID: ${{ secrets.PP_CLIENT_ID }}
+          PP_CLIENT_SECRET: ${{ secrets.PP_CLIENT_SECRET }}
+          PP_TENANT_ID: ${{ secrets.PP_TENANT_ID }}
+        run: |
+          mkdir -p powerplatform/exports
+          node scripts/powerplatform/export-solution.mjs
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: powerplatform-export
+          path: powerplatform/exports
