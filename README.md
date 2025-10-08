@@ -80,6 +80,68 @@ Common scripts (run from `web/`):
 | `npm run typecheck` | Strict TypeScript check with additional invariants (`noImplicitOverride`, `exactOptionalPropertyTypes`). |
 | `npm run test:e2e` | Builds app with drift harness enabled (env flag) then runs Playwright tests. |
 
+### Hybrid Local + Azure Pipeline (Python)
+The `python/hybrid_pipeline/` package implements a modular workflow that keeps preprocessing on your workstation while delegating heavy inference to Azure AI Foundry deployments.
+
+**Dependencies**
+
+```bash
+python -m venv .venv
+. .venv/Scripts/activate  # Windows PowerShell: .venv\Scripts\Activate.ps1
+pip install --upgrade pip
+pip install transformers sentence-transformers torch openai python-dotenv duckdb numpy
+```
+
+- `transformers` / `torch`: local Phi-3 or LLaMA-style summarization.
+- `sentence-transformers`: local embedding generation.
+- `openai`: async Azure OpenAI SDK.
+- `duckdb` (optional): alternate cache backend; SQLite is default.
+- `python-dotenv`: loads secrets from `.env`.
+
+**Configuration**
+
+Update `.env` (already present in the repo) with the following keys:
+
+```
+AZURE_OPENAI_KEY=
+AZURE_OPENAI_ENDPOINT=
+AZURE_OPENAI_GLOBAL_ENDPOINT=
+HYBRID_CACHE_BACKEND=sqlite  # or duckdb
+LOCAL_LLM_MODEL=phi3
+LOCAL_EMBEDDING_MODEL=all-MiniLM-L6-v2
+LOCAL_USE_OLLAMA=false
+```
+
+If you run Ollama locally, set `LOCAL_USE_OLLAMA=true` and ensure the requested model is pulled (`ollama pull phi3`).
+
+**Running the pipeline**
+
+```python
+from hybrid_pipeline import build_default_pipeline
+import asyncio
+
+async def demo():
+    pipeline = build_default_pipeline()
+    result = await pipeline.run(
+        "Sample text about HumanAI Convention.",
+        deployment="gpt5",
+    )
+    print(result.output_text)
+    await pipeline.azure.close()
+
+asyncio.run(demo())
+```
+
+**Testing connectivity**
+
+Run the harness to validate each configured Azure deployment:
+
+```bash
+python -m hybrid_pipeline.test_harness
+```
+
+The script prints timings, token usage, and any errors for quick diagnostics.
+
 ### Drift Harness & E2E Telemetry Capture (Dev Only)
 To simulate configuration drift during E2E runs a gated harness is exposed when `VITE_ENABLE_DRIFT_HARNESS=true` at build and runtime. It adds globals:
 
@@ -1135,7 +1197,7 @@ cosign verify-attestation \
   --type https://humanaiconvention.com/attestation/integrity-report@v1 \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   --certificate-identity-regexp '^https://github.com/<org>/<repo>/.github/workflows/deployed-integrity-check.yml@refs/heads/main$' \
-  "$IMAGE_REF" | jq '.payloadType, (.payload|@base64d|fromjson|.predicate.reportFields.match)'
+  "$IMAGE_REF" | jq '.payload|@base64d|fromjson|.predicate.reportFields.match'
 ```
 
 Freshness (prototype): artifact `attestation-freshness.json` contains
@@ -1224,28 +1286,6 @@ The deploy job now generates `slsa-provenance.json` in‑line (after the lightwe
 * Is signed (signature, certificate, Rekor bundle) and pushed to GHCR as `slsa-provenance:<commit>` for remote verification.
 
 Policy enforcement currently checks presence of signature triplets for: integrity, attestation, provenance, slsa-provenance, and optional sbom.
-
-### SBOM Component & License Diff
-`web/scripts/compare-sbom.mjs` now supports a `--license` flag and reports:
-* Added / removed components
-* Version changes (heuristic if purl missing)
-* License changes (first license entry delta)
-* Aggregate counts summarized including Δlic indicator when enabled
-
-It runs in both deploy and daily security audit workflows, producing `sbom-diff.json` (non-blocking). This helps distinguish benign transitive bumps from larger dependency shifts before enforcement turns drift into a failure.
-
-Example manual usage:
-```bash
-node web/scripts/compare-sbom.mjs \
-	--current web/sbom/sbom.json \
-	--baseline path/to/previous-sbom.json \
-	--out sbom-diff.json
-jq . sbom-diff.json
-```
-
-### Sigstore Policy & Lightweight Enforcement
-Policy file: `.github/policies/sigstore-policy.yaml` (mode: audit) enumerates required signed artifacts.
-Enforcement step in the deploy workflow performs a lightweight check ensuring each required artifact has `.sig`, `.cert`, and `.bundle`. This is a precursor to a future upgrade using a formal engine (`cosign policy verify` or admission controller) once external runtime contexts are introduced. Mode will move to `enforce` post‑stabilization (> 2025‑11).
 
 ### Signing, Rekor Inclusion Proofs, & OCI Publication
 Deploy workflow steps:
@@ -1421,6 +1461,3 @@ Optional validation before opening a PR:
 npm run lint && npm run typecheck && npm test
 npm run build
 ```
-
-
-<!--
