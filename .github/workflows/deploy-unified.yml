@@ -102,7 +102,7 @@ jobs:
           cat $SUMMARY_JSON | jq -r '. | "Total: \(.tests)  Pass: \(.passes)  Fail: \(.failures)  Skip: \(.skipped)"' >> $GITHUB_STEP_SUMMARY
       - name: Post PR Comment (Test Summary)
         if: github.event_name == 'pull_request'
-        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
@@ -862,7 +862,7 @@ jobs:
         id: pr_deploy
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
       - name: Comment Preview URL
-        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
@@ -878,7 +878,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Comment (no deploy for PR)
-        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |

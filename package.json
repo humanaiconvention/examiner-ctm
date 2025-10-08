@@ -1,12 +1,14 @@
 {
   "name": "humanaiconvention-monorepo",
   "private": true,
-  "workspaces": ["web"],
+  "workspaces": ["web", "apps/next"],
   "scripts": {
     "dev": "npm run dev --workspace web",
-    "dev:dashboard": "cd web/web/next-dashboard && npm run dev",
+    "dev:next": "npm run dev --workspace next-app",
+    "export:next": "npm run export:static --workspace next-app",
     "build": "npm run build --workspace web",
     "build:powerplatform": "VITE_DEPLOYMENT_TARGET=powerplatform npm run build --workspace web",
+    "build:merged": "npm run build && npm run export:next && mkdir -p web/dist/next && cp -R apps/next/out/* web/dist/next/ && echo 'Merged Next export under web/dist/next'",
     "lint": "npm run lint --workspace web",
     "preview": "npm run preview --workspace web",
     "test": "npm run test --workspace web",

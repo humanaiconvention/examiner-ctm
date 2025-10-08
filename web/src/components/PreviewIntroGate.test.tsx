@@ -85,6 +85,7 @@ describe('PreviewIntroGate', () => {
       dispatchEvent: () => true,
     });
     Object.defineProperty(window, 'matchMedia', { writable: true, configurable: true, value: mockMatchMedia });
+    window.matchMedia = (query: string) => ({ matches: query.includes('prefers-reduced-motion'), media: query, addEventListener: () => {}, removeEventListener: () => {}, addListener: () => {}, removeListener: () => {}, onchange: null, dispatchEvent: () => true });
     act(() => { render(<PreviewIntroGate onComplete={onComplete} />); });
     expect(screen.getByRole('button', { name: /answer here/i })).toBeInTheDocument();
     // Skip exists in DOM though retired (aria-hidden) – use getByLabelText which respects aria-hidden so fallback to querySelector

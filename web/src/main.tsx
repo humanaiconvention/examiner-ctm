@@ -74,6 +74,12 @@ try {
              });
            } catch { /* ignore */ }
          }).catch(()=>{});
+              category: 'intro',
+              action: 'intro_safety_fallback',
+              metadata: { route: location.pathname, elapsedMs: safetyTimeoutMs }
+            });
+          } catch { /* ignore */ }
+        }).catch(()=>{});
       }, safetyTimeoutMs);
       // Cancel safety timeout early if gate mounts
       document.addEventListener('intro:gate-mounted', () => {

@@ -205,6 +205,7 @@ export default function PreviewIntroGate({ onComplete, lingerMs, visibilityDebou
               onClick={() => complete({ skip: true })}
               aria-label="Skip intro and continue"
               aria-hidden={ctaVisible ? 'true' : undefined}
+              aria-hidden={ctaVisible || undefined}
               tabIndex={ctaVisible ? -1 : 0}
             >
               Skip
