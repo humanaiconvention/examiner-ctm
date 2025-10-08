@@ -1781,6 +1781,374 @@
           "brotliKB": 0.15
         }
       }
+    },
+    {
+      "ts": "2025-10-08T00:30:49.327Z",
+      "sizes": {
+        "core": {
+          "gzipKB": 4.49,
+          "brotliKB": 4
+        },
+        "engagement": {
+          "gzipKB": 0.15,
+          "brotliKB": 0.12
+        },
+        "errors": {
+          "gzipKB": 0.4,
+          "brotliKB": 0.33
+        },
+        "perf": {
+          "gzipKB": 0.19,
+          "brotliKB": 0.15
+        }
+      }
+    },
+    {
+      "ts": "2025-10-08T00:30:56.244Z",
+      "sizes": {
+        "core": {
+          "gzipKB": 4.49,
+          "brotliKB": 4
+        },
+        "engagement": {
+          "gzipKB": 0.15,
+          "brotliKB": 0.12
+        },
+        "errors": {
+          "gzipKB": 0.4,
+          "brotliKB": 0.33
+        },
+        "extra": {
+          "gzipKB": 0.04,
+          "brotliKB": 0.02
+        },
+        "perf": {
+          "gzipKB": 0.19,
+          "brotliKB": 0.15
+        }
+      }
+    },
+    {
+      "ts": "2025-10-08T01:13:12.907Z",
+      "sizes": {
+        "core": {
+          "gzipKB": 4.49,
+          "brotliKB": 4
+        },
+        "engagement": {
+          "gzipKB": 0.15,
+          "brotliKB": 0.12
+        },
+        "errors": {
+          "gzipKB": 0.4,
+          "brotliKB": 0.33
+        },
+        "perf": {
+          "gzipKB": 0.19,
+          "brotliKB": 0.15
+        }
+      }
+    },
+    {
+      "ts": "2025-10-08T01:13:18.722Z",
+      "sizes": {
+        "core": {
+          "gzipKB": 4.49,
+          "brotliKB": 4
+        },
+        "engagement": {
+          "gzipKB": 0.15,
+          "brotliKB": 0.12
+        },
+        "errors": {
+          "gzipKB": 0.4,
+          "brotliKB": 0.33
+        },
+        "extra": {
+          "gzipKB": 0.04,
+          "brotliKB": 0.02
+        },
+        "perf": {
+          "gzipKB": 0.19,
+          "brotliKB": 0.15
+        }
+      }
+    },
+    {
+      "ts": "2025-10-08T01:18:46.336Z",
+      "sizes": {
+        "core": {
+          "gzipKB": 4.49,
+          "brotliKB": 4
+        },
+        "engagement": {
+          "gzipKB": 0.15,
+          "brotliKB": 0.12
+        },
+        "errors": {
+          "gzipKB": 0.4,
+          "brotliKB": 0.33
+        },
+        "perf": {
+          "gzipKB": 0.19,
+          "brotliKB": 0.15
+        }
+      }
+    },
+    {
+      "ts": "2025-10-08T01:18:52.215Z",
+      "sizes": {
+        "core": {
+          "gzipKB": 4.49,
+          "brotliKB": 4
+        },
+        "engagement": {
+          "gzipKB": 0.15,
+          "brotliKB": 0.12
+        },
+        "errors": {
+          "gzipKB": 0.4,
+          "brotliKB": 0.33
+        },
+        "extra": {
+          "gzipKB": 0.04,
+          "brotliKB": 0.02
+        },
+        "perf": {
+          "gzipKB": 0.19,
+          "brotliKB": 0.15
+        }
+      }
+    },
+    {
+      "ts": "2025-10-08T01:20:06.122Z",
+      "sizes": {
+        "core": {
+          "gzipKB": 4.49,
+          "brotliKB": 4
+        },
+        "engagement": {
+          "gzipKB": 0.15,
+          "brotliKB": 0.12
+        },
+        "errors": {
+          "gzipKB": 0.4,
+          "brotliKB": 0.33
+        },
+        "perf": {
+          "gzipKB": 0.19,
+          "brotliKB": 0.15
+        }
+      }
+    },
+    {
+      "ts": "2025-10-08T01:20:11.735Z",
+      "sizes": {
+        "core": {
+          "gzipKB": 4.49,
+          "brotliKB": 4
+        },
+        "engagement": {
+          "gzipKB": 0.15,
+          "brotliKB": 0.12
+        },
+        "errors": {
+          "gzipKB": 0.4,
+          "brotliKB": 0.33
+        },
+        "extra": {
+          "gzipKB": 0.04,
+          "brotliKB": 0.02
+        },
+        "perf": {
+          "gzipKB": 0.19,
+          "brotliKB": 0.15
+        }
+      }
+    },
+    {
+      "ts": "2025-10-08T01:20:29.916Z",
+      "sizes": {
+        "core": {
+          "gzipKB": 4.49,
+          "brotliKB": 4
+        },
+        "engagement": {
+          "gzipKB": 0.15,
+          "brotliKB": 0.12
+        },
+        "errors": {
+          "gzipKB": 0.4,
+          "brotliKB": 0.33
+        },
+        "perf": {
+          "gzipKB": 0.19,
+          "brotliKB": 0.15
+        }
+      }
+    },
+    {
+      "ts": "2025-10-08T01:20:37.754Z",
+      "sizes": {
+        "core": {
+          "gzipKB": 4.49,
+          "brotliKB": 4
+        },
+        "engagement": {
+          "gzipKB": 0.15,
+          "brotliKB": 0.12
+        },
+        "errors": {
+          "gzipKB": 0.4,
+          "brotliKB": 0.33
+        },
+        "extra": {
+          "gzipKB": 0.04,
+          "brotliKB": 0.02
+        },
+        "perf": {
+          "gzipKB": 0.19,
+          "brotliKB": 0.15
+        }
+      }
+    },
+    {
+      "ts": "2025-10-08T01:20:56.986Z",
+      "sizes": {
+        "core": {
+          "gzipKB": 4.49,
+          "brotliKB": 4
+        },
+        "engagement": {
+          "gzipKB": 0.15,
+          "brotliKB": 0.12
+        },
+        "errors": {
+          "gzipKB": 0.4,
+          "brotliKB": 0.33
+        },
+        "perf": {
+          "gzipKB": 0.19,
+          "brotliKB": 0.15
+        }
+      }
+    },
+    {
+      "ts": "2025-10-08T01:21:02.606Z",
+      "sizes": {
+        "core": {
+          "gzipKB": 4.49,
+          "brotliKB": 4
+        },
+        "engagement": {
+          "gzipKB": 0.15,
+          "brotliKB": 0.12
+        },
+        "errors": {
+          "gzipKB": 0.4,
+          "brotliKB": 0.33
+        },
+        "extra": {
+          "gzipKB": 0.04,
+          "brotliKB": 0.02
+        },
+        "perf": {
+          "gzipKB": 0.19,
+          "brotliKB": 0.15
+        }
+      }
+    },
+    {
+      "ts": "2025-10-08T01:21:26.479Z",
+      "sizes": {
+        "core": {
+          "gzipKB": 4.49,
+          "brotliKB": 4
+        },
+        "engagement": {
+          "gzipKB": 0.15,
+          "brotliKB": 0.12
+        },
+        "errors": {
+          "gzipKB": 0.4,
+          "brotliKB": 0.33
+        },
+        "perf": {
+          "gzipKB": 0.19,
+          "brotliKB": 0.15
+        }
+      }
+    },
+    {
+      "ts": "2025-10-08T01:21:31.915Z",
+      "sizes": {
+        "core": {
+          "gzipKB": 4.49,
+          "brotliKB": 4
+        },
+        "engagement": {
+          "gzipKB": 0.15,
+          "brotliKB": 0.12
+        },
+        "errors": {
+          "gzipKB": 0.4,
+          "brotliKB": 0.33
+        },
+        "extra": {
+          "gzipKB": 0.04,
+          "brotliKB": 0.02
+        },
+        "perf": {
+          "gzipKB": 0.19,
+          "brotliKB": 0.15
+        }
+      }
+    },
+    {
+      "ts": "2025-10-08T01:21:57.235Z",
+      "sizes": {
+        "core": {
+          "gzipKB": 4.49,
+          "brotliKB": 4
+        },
+        "engagement": {
+          "gzipKB": 0.15,
+          "brotliKB": 0.12
+        },
+        "errors": {
+          "gzipKB": 0.4,
+          "brotliKB": 0.33
+        },
+        "perf": {
+          "gzipKB": 0.19,
+          "brotliKB": 0.15
+        }
+      }
+    },
+    {
+      "ts": "2025-10-08T01:22:03.159Z",
+      "sizes": {
+        "core": {
+          "gzipKB": 4.49,
+          "brotliKB": 4
+        },
+        "engagement": {
+          "gzipKB": 0.15,
+          "brotliKB": 0.12
+        },
+        "errors": {
+          "gzipKB": 0.4,
+          "brotliKB": 0.33
+        },
+        "extra": {
+          "gzipKB": 0.04,
+          "brotliKB": 0.02
+        },
+        "perf": {
+          "gzipKB": 0.19,
+          "brotliKB": 0.15
+        }
+      }
     }
   ]
 }

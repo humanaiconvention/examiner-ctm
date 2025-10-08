@@ -1,3 +1,73 @@
+CI / GitHub Actions connectivity test
+-------------------------------------
+
+A sample workflow is provided at `.github/workflows/azure-cognitive-test.yml`.
+
+To use it:
+
+1. Add repository secrets named `AZURE_TEXT_ANALYTICS_ENDPOINT` and `AZURE_TEXT_ANALYTICS_KEY` (Settings → Secrets and variables → Actions).
+2. Run the workflow manually ("Run workflow" in the Actions tab) or push a change to `scripts/azure/test-cognitive.mjs` or this workflow file.
+3. The workflow will run the connectivity test and print the result in the Actions log.
+
+If the test fails, see the troubleshooting section below.
+# Deploying and testing Azure Cognitive Services (Text Analytics)
+
+This document explains how to securely provide Azure Cognitive Services credentials for local development and CI, and how to run a quick connectivity smoke test included in this repo.
+
+Environment variables
+- AZURE_TEXT_ANALYTICS_ENDPOINT — e.g. https://your-resource-name.cognitiveservices.azure.com/
+- AZURE_TEXT_ANALYTICS_KEY — the primary or secondary key for the Text Analytics resource
+
+Local development (safe, quick)
+1. Create a local `.env` file at the repository root (this file MUST NOT be committed). Example:
+
+```dotenv
+# .env (local only)
+AZURE_TEXT_ANALYTICS_ENDPOINT=https://your-resource-name.cognitiveservices.azure.com/
+AZURE_TEXT_ANALYTICS_KEY=your_key_here
+```
+
+2. Run the included test script from the repository root:
+
+  node scripts/azure/test-cognitive.mjs
+
+The script will load environment variables from `.env` (if present) and call the Text Analytics key phrases endpoint with a small sample. It prints a short list of key phrases on success.
+
+CI / GitHub Actions
+- Store secrets in GitHub Actions as repository secrets (recommended names):
+  - AZURE_TEXT_ANALYTICS_ENDPOINT
+  - AZURE_TEXT_ANALYTICS_KEY
+
+- In your workflow, pass those secrets to the job environment and invoke the same test script if you want a smoke check in CI.
+
+Security notes
+- Never commit your `.env` or keys to source control.
+- Prefer using Azure Key Vault for long-lived projects and reference secrets via the appropriate action or service principal with least privilege.
+- Rotate keys regularly and restrict resource access via network rules where possible.
+
+If you want me to add a sample GitHub Actions job showing how to run this test with secrets, tell me and I will add it.
+
+Troubleshooting
+----------------
+
+If the connectivity test fails with a 404 "Resource not found":
+
+- Verify the endpoint URL in the Azure Portal. Go to the resource you created (Text Analytics or Cognitive Services) and copy the "Endpoint" value from the Overview or Keys pane. It should look like `https://<your-resource-name>.cognitiveservices.azure.com/`.
+- Confirm the resource type. If you created the multi-service "Cognitive Services" resource instead of a dedicated "Text Analytics" resource, the endpoint and supported paths can differ depending on the SKU and region. Try both v3.1 and v3.2 paths if one returns 404.
+- Make sure you used the resource key shown in the "Keys and Endpoint" (not a subscription-level key). Paste it into `AZURE_TEXT_ANALYTICS_KEY`.
+- Double-check that the endpoint has not been disabled by network restrictions (IP restrictions or private endpoints) or that your environment has network access to Azure.
+- Try a quick curl check (replace values with your endpoint and key):
+
+```bash
+curl -s -X POST "${AZURE_TEXT_ANALYTICS_ENDPOINT}/text/analytics/v3.2/keyPhrases" \
+  -H "Ocp-Apim-Subscription-Key: ${AZURE_TEXT_ANALYTICS_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{"documents":[{"id":"1","language":"en","text":"Sample text for a connectivity check."}]}'
+```
+
+If the curl request returns 404 as well, most likely the endpoint is incorrect or the resource doesn't expose the Text Analytics route. If curl returns 401/403 then the key is incorrect or has been revoked.
+
+If you'd like, I can try these variations for you from this environment (v3.1 vs v3.2, or using the alternate header `Authorization: Bearer <token>` for managed identity/service principal flows). Tell me which you'd prefer and I'll run them and report back.
 # Azure Deployment Guide
 
 This project is a React + Vite + TypeScript app located in `web/`. Below are two supported deployment strategies to Azure, with a primary recommendation to use **Azure Static Web Apps (SWA)** for integrated CI/CD and free SSL. An alternative using **Azure Storage Static Website + CDN/Front Door** is also outlined.
