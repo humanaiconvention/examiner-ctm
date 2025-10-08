@@ -30,6 +30,9 @@ export default function PreviewIntroGate({ onComplete, lingerMs, visibilityDebou
   const progressedRef = useRef(false);
   const startRef = useRef<number>(performance.now());
   const introKey = 'hq:introComplete';
+  const timeouts = useRef<number[]>([]);
+  const abandonedRef = useRef(false);
+  const lingerFiredRef = useRef(false);
 
   // Accessibility: detect prefers-reduced-motion
   const prefersReducedMotion = (() => {
@@ -65,7 +68,7 @@ export default function PreviewIntroGate({ onComplete, lingerMs, visibilityDebou
       setShowQ2(true);
       setRemoveQ1(true);
       setCtaVisible(true);
-  trackEvent({ category: 'intro', action: 'intro_impression', metadata: { mode: 'dual_prompt', stage: 'q2_show', index: 1, text: Q2, reducedMotion: true } });
+      trackEvent({ category: 'intro', action: 'intro_impression', metadata: { mode: 'dual_prompt', stage: 'q2_show', index: 1, text: Q2, reducedMotion: true } });
       return;
     }
 
@@ -74,12 +77,12 @@ export default function PreviewIntroGate({ onComplete, lingerMs, visibilityDebou
     const t1 = window.setTimeout(() => {
       setPhase('xfade');
       setShowQ2(true); // start crossfade – both visible
-  trackEvent({ category: 'intro', action: 'intro_impression', metadata: { mode: 'dual_prompt', stage: 'transition_start', from: 0, to: 1, durationMs: INTER_QUESTION_FADE_MS } });
+      trackEvent({ category: 'intro', action: 'intro_impression', metadata: { mode: 'dual_prompt', stage: 'transition_start', from: 0, to: 1, durationMs: INTER_QUESTION_FADE_MS } });
       // End of crossfade
       const tX = window.setTimeout(() => {
         setRemoveQ1(true);
         setPhase('q2');
-  trackEvent({ category: 'intro', action: 'intro_impression', metadata: { mode: 'dual_prompt', stage: 'q2_show', index: 1, text: Q2 } });
+        trackEvent({ category: 'intro', action: 'intro_impression', metadata: { mode: 'dual_prompt', stage: 'q2_show', index: 1, text: Q2 } });
         // After second question dwell, reveal CTA
         const t2 = window.setTimeout(() => {
           // Begin morph: record start & fire analytics
@@ -94,23 +97,20 @@ export default function PreviewIntroGate({ onComplete, lingerMs, visibilityDebou
     }, FIRST_QUESTION_VISIBLE_MS);
     timeouts.current.push(t1); localTimeouts.push(t1);
     return () => { localTimeouts.forEach(id => clearTimeout(id)); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const timeouts = useRef<number[]>([]);
-  const abandonedRef = useRef(false);
-  const lingerFiredRef = useRef(false);
+  }, [prefersReducedMotion]);
 
   // Abandonment + Linger: visibility + long dwell signals
   useEffect(() => {
     const ABANDON_MS = 15000; // 15s soft window; if they haven't completed by then and hide, mark abandon
+    const visDelay = visibilityDebounceMs ?? DEFAULT_VIS_DEBOUNCE_MS;
+    const lingerThreshold = lingerMs ?? DEFAULT_LINGER_MS;
+
     const markAbandon = (reason: string) => {
       if (progressedRef.current || abandonedRef.current) return;
       abandonedRef.current = true;
       trackEvent({ category: 'intro', action: 'intro_impression', metadata: { mode: 'dual_prompt', stage: 'abandon', reason } });
     };
-    const visDelay = visibilityDebounceMs ?? DEFAULT_VIS_DEBOUNCE_MS;
-    const LINGER_MS = lingerMs ?? DEFAULT_LINGER_MS;
+
     let visDebounce: number | null = null;
     const visibilityHandler = () => {
       if (visDebounce) window.clearTimeout(visDebounce);
@@ -120,24 +120,28 @@ export default function PreviewIntroGate({ onComplete, lingerMs, visibilityDebou
         }
       }, visDelay); // small debounce to avoid transient tab throttling flickers
     };
+
     document.addEventListener('visibilitychange', visibilityHandler, { passive: true });
 
-    // Linger timer (fires once if user still hasn't completed after LINGER_MS)
+    // Linger timer (fires once if user still hasn't completed after lingerThreshold)
     const lingerTimer = window.setTimeout(() => {
       if (!progressedRef.current && !lingerFiredRef.current) {
         lingerFiredRef.current = true;
-        trackEvent({ category: 'intro', action: 'intro_impression', metadata: { mode: 'dual_prompt', stage: 'linger', atMs: LINGER_MS } });
+        trackEvent({ category: 'intro', action: 'intro_impression', metadata: { mode: 'dual_prompt', stage: 'linger', atMs: lingerThreshold } });
       }
-    }, LINGER_MS);
+    }, lingerThreshold);
     timeouts.current.push(lingerTimer);
-    const t = window.setTimeout(() => {
-      // If at/after threshold they hide, we'll still capture via handler; if they already hid earlier we rely on handler.
-      // Optional future: if still visible after threshold and no progress, could emit a 'linger' stage.
+
+    const abandonTimer = window.setTimeout(() => {
+      markAbandon('timeout');
     }, ABANDON_MS);
-    timeouts.current.push(t);
+    timeouts.current.push(abandonTimer);
+
     return () => {
       document.removeEventListener('visibilitychange', visibilityHandler);
-      if (visDebounce) window.clearTimeout(visDebounce);
+      if (visDebounce !== null) window.clearTimeout(visDebounce);
+      window.clearTimeout(lingerTimer);
+      window.clearTimeout(abandonTimer);
     };
   }, [lingerMs, visibilityDebounceMs]);
 
@@ -187,7 +191,7 @@ export default function PreviewIntroGate({ onComplete, lingerMs, visibilityDebou
           {!removeQ1 && (
             <span className={['intro-question', showQ2 ? 'intro-question--fade-out' : 'intro-question--active'].join(' ')}>{Q1}</span>
           )}
-          <span className={['intro-question', showQ2 ? 'intro-question--active' : ''].join(' ')} aria-hidden={!showQ2}>{Q2}</span>
+          <span className={['intro-question', showQ2 ? 'intro-question--active' : ''].join(' ')} aria-hidden={showQ2 ? undefined : 'true'}>{Q2}</span>
         </h1>
         <div className="preview-intro__actions">
           <div className="preview-intro__morph" onAnimationEnd={(e) => {
@@ -200,6 +204,7 @@ export default function PreviewIntroGate({ onComplete, lingerMs, visibilityDebou
               className={`preview-intro__skip ${ctaVisible ? 'preview-intro__skip--retire' : 'preview-intro__skip--bloom'}`}
               onClick={() => complete({ skip: true })}
               aria-label="Skip intro and continue"
+              aria-hidden={ctaVisible ? 'true' : undefined}
               aria-hidden={ctaVisible || undefined}
               tabIndex={ctaVisible ? -1 : 0}
             >

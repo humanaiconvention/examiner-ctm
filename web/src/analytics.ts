@@ -196,7 +196,7 @@ function validateSchema(category: AnalyticsCategory, action: AnalyticsAction): b
     case 'error': return ['exception','unhandled_rejection'].includes(action);
   case 'lifecycle': return ['session_start','consent_granted','consent_denied','breaker_open','breaker_half_open','breaker_closed'].includes(action);
     case 'heartbeat': return ['interval_ping'].includes(action);
-  case 'intro': return ['intro_impression','intro_stage_view','intro_completed'].includes(action);
+  case 'intro': return ['intro_impression','intro_stage_view','intro_completed','intro_safety_fallback'].includes(action);
     default: return false;
   }
 }
