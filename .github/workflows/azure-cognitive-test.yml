@@ -1,0 +1,32 @@
+# This workflow runs a connectivity test against Azure Text Analytics using repository secrets.
+# It is safe to use as a smoke test for your Cognitive Services resource.
+
+name: azure-cognitive-test
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/azure/test-cognitive.mjs'
+      - '.github/workflows/azure-cognitive-test.yml'
+      - 'DEPLOY_AZURE.md'
+
+jobs:
+  test-cognitive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      - name: Lint Markdown (DEPLOY_AZURE.md)
+        uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          globs: DEPLOY_AZURE.md
+      - name: Run Azure Cognitive Services connectivity test
+        env:
+          AZURE_TEXT_ANALYTICS_ENDPOINT: ${{ secrets.AZURE_TEXT_ANALYTICS_ENDPOINT }}
+          AZURE_TEXT_ANALYTICS_KEY: ${{ secrets.AZURE_TEXT_ANALYTICS_KEY }}
+        run: node scripts/azure/test-cognitive.mjs
