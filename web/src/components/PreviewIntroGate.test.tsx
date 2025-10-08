@@ -74,6 +74,17 @@ describe('PreviewIntroGate', () => {
   it('reduced motion mode shows CTA immediately', () => {
     const onComplete = vi.fn();
     // Mock matchMedia
+    const mockMatchMedia: typeof window.matchMedia = (query: string) => ({
+      matches: query.includes('prefers-reduced-motion'),
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => true,
+    });
+    Object.defineProperty(window, 'matchMedia', { writable: true, configurable: true, value: mockMatchMedia });
     window.matchMedia = (query: string) => ({ matches: query.includes('prefers-reduced-motion'), media: query, addEventListener: () => {}, removeEventListener: () => {}, addListener: () => {}, removeListener: () => {}, onchange: null, dispatchEvent: () => true });
     act(() => { render(<PreviewIntroGate onComplete={onComplete} />); });
     expect(screen.getByRole('button', { name: /answer here/i })).toBeInTheDocument();

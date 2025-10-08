@@ -1,0 +1,12 @@
+{
+  "name": "@humanaiconvention/powerplatform",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "export": "node ../scripts/powerplatform/export-solution.mjs",
+    "pack": "node ../scripts/powerplatform/pack-solution.mjs",
+    "unpack": "node ./unpack-solution.mjs"
+  },
+  "engines": { "node": ">=18.0.0" }
+}
