@@ -172,26 +172,48 @@ When `@langchain/langgraph` is unavailable or compilation fails, the orchestrato
 
 ## Tracked Todos
 
-- [x] Phase 1: Solidify LangChain adapters
-  - Inventory placeholder adapters and document required LangChain primitives for explorer/research flows.
-  - Implement a shared LangChain client bootstrap that exposes RunnableSequence builders and tool registries.
-  - Refactor explorer probes and research pipelines to call the real LangChain helpers while preserving current signatures and fallbacks.
-  - Extend telemetry/logging so LangChain steps emit structured outputs and add regression coverage to guard the fallback path.
-- [x] Phase 2: Prepare shared context plumbing
-  - [x] Introduce a central context bus (or reuse GraphOrchestrator shared state) and propagate envelope updates across modules.
-  - [x] Add runtime flags (ENABLE_LANGCHAIN_CORE, ENABLE_GRAPH_EXPLORER) and document linear vs graph execution modes.
-  - [x] Update docs with developer recipes for enabling LangChain locally.
-- [ ] Phase 3: Layer LangGraph execution
-  - Install LangGraph and generate graph definitions that map existing flow steps to nodes using shared state.
-  - Enhance GraphOrchestrator to prefer LangGraph when enabled, with safe fallback to linear execution.
-  - Model explorer and research flows with branching/concurrency, persisting envelopes between nodes.
-  - Add integration tests covering both linear and graph orchestration paths.
-- [x] Phase 4: Rollout & observability
-  - Guard feature rollout with flags per environment and monitor telemetry.
-  - Add dashboards comparing latency/success/context completeness between modes.
-  - Run regression simulations to validate shared-state durability before enabling graph mode broadly.
+- [ ] Phase A1: Persistence & Observability Foundations
+  - Stand up Redis for checkpoint/ephemeral memory and Postgres + pgvector for long-term semantic state.
+  - Integrate OpenTelemetry instrumentation with exports to Postgres (primary), Datadog, and optional Azure Monitor.
+  - Configure secrets (Azure Key Vault) and Entra ID SSO/RBAC scaffolding; expose LangSmith + LangGraph Studio hooks.
+- [ ] Phase A2: LangChain Primitives & Memory Refactor
+  - Introduce prompt registry, LangChain tool wrappers, planner/executor/critic agents, and shared memory drivers.
+  - Implement cost/latency-aware model routing with Redis exact cache, semantic cache, and retrieval cache layers.
+- [ ] Phase A3: LangGraph Orchestration Upgrade
+  - Migrate research/explorer flows to LangGraph FSM with branching, retries, loopbacks, and speculative parallel retrieval.
+  - Persist checkpoints to Redis and execution metadata to Postgres for replay.
+- [ ] Phase A4: Production Hardening & Security
+  - Add structured logging, Grafana dashboards, dual-layer rate limiting, and Azure deployment templates (containers/Helm/azd).
+  - Enforce RBAC roles, MFA, conditional access, and audit logging aligned with OpenTelemetry traces and Postgres audit trails.
+- [ ] Phase A5: Multi-Agent Coordination Patterns
+  - Implement specialist agents (retrieval, synthesis, reviewer) with scoped tools/memory and message bus persistence.
+  - Validate with LangSmith scenarios and load tests meeting latency/cost budgets.
+- [ ] Phase A6: Fault Tolerance & Resilience
+  - Add node-level retry policies, exponential backoff, checkpoint resume, and compensation flows captured in traces.
+  - Document recovery runbooks and regression tests for partial-failure scenarios.
 
 <!-- TODOS-END -->
+
+## Pre-Execution Checklist (Phase A Foundations)
+
+- [ ] Provision or confirm Redis checkpoint cluster with high availability, TLS, and backup policy.
+- [ ] Provision or confirm Postgres + pgvector instance for semantic memory with migration access and connection pooling.
+- [ ] Update IaC/config repos with new endpoints, credentials sourcing (Azure Key Vault), and health check URLs.
+- [ ] Validate Entra ID tenant, RBAC role mappings (viewer/contributor/maintainer/admin), MFA, and conditional access policies.
+- [ ] Prepare rate-limiting configuration (per-provider + per-tenant) and ensure limiter metrics feed into OpenTelemetry traces.
+- [ ] Configure OpenTelemetry collector/export paths (Postgres, Datadog, optional Azure Monitor) and obtain API keys/tokens.
+- [ ] Verify LangSmith and LangGraph Studio account access/licensing for observability and graph debugging.
+- [ ] Stage baseline smoke tests for Redis/Postgres connectivity, telemetry ingestion, and security enforcement before rollout.
+- [ ] Document rollback steps and feature flag toggles for Redis/Postgres/telemetry integrations.
+
+## Phase A Workflow Reference
+
+1. **Phase A1: Persistence & Observability Foundations** – Deploy Redis + Postgres/pgvector, secrets, SSO/RBAC, OpenTelemetry exports, LangSmith/LangGraph Studio hooks.
+2. **Phase A2: LangChain Primitives & Memory Refactor** – Introduce prompt registry, LangChain tool wrappers, agent roles, and multi-tier caching with cost-aware routing.
+3. **Phase A3: LangGraph Orchestration Upgrade** – Migrate flows to LangGraph FSM with branching, retries, speculative parallelism, and checkpoint persistence.
+4. **Phase A4: Production Hardening & Security** – Add structured logging, Grafana/Azure dashboards, dual-layer rate limits, Azure deployment templates, and audit logging.
+5. **Phase A5: Multi-Agent Coordination Patterns** – Implement specialist agents, message bus persistence, and latency/cost validation via LangSmith scenarios.
+6. **Phase A6: Fault Tolerance & Resilience** – Enable node-level retries, checkpoint resume, compensation flows, and document failure recovery procedures.
 
 Notes & gotchas
 
