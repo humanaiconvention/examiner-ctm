@@ -1,4 +1,3 @@
-
 # Project snapshot — quick start
 
 Purpose
@@ -18,20 +17,22 @@ Important files & locations
 
 - Flow selector (UI orchestration): `consciousness-explorer/dashboard/flow-selector.js`
   - Key: options.simulateSync (default true) controls whether artifact simulation is awaited synchronously.
-  - API: returns `setSimulateSync(value)`, `getController()`, `getControllerSnapshot()`.
+  - API: returns `setSimulateSync(value)`, `getController()`, `getControllerSnapshot()`, `getSharedContext()`, and `getSharedContextSnapshot()`.
+  - Initializes the shared context bus metadata so dashboard integrations can subscribe to `sharedContext` updates.
+
+- Shared context bus: `consciousness-explorer/modules/context/sharedContextBus.js`
+  - Maintains a normalized `ContextEnvelope`, publishes versioned commits, and exposes `updateFromFlow`, `subscribe`, and `snapshot()` helpers.
+  - Used by `StateAwareController` and `GraphOrchestrator` to coordinate shared state across flows and graph nodes.
 
 - State controller: `consciousness-explorer/modules/flows/stateController.js`
   - Key methods: `integrateObservation(flow, bundle)`, `processPendingArtifacts()`, `getSnapshot()`.
+  - Accepts `{ sharedContext, sharedContextOptions }` in the constructor and publishes flow observations to the shared context bus.
 
-- Flow modules:
-  - `consciousness-explorer/modules/flows/contextAnchoringFlow.js`
-  - `.../causalReasoningFlow.js`
-  - `.../ethicalDeliberationFlow.js`
-  - `.../longHorizonPlanningFlow.js`
-  - `.../interpretabilityProvenanceFlow.js`
-  - `.../playfulCreativityFlow.js`
-  - Each now accepts { intent, perspective, research, userAnchors, phase, stateSnapshot } and may return a `stateSignals` envelope.
-
+- Graph orchestrator: `consciousness-explorer/modules/flows/graphOrchestrator.js`
+  - Provides `execute`, `executeLinear`, `executeGraph`, and now injects `sharedContext` & `sharedContextSnapshot` into payloads and node contexts for graph-aware flows.
+- LangGraph runtime loader (optional): `consciousness-explorer/modules/flows/langGraphRuntime.js`
+  - Lazily imports `@langchain/langgraph`, caches native executors, and falls back to the shim path when the dependency is missing or compilation fails.
+  - `GraphOrchestrator` checks this module whenever `ENABLE_GRAPH_EXPLORER` is enabled, annotating results with metadata (`graphMetadata.runtime`, `native`, `fallback`).
 - Research simulator:
   - JS bridge (fallback): `consciousness-explorer/modules/research/simulatorBridge.js`
   - Python shim: `python/sim_shim.py` (HTTP server, POST /simulate)
@@ -40,6 +41,7 @@ Important files & locations
 - Tests and test helpers:
   - Web tests (Vitest): `web/tests/*` and `web/src/__tests__` etc.
   - Key tests added: `web/tests/state.controller.test.ts`, `web/tests/contextAnchoringFlow.unit.test.ts`, `web/tests/research.simulator.integration.test.ts`.
+  - New shared context coverage: `consciousness-explorer/test/sharedContextBus.test.js` validates the bus, controller integration, and orchestrator propagation.
 
 Quick dev commands
 
@@ -69,7 +71,91 @@ $env:SIM_SHIM_URL = 'http://127.0.0.1:8765'
 # then run the app/tests which rely on fetch to call the shim
 ```
 
-Pick up checklist (what I'd do next)
+## Runtime feature flags
+
+Two feature flags gate the new integrations. They can be set through environment variables (preferred) or injected at runtime via `globalThis.__RUNTIME_FLAGS__` for browser-based experiments.
+
+- `ENABLE_LANGCHAIN_CORE`
+  - Default: `false`
+  - When enabled, `langchainClient` boots the LangChain runtime and emits step telemetry. When disabled, flows fall back to the legacy probe pipeline and log a `runtime:disabled` event.
+- `ENABLE_GRAPH_EXPLORER`
+  - Default: `false`
+  - When enabled, `GraphOrchestrator` syncs into graph mode, exposing `sharedContextSnapshot` to each node. When disabled, execution remains linear but still publishes shared context updates.
+
+### Local usage (PowerShell examples)
+
+```pwsh
+# Enable LangChain + graph execution for the current shell
+$env:ENABLE_LANGCHAIN_CORE = '1'
+$env:ENABLE_GRAPH_EXPLORER = '1'
+
+# Run tests with both flags enabled
+npm run test
+
+# Clear the flags for linear fallback
+Remove-Item env:ENABLE_LANGCHAIN_CORE
+Remove-Item env:ENABLE_GRAPH_EXPLORER
+```
+
+The flag loader also respects lowercase booleans (`true`, `false`), `on`/`off`, and numeric literals (`0`, `1`). For browser devtools or Playwright tests you can set:
+
+```js
+globalThis.__RUNTIME_FLAGS__ = { ENABLE_LANGCHAIN_CORE: true, ENABLE_GRAPH_EXPLORER: false };
+```
+
+## LangGraph execution (optional)
+
+Native graph orchestration is an optional add-on. If `@langchain/langgraph` is not installed the orchestrator automatically falls back to the existing shim path.
+
+1. Install the optional dependency (workspace root or `consciousness-explorer` package):
+
+```pwsh
+npm install @langchain/langgraph @langchain/core
+```
+
+2. Enable the graph explorer flag (see runtime flags above) and run flows/tests as normal. The orchestrator will:
+   - Attempt to load LangGraph lazily via `modules/flows/langGraphRuntime.js`.
+   - Use native `StateGraph` execution when available, annotating results with `graphMetadata.runtime = "langgraph-native"`.
+   - Fall back to the shim and mark `graphMetadata.runtime = "graph-shim"` when the dependency is missing, compilation fails, or the flag is disabled.
+
+3. Targeted tests:
+
+```pwsh
+npm test -- --run graphOrchestrator.langgraph.test.js
+npm test -- --run langGraphRuntime.test.js
+```
+
+### Pilot graph example
+
+The context anchoring flow now ships with a pilot graph definition at `modules/flows/contextAnchoringGraph.js`. When the graph flag is enabled, you can register it with the orchestrator and execute the flow like this:
+
+```js
+import StateAwareController from './modules/flows/stateController.js';
+import { GraphOrchestrator } from './modules/flows/graphOrchestrator.js';
+import { createContextAnchoringGraphDefinition } from './modules/flows/contextAnchoringGraph.js';
+
+const controller = new StateAwareController();
+const orchestrator = new GraphOrchestrator({
+  controller,
+  executors: {
+    'context-anchoring': runContextAnchoringFlow
+  }
+});
+
+const definition = createContextAnchoringGraphDefinition();
+orchestrator.setGraphDefinition('context-anchoring', definition);
+
+const result = await orchestrator.execute('context-anchoring', {
+  intent: 'map the decision context',
+  perspective: 'human'
+});
+
+console.log(result.graphMetadata.runtime); // "langgraph-native" when LangGraph is installed and flag enabled
+```
+
+When `@langchain/langgraph` is unavailable or compilation fails, the orchestrator automatically falls back to the shim path and sets `graphMetadata.runtime` to `"graph-shim"` while still returning the flow output.
+
+### Pick up checklist (what I'd do next)
 
 1. Implement robust Python shim integration (in-progress)
    - Provide a child-process manager or a production HTTP endpoint wrapper.
@@ -80,23 +166,30 @@ Pick up checklist (what I'd do next)
    - Show `bundle.flowResult.simResult` details in tiles when present (debug mode optional).
 4. Add timeouts / perf fallback for synchronous `processPendingArtifacts()` so the UI doesn't hang.
 5. Docs: add README sections and deployment notes describing simulator options and how to run the shim in production.
+6. Resolve Dependabot alerts (1 critical, 1 moderate) flagged after pushing commit 537e997 to `main`.
 
 <!-- TODOS-START -->
 
 ## Tracked Todos
 
-- [x] 1. Add sync/async toggle — completed
-  - Add a configuration option to toggle synchronous vs asynchronous artifact processing in the Flow Selector; update `consciousness-explorer/dashboard/flow-selector.js`, add tests, and ensure default behavior is clear (keep current behavior as default). Acceptance: a runtime option `options.simulateSync` (or similar) controls whether `controller.processPendingArtifacts()` is awaited. Update or add unit tests to cover both modes.
-- [ ] 2. Implement Python shim — in-progress
-  - Provide a production-ready bridge to the Python simulator: create an HTTP shim or child-process wrapper that exposes `simulate_fragment` to Node, update `consciousness-explorer/modules/research/simulatorBridge.js` to call the shim when configured, add docs and tests. Files: `python/sim_shim.py`, `consciousness-explorer/modules/research/simulatorBridge.js`.
-- [ ] 3. Add controller edge-case tests — not-started
-  - Add Vitest tests for StateAwareController covering: multiple concurrent artifacts, simulator errors/timeouts, knowledge/uncertainty conflict resolution, and phase transitions triggered by research evidence. Files: `web/tests/state.controller.edge.test.ts` and updates to CI test calls.
-- [ ] 4. Surface simResult in tile UI — not-started
-  - Update tile rendering to display relevant `simResult` details when present on `bundle.flowResult.simResult`. Files: `consciousness-explorer/dashboard/tile-*.js` (or the tile component used by the project). Add small UI tests to assert presence when debug toggle enabled.
-- [ ] 5. Document simulator options and behavior — not-started
-  - Update README and `DEPLOY_AZURE.md` (or an appropriate docs page) to describe simulator modes (JS bridge vs Python shim), the sync/async toggle, and recommended deployment approach. Include example config snippets and troubleshooting notes.
-- [ ] 6. Add perf fallback and timeout — not-started
-  - Implement a fallback for long-running synchronous simulations: add a timeout and graceful degradation path (e.g., proceed with partial state, mark artifacts as timed out), and add tests for timeout behavior. Files: `stateController.js` and tests.
+- [x] Phase 1: Solidify LangChain adapters
+  - Inventory placeholder adapters and document required LangChain primitives for explorer/research flows.
+  - Implement a shared LangChain client bootstrap that exposes RunnableSequence builders and tool registries.
+  - Refactor explorer probes and research pipelines to call the real LangChain helpers while preserving current signatures and fallbacks.
+  - Extend telemetry/logging so LangChain steps emit structured outputs and add regression coverage to guard the fallback path.
+- [x] Phase 2: Prepare shared context plumbing
+  - [x] Introduce a central context bus (or reuse GraphOrchestrator shared state) and propagate envelope updates across modules.
+  - [x] Add runtime flags (ENABLE_LANGCHAIN_CORE, ENABLE_GRAPH_EXPLORER) and document linear vs graph execution modes.
+  - [x] Update docs with developer recipes for enabling LangChain locally.
+- [ ] Phase 3: Layer LangGraph execution
+  - Install LangGraph and generate graph definitions that map existing flow steps to nodes using shared state.
+  - Enhance GraphOrchestrator to prefer LangGraph when enabled, with safe fallback to linear execution.
+  - Model explorer and research flows with branching/concurrency, persisting envelopes between nodes.
+  - Add integration tests covering both linear and graph orchestration paths.
+- [x] Phase 4: Rollout & observability
+  - Guard feature rollout with flags per environment and monitor telemetry.
+  - Add dashboards comparing latency/success/context completeness between modes.
+  - Run regression simulations to validate shared-state durability before enabling graph mode broadly.
 
 <!-- TODOS-END -->
 
@@ -126,3 +219,12 @@ If you'd like me to continue
   - implement the timeout/fallback for synchronous processing.
 
 ✦ File saved: start.md
+
+---
+
+Status note (2025-10-08): LangChain telemetry instrumentation was merged to `main` via PR #68. The topic branch
+`modules/reconcile-modules-langchain-telemetry` was pushed and merged; local topic branch `modules/reconcile-modules` has been deleted.
+Key commits: c65c887 (instrument(langchain): emit telemetry events, wire to probeLogger, add logging test), 0776c7f (merge).
+PR: [modules/reconcile-modules-langchain-telemetry PR](https://github.com/humanaiconvention/consciousness-explorer/pull/new/modules/reconcile-modules-langchain-telemetry)
+
+Status note (2025-10-08 late): Pushed 537e997 "feat: consolidate LangGraph rollout phases 1-4" directly to `main`; next session pick up Phase 3 graph execution work and remediate the new Dependabot findings.
