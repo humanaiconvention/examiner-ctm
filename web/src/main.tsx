@@ -68,12 +68,6 @@ try {
         import('./analytics/index').then(m => {
           try {
             m.trackEvent({
-               category: 'intro',
-               action: 'intro_safety_fallback',
-               metadata: { route: location.pathname, elapsedMs: safetyTimeoutMs }
-             });
-           } catch { /* ignore */ }
-         }).catch(()=>{});
               category: 'intro',
               action: 'intro_safety_fallback',
               metadata: { route: location.pathname, elapsedMs: safetyTimeoutMs }

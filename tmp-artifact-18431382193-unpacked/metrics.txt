@@ -1,0 +1,10 @@
+# HELP web_build_info Static build metadata
+# TYPE web_build_info gauge
+web_build_info{version="0.2.0",commit="718f319f0feb"} 1
+# HELP web_total_asset_bytes Total bytes of hashed js/css assets
+# TYPE web_total_asset_bytes gauge
+web_total_asset_bytes 435467
+# HELP web_asset_size_bytes Size of individual asset files
+# TYPE web_asset_size_bytes gauge
+web_asset_size_bytes{file="index-BktqTemO.js",sha256="8c816eb00fd7f621d98e9e4c01e3fd15053f6c654ecaf710a49bd90a329ad536"} 413877
+web_asset_size_bytes{file="index-De-F2Zts.css",sha256="195a8d4b2ebbeb9cc6bffc28fc0baa5d187b6c051754c17bf73d70b642be6e17"} 21590
