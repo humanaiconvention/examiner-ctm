@@ -41,11 +41,26 @@ jobs:
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Setup Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+      - name: Prepare Pages root directory
+        run: |
+          # Ensure we upload the built site at the artifact root so Pages serves index.html
+          rm -rf pages_site || true
+          mkdir -p pages_site
+          if [ -d "dist" ]; then
+            echo "Using repo-root 'dist' -> copying into pages_site"
+            cp -a dist/. pages_site/
+          elif [ -d "web/dist" ]; then
+            echo "Using 'web/dist' -> copying into pages_site"
+            cp -a web/dist/. pages_site/
+          else
+            echo "ERROR: No dist found at 'dist' or 'web/dist' to deploy" >&2
+            ls -la || true
+            exit 1
+          fi
       - name: Upload artifact
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
         with:
-          # Upload entire repository
-          path: '.'
+          path: pages_site
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
