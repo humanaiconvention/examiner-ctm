@@ -570,10 +570,15 @@ jobs:
       - name: Inject CNAME (if custom domain)
         run: |
           if [ -n "$CUSTOM_DOMAIN" ]; then echo "$CUSTOM_DOMAIN" > web/dist/CNAME; fi
+      - name: Prepare Pages root directory
+        run: |
+          rm -rf pages_site || true
+          mkdir -p pages_site
+          cp -a web/dist/. pages_site/
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
         with:
-          path: web/dist
+          path: pages_site
           name: github-pages
           retention-days: 1
       - name: Deploy to GitHub Pages

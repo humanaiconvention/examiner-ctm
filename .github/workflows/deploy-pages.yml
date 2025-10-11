@@ -92,10 +92,16 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           if [ -n "$CUSTOM_DOMAIN" ]; then echo "$CUSTOM_DOMAIN" > web/dist/CNAME; fi
+      - name: Prepare Pages root directory
+        run: |
+          # Ensure artifact root contains site files (avoid nested 'dist/' in archive)
+          rm -rf pages_site || true
+          mkdir -p pages_site
+          cp -a web/dist/. pages_site/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
         with:
-          path: web/dist
+          path: pages_site
       - name: Show artifact file list (post-upload)
         run: |
           echo "(Re)listing dist for sanity before deploy stage:" 
