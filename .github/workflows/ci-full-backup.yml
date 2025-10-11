@@ -351,7 +351,7 @@ jobs:
   pr-summary:
     name: PR Quality Summary
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+  if: ${{ github.event_name == 'pull_request' }}
     needs: [setup-and-build, e2e]
     steps:
       - name: Checkout

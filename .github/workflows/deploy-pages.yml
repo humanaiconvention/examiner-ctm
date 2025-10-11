@@ -133,7 +133,7 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
       - name: Extract PR Number
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event_name == 'pull_request' }}
         id: pr
         run: |
           # GITHUB_REF format: refs/pull/<pr-number>/merge
@@ -141,7 +141,7 @@ jobs:
           pr_number=$(echo "$GITHUB_REF" | awk -F'/' '{print $3}')
           if [[ "$pr_number" =~ ^[0-9]+$ ]]; then echo "PR_NUMBER=$pr_number" >> $GITHUB_ENV; else echo "Unable to parse PR number"; exit 1; fi
       - name: Comment Preview URL (PR only)
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event_name == 'pull_request' }}
         run: |
           set -e
           pr_number=$(echo "$GITHUB_REF" | awk -F'/' '{print $3}')
