@@ -1,9 +1,8 @@
 name: "PowerPlatform: export, unpack and PR"
 
 on:
+  # Disabled scheduled export/unpack; manual-only to avoid automated pushes and PRs.
   workflow_dispatch: {}
-  schedule:
-    - cron: '0 4 * * 1' # weekly Monday 04:00 UTC
 
 permissions:
   contents: write

@@ -4,12 +4,8 @@
 name: azure-cognitive-test
 
 on:
+  # Manual-only: do not auto-run Azure connectivity checks on push
   workflow_dispatch:
-  push:
-    paths:
-      - 'scripts/azure/test-cognitive.mjs'
-      - '.github/workflows/azure-cognitive-test.yml'
-      - 'DEPLOY_AZURE.md'
 
 jobs:
   test-cognitive:

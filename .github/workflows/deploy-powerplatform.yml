@@ -10,12 +10,7 @@ name: Deploy to Power Platform (Power Pages)
 ################################################################################
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'web/**'
-      - 'power-pages.config.json'
-      - '.github/workflows/deploy-powerplatform.yml'
+  # Disabled automatic triggers to avoid accidental infra changes. Use manual dispatch to run.
   workflow_dispatch:
     inputs:
       environment:
