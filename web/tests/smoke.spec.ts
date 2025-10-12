@@ -1,28 +1,33 @@
 import { test, expect } from '@playwright/test';
 
-// Basic smoke routes - fast existence checks without heavy assertions
-const routes = [
-  '/',
-  '/learn-more',
-  '/preview-questions',
-  '/explore'
-];
+const base = 'https://humanaiconvention.github.io/humanaiconvention';
+
+test('preview smoke - loads and has no console errors', async ({ page }) => {
+  const url = `${base}/`;
+  const errors: string[] = [];
+  page.on('console', (msg) => {
+    if (msg.type() === 'error') errors.push(msg.text());
+  });
+
+  const response = await page.goto(url, { waitUntil: 'networkidle' });
+  expect(response && response.status() < 400).toBeTruthy();
+  await page.waitForLoadState('networkidle');
+  expect(errors).toEqual([]);
+});
+
+// Basic additional routes to sanity-check a few pages
+const routes = ['/', '/learn-more', '/preview-questions', '/explore'];
 
 test.describe('smoke routes', () => {
   for (const route of routes) {
     test(`route ${route} renders`, async ({ page }) => {
-      const res = await page.goto(route);
-      expect(res?.ok(), `Response ok for ${route}`).toBeTruthy();
-      // Basic DOM sanity - ensure root app container present
+      const res = await page.goto(base + route, { waitUntil: 'networkidle' });
+      expect(res && res.status() < 400).toBeTruthy();
       await expect(page.locator('#root')).toBeVisible();
-      // Quick check: no severe console errors
       const errors: string[] = [];
-      page.on('console', msg => {
-        if (msg.type() === 'error') errors.push(msg.text());
-      });
-      // allow a tiny settle time for lazy routes
+      page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
       await page.waitForTimeout(50);
-      expect(errors.filter(e => !/favicon|manifest/i.test(e)), 'No console errors').toEqual([]);
+      expect(errors.filter(e => !/favicon|manifest/i.test(e))).toEqual([]);
     });
   }
 });
