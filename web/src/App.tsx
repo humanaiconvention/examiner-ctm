@@ -162,8 +162,8 @@ function App() {
       }
       el.setAttribute('content', content)
     }
-  // Updated description: remove secondary tagline line now replaced visually by logo; keep mission phrase.
-  const description = `A public, verifiable framework for human–AI knowledge collaboration. HumanAI Convention.`
+  // Updated description: set canonical short tagline used for meta tags.
+  const description = `HumanAI Convention 0 We will know 	6 together.`
     setMeta('description', description)
     setProperty('og:title', title)
     setProperty('og:description', description)
@@ -217,7 +217,7 @@ function App() {
               lineGapScale={heroConfig.lineGapScale ?? 1}
               autoStackBreakpoint={heroConfig.autoStackBreakpoint ?? 640}
             />
-            <p className="visually-hidden" id="hero-desc">HumanAI Convention – A public, verifiable framework for human–AI knowledge collaboration.</p>
+            <p className="visually-hidden" id="hero-desc">HumanAI Convention — We will know — together.</p>
           </div>
           <nav className="cta-row" aria-label="Primary calls to action" data-reveal data-reveal-order="2">
             <a

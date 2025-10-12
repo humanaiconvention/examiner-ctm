@@ -775,7 +775,7 @@ If you need to assert that injection did not modify unrelated regions, you can s
 
 ## # HumanAI Convention
 
-**A reproducible, trauma-informed framework for ethical AI governance, grounded in human data and public-benefit infrastructure.**
+**A reproducible, human-centered framework for ethical AI governance, grounded in human data and public-benefit infrastructure.**
 
 
 ## 🌍 Vision

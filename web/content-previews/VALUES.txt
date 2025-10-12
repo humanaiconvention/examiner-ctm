@@ -1,0 +1,14 @@
+Our values
+
+Ethical commitments
+
+- Bounded consent: Scope, retention, and purpose are explicit and minimal.
+- Informed: Plain-language disclosures of what is collected and shared.
+- Transparent: Source code, provenance, and decision criteria are inspectable.
+- Revocable: Participants can withdraw future participation without punitive consequences.
+- Proportional: Safeguards aligned with data and model sensitivity.
+- Accountable: Verifiable event trails for audit (non-PII by default).
+
+Context
+
+These commitments are drawn from the project's foundational principles (see CONVENTION_PRINCIPLES.md). They guide module design, tile metadata, and contributor governance.
