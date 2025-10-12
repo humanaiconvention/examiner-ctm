@@ -1,8 +1,8 @@
 {
   "name": "web",
   "version": "0.3.4",
-  "commit": "df93be35f9f9",
-  "fullCommit": "df93be35f9f910498f321fdc99359cb1a110c8f8",
-  "buildRev": "0.3.4+df93be35f9f9.20251012",
+  "commit": "a54e8bf5a62e",
+  "fullCommit": "a54e8bf5a62eaac2ca60efa220bdafe4aac57d24",
+  "buildRev": "0.3.4+a54e8bf5a62e.20251012",
   "logoHash": "2c4258137a47edc3"
 }
