@@ -1,0 +1,20 @@
+{
+  "status": "ready",
+  "indexHash": "eca6efd3d83a31763986760904e8ce4ae3a9016fe4d59c1ccafca16a4c8e7dc3",
+  "commit": "718f319f0feb",
+  "version": "0.2.0",
+  "generatedAt": "2025-09-30T17:36:45.204Z",
+  "assets": [
+    {
+      "file": "index-BktqTemO.js",
+      "sha256": "8c816eb00fd7f621d98e9e4c01e3fd15053f6c654ecaf710a49bd90a329ad536",
+      "size": 413877
+    },
+    {
+      "file": "index-De-F2Zts.css",
+      "sha256": "195a8d4b2ebbeb9cc6bffc28fc0baa5d187b6c051754c17bf73d70b642be6e17",
+      "size": 21590
+    }
+  ],
+  "totalAssetBytes": 435467
+}

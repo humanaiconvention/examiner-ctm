@@ -26,10 +26,12 @@ jobs:
         run: npm --workspace web ci
 
       - name: Build web
+        env:
+          PUBLIC_BASE_PATH: "/"
         run: npm --workspace web run build
 
       - name: Check dist for repo-base prefixes
-        run: node web/scripts/check-base-path.js
+        run: node web/scripts/check-base-path.cjs
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps

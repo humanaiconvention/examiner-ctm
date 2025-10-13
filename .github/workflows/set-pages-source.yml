@@ -1,0 +1,77 @@
+name: Set Pages source (branch)
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to set as Pages source (e.g. gh-pages, live)"
+        required: true
+        default: "gh-pages"
+      confirm:
+        description: "Type 'yes' to confirm changing Pages source to the branch above"
+        required: true
+        default: "no"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  set-pages:
+    name: Update GitHub Pages Source
+    runs-on: ubuntu-latest
+    steps:
+      - name: Info: current Pages site
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            try {
+              const res = await github.rest.repos.getPages({ owner, repo });
+              core.info(`Current Pages source: ${JSON.stringify(res.data.source || {})}`);
+              core.info(`Pages url (html_url): ${res.data.html_url || res.data.url || 'none'}`);
+            } catch (e) {
+              core.info('No Pages site configured yet or cannot fetch: ' + e.message);
+            }
+
+      - name: Confirm intent
+        if: ${{ github.event.inputs.confirm != 'yes' }}
+        run: |
+          echo "This workflow will not proceed because 'confirm' input is not 'yes'."
+          echo "Re-dispatch this workflow and set 'confirm: yes' to proceed."
+          exit 1
+
+      - name: Update Pages source to chosen branch
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const branch = '${{ github.event.inputs.branch }}';
+            core.info(`Requesting Pages source update to branch: ${branch}`);
+            await github.rest.repos.updatePagesSite({
+              owner,
+              repo,
+              source: { branch, path: '/' }
+            });
+            core.info('Update request submitted.');
+
+      - name: Wait for Pages to report URL (best-effort)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          echo "Polling Pages site information (5 attempts, short wait)"
+          for i in 1 2 3 4 5; do
+            sleep 3
+            resp=$(curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${GITHUB_REPOSITORY}/pages" || true)
+            url=$(echo "$resp" | jq -r '.html_url // .url // empty' 2>/dev/null || true)
+            if [ -n "$url" ]; then
+              echo "Pages URL: $url"
+              exit 0
+            fi
+            echo "Attempt $i: pages URL not available yet"
+          done
+          echo "Pages site did not return a URL within timeout. Please check Settings → Pages in the repository."
