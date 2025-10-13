@@ -12,9 +12,10 @@ name: Unified CI & Deploy
 ################################################################################
 
 on:
-  # Disabled automated triggers to prevent accidental infra deployment runs.
-  # This workflow now runs only via manual dispatch. To re-enable automated
-  # runs, restore the push/pull_request triggers above.
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
