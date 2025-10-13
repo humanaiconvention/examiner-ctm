@@ -216,6 +216,10 @@ jobs:
           if grep -q '</head>' dist/index.html; then
             sed -i "s#</head>#<meta name=\"x-app-version\" content=\"$GITHUB_SHA\" />\n<script>window.__APP_VERSION__=$(cat dist/version.json)</script>\n</head>#" dist/index.html || true
           fi
+      - name: Check dist for repo-base prefixes
+        run: |
+          # Prevent accidental publishing of repo-base-prefixed assets which break custom-domain Pages
+          node web/scripts/check-base-path.js
       - name: Index Hash Change (optional drift signal)
         run: |
           set -e
