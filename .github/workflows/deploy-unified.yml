@@ -201,12 +201,17 @@ jobs:
       - name: Build Site
         run: |
           cd web
+          # For manual/unified deploys we prefer to build with root base to avoid repo-base
+          # prefixes which break custom-domain deployments. If CUSTOM_DOMAIN is explicitly
+          # set (non-empty) we also use root '/'. Otherwise fall back to root by default
+          # for safety during manual runs.
           if [ -n "$CUSTOM_DOMAIN" ]; then
             export PUBLIC_BASE_PATH='/'
             echo "Custom domain detected: $CUSTOM_DOMAIN (base=/)"
           else
+            # No custom domain: use the repo-name base so Pages project sites continue to work
             export PUBLIC_BASE_PATH="/${{ github.event.repository.name }}"
-            echo "No custom domain; using base $PUBLIC_BASE_PATH"
+            echo "No custom domain; using repo base: $PUBLIC_BASE_PATH"
           fi
           PUBLIC_BASE_PATH=$PUBLIC_BASE_PATH npm run build
           echo "Commit: $GITHUB_SHA" > dist/DEPLOY_MARKER.txt
@@ -217,6 +222,10 @@ jobs:
           if grep -q '</head>' dist/index.html; then
             sed -i "s#</head>#<meta name=\"x-app-version\" content=\"$GITHUB_SHA\" />\n<script>window.__APP_VERSION__=$(cat dist/version.json)</script>\n</head>#" dist/index.html || true
           fi
+      - name: Check dist for repo-base prefixes
+        run: |
+          # Prevent accidental publishing of repo-base-prefixed assets which break custom-domain Pages
+          node web/scripts/check-base-path.cjs
       - name: Index Hash Change (optional drift signal)
         run: |
           set -e

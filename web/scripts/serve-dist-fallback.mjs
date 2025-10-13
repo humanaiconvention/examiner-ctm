@@ -19,8 +19,12 @@ const mime = {
 
 const server = http.createServer(async (req, res) => {
   try {
-    const urlPath = (req.url || '/').split('?')[0];
-    let filePath = join(dist, urlPath === '/' ? 'index.html' : urlPath);
+  const urlPath = (req.url || '/').split('?')[0];
+  // Normalize the incoming URL path: remove leading slashes so path.join
+  // treats it as a relative path on Windows (joining with an absolute
+  // segment will otherwise discard the dist prefix).
+  const cleanPath = urlPath.replace(/^\/+/, '');
+  let filePath = join(dist, cleanPath === '' ? 'index.html' : cleanPath);
     let status = 200;
     let stream;
     try {

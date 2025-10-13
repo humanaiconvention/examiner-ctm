@@ -10,6 +10,12 @@ import React from 'react'
 import ChunkLoadBoundary from './components/ChunkLoadBoundary'
 // Convert secondary pages to lazy-loaded chunks for future dashboard panel expansion
 const LearnMore = React.lazy(() => import('./pages/LearnMore'))
+const Mission = React.lazy(() => import('./pages/Mission'))
+const Vision = React.lazy(() => import('./pages/Vision'))
+const Values = React.lazy(() => import('./pages/Values'))
+const HowWeWork = React.lazy(() => import('./pages/HowWeWork'))
+const Governance = React.lazy(() => import('./pages/Governance'))
+const Roadmap = React.lazy(() => import('./pages/Roadmap'))
 const Explore = React.lazy(() => import('./pages/Explore'))
 const PreviewQuestions = React.lazy(() => import('./pages/PreviewQuestions'))
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
@@ -383,6 +389,12 @@ createRoot(document.getElementById('root')!).render(
         <Routes>
           <Route path="/" element={<App />} />
           <Route path="/learn-more" element={<LearnMore />} />
+          <Route path="/mission" element={<Mission />} />
+          <Route path="/vision" element={<Vision />} />
+          <Route path="/values" element={<Values />} />
+          <Route path="/how-we-work" element={<HowWeWork />} />
+          <Route path="/governance" element={<Governance />} />
+          <Route path="/roadmap" element={<Roadmap />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/convene" element={<Explore />} />
           <Route path="/preview" element={<PreviewQuestions />} />

@@ -45,6 +45,12 @@ export default function LearnMore() {
             <ul>
               <li><a href="#mission-heading">Mission</a></li>
               <li><a href="#vision-heading">Vision</a></li>
+              <li><a href="/mission">Mission (page)</a></li>
+              <li><a href="/vision">Vision (page)</a></li>
+              <li><a href="/values">Values</a></li>
+              <li><a href="/how-we-work">How we work</a></li>
+              <li><a href="/governance">Governance</a></li>
+              <li><a href="/roadmap">Roadmap</a></li>
             </ul>
           </nav>
         </div>

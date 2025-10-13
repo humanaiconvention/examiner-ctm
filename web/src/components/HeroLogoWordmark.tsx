@@ -1,5 +1,5 @@
 import React from 'react';
-import LogoHumanAI from './LogoHumanAI';
+// Use static exported logo.svg instead of programmatic LogoHumanAI in the hero
 
 export type HeroLogoLayout = 'stacked' | 'horizontal-left' | 'horizontal-right';
 
@@ -34,7 +34,7 @@ const HeroLogoWordmark: React.FC<HeroLogoWordmarkProps> = ({
   lineGapScale = 1,
   showConvention = true,
   className = '',
-  logoVariant = 'mono-light',
+  // logoVariant intentionally removed: static asset used
   respectReducedMotion = true,
   ariaLabel = 'HumanAI Convention',
   autoStackBreakpoint,
@@ -85,16 +85,16 @@ const HeroLogoWordmark: React.FC<HeroLogoWordmarkProps> = ({
   return (
   <div className={rootClasses} style={style} aria-hidden={false} aria-label={`${ariaLabel} logo mark and wordmark`}>
       <div className="hero-logo__mark">
-        <LogoHumanAI
+        {/* Use static exported SVG so the exact wordmark (Human AI / Convention) is preserved as a single asset */}
+        <img
+          src="/logo.svg"
+          alt={ariaLabel}
           className={`hero__logo hero__logo--v3 ${layout !== 'stacked' ? 'hero__logo--scaled' : ''}`}
-          variant={logoVariant}
-          stacked={false}
-          withWordmark={false}
-          showConvention={false}
-          title={`${ariaLabel} logo`}
+          width={computedLogoWidth}
         />
       </div>
-      <div className="hero-logo__wordmark" aria-hidden={false} role="presentation">
+      {/* The SVG already contains the embedded wordmark; keep the structure for accessibility fallbacks */}
+  <div className="hero-logo__wordmark visually-hidden" aria-hidden="true" role="presentation">
         <div className="hero-logo__line hero-logo__line--primary">
           <span className="wordmark-human">Human</span>
           <span className="wordmark-ai">AI</span>

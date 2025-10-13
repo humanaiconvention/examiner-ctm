@@ -1,0 +1,53 @@
+name: Preview Smoke
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  smoke:
+    name: Build and run smoke tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install root deps
+        run: npm ci
+
+      - name: Install web workspace deps
+        run: npm --workspace web ci
+
+      - name: Build web
+        run: npm --workspace web run build
+
+      - name: Check dist for repo-base prefixes
+        run: node web/scripts/check-base-path.js
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Start SPA fallback server
+        run: |
+          node web/scripts/serve-dist-fallback.mjs &
+          echo $! > server.pid
+
+      - name: Run Playwright smoke tests
+        env:
+          SMOKE_BASE: http://localhost:5080
+        run: |
+          # give server a moment to start
+          sleep 2
+          npx playwright test web/tests/smoke.spec.ts --reporter=github
+
+      - name: Stop server
+        if: always()
+        run: |
+          if [ -f server.pid ]; then kill "$(cat server.pid)" || true; fi
