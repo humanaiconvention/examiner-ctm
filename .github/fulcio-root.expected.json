@@ -1,4 +1,0 @@
-{
-  "note": "Hash of Fulcio root certificate used for attestation verification; update intentionally with review if Fulcio rotates.",
-  "sha256": "3c3f3d06f8b8a8d2ef8e7d4c8a7e6c9b9d2b4d3f6e2d0b5a1c4d6f7a8b9c0d1e"
-}
