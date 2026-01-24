@@ -51,6 +51,17 @@
 
   <div id="root"></div>
 
+  <script>
+    // Global error handler to catch React re-render crashes
+    window.onerror = function(msg, url, line, col, error) {
+      document.getElementById('loading')?.classList.add('hidden');
+      document.getElementById('root').innerHTML = '<pre style="color:#f87171;padding:20px;font-family:monospace;background:#1a1a1a;margin:20px;border-radius:8px;border:1px solid #333">RUNTIME ERROR:\n' + msg + '\n\nLine: ' + line + ':' + col + '\n\n' + (error?.stack || '') + '</pre>';
+      return true;
+    };
+    window.onunhandledrejection = function(e) {
+      console.error('Unhandled rejection:', e.reason);
+    };
+  </script>
   <script src="app.bundle.js"></script>
   <script>
     // Hide loading screen after React mounts or on error

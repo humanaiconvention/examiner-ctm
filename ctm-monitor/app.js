@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Component } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   Activity, TrendingDown, Sparkles, Database, Globe, FileUp,
@@ -9,6 +9,33 @@ import {
   ResponsiveContainer, LineChart, Line, Area, AreaChart, ComposedChart,
   CartesianGrid, XAxis, YAxis, Tooltip
 } from 'recharts';
+
+// Error Boundary to catch render errors
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    this.setState({ errorInfo });
+    console.error('[CTM] React Error:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '20px', fontFamily: 'monospace', background: '#1a1a1a', margin: '20px', borderRadius: '8px', border: '1px solid #333' }}>
+          <div style={{ color: '#f87171', fontSize: '16px', marginBottom: '10px' }}>REACT RENDER ERROR</div>
+          <pre style={{ color: '#fbbf24', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{this.state.error?.toString()}</pre>
+          <pre style={{ color: '#666', fontSize: '11px', marginTop: '10px', whiteSpace: 'pre-wrap' }}>{this.state.errorInfo?.componentStack}</pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // Configuration
 const VERSION = "v1.0.0";
@@ -898,7 +925,7 @@ try {
   const rootEl = document.getElementById('root');
   console.log('[CTM] Root element:', rootEl);
   const root = createRoot(rootEl);
-  root.render(<App />);
+  root.render(<ErrorBoundary><App /></ErrorBoundary>);
   console.log('[CTM] App rendered');
 } catch (e) {
   console.error('[CTM] Render error:', e);

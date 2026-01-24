@@ -35,7 +35,7 @@ var CTMMonitor = (() => {
       "use strict";
       (function() {
         function defineDeprecationWarning(methodName, info) {
-          Object.defineProperty(Component6.prototype, methodName, {
+          Object.defineProperty(Component7.prototype, methodName, {
             get: function() {
               console.warn(
                 "%s(...) is deprecated in plain JavaScript React classes. %s",
@@ -60,7 +60,7 @@ var CTMMonitor = (() => {
             publicInstance
           ), didWarnStateUpdateForUnmountedComponent[warningKey] = true);
         }
-        function Component6(props, context, updater) {
+        function Component7(props, context, updater) {
           this.props = props;
           this.context = context;
           this.refs = emptyObject;
@@ -513,15 +513,15 @@ var CTMMonitor = (() => {
           }
         }, assign = Object.assign, emptyObject = {};
         Object.freeze(emptyObject);
-        Component6.prototype.isReactComponent = {};
-        Component6.prototype.setState = function(partialState, callback) {
+        Component7.prototype.isReactComponent = {};
+        Component7.prototype.setState = function(partialState, callback) {
           if ("object" !== typeof partialState && "function" !== typeof partialState && null != partialState)
             throw Error(
               "takes an object of state variables to update or a function which returns an object of state variables."
             );
           this.updater.enqueueSetState(this, partialState, callback, "setState");
         };
-        Component6.prototype.forceUpdate = function(callback) {
+        Component7.prototype.forceUpdate = function(callback) {
           this.updater.enqueueForceUpdate(this, callback, "forceUpdate");
         };
         var deprecatedAPIs = {
@@ -536,10 +536,10 @@ var CTMMonitor = (() => {
         };
         for (fnName in deprecatedAPIs)
           deprecatedAPIs.hasOwnProperty(fnName) && defineDeprecationWarning(fnName, deprecatedAPIs[fnName]);
-        ComponentDummy.prototype = Component6.prototype;
+        ComponentDummy.prototype = Component7.prototype;
         deprecatedAPIs = PureComponent11.prototype = new ComponentDummy();
         deprecatedAPIs.constructor = PureComponent11;
-        assign(deprecatedAPIs, Component6.prototype);
+        assign(deprecatedAPIs, Component7.prototype);
         deprecatedAPIs.isPureReactComponent = true;
         var isArrayImpl = Array.isArray, REACT_CLIENT_REFERENCE = Symbol.for("react.client.reference"), ReactSharedInternals = {
           H: null,
@@ -627,7 +627,7 @@ var CTMMonitor = (() => {
         };
         exports.Activity = REACT_ACTIVITY_TYPE;
         exports.Children = fnName;
-        exports.Component = Component6;
+        exports.Component = Component7;
         exports.Fragment = REACT_FRAGMENT_TYPE;
         exports.Profiler = REACT_PROFILER_TYPE;
         exports.PureComponent = PureComponent11;
@@ -4886,9 +4886,9 @@ var CTMMonitor = (() => {
           this._debugHookTypes = null;
           hasBadMapPolyfill || "function" !== typeof Object.preventExtensions || Object.preventExtensions(this);
         }
-        function shouldConstruct(Component6) {
-          Component6 = Component6.prototype;
-          return !(!Component6 || !Component6.isReactComponent);
+        function shouldConstruct(Component7) {
+          Component7 = Component7.prototype;
+          return !(!Component7 || !Component7.isReactComponent);
         }
         function createWorkInProgress(current2, pendingProps) {
           var workInProgress2 = current2.alternate;
@@ -6897,13 +6897,13 @@ var CTMMonitor = (() => {
             if (!objectIs(nextDeps[i], prevDeps[i])) return false;
           return true;
         }
-        function renderWithHooks(current2, workInProgress2, Component6, props, secondArg, nextRenderLanes) {
+        function renderWithHooks(current2, workInProgress2, Component7, props, secondArg, nextRenderLanes) {
           renderLanes = nextRenderLanes;
           currentlyRenderingFiber = workInProgress2;
           hookTypesDev = null !== current2 ? current2._debugHookTypes : null;
           hookTypesUpdateIndexDev = -1;
           ignorePreviousDependencies = null !== current2 && current2.type !== workInProgress2.type;
-          if ("[object AsyncFunction]" === Object.prototype.toString.call(Component6) || "[object AsyncGeneratorFunction]" === Object.prototype.toString.call(Component6))
+          if ("[object AsyncFunction]" === Object.prototype.toString.call(Component7) || "[object AsyncGeneratorFunction]" === Object.prototype.toString.call(Component7))
             nextRenderLanes = getComponentNameFromFiber(currentlyRenderingFiber), didWarnAboutAsyncClientComponent.has(nextRenderLanes) || (didWarnAboutAsyncClientComponent.add(nextRenderLanes), console.error(
               "%s is an async Client Component. Only Server Components can be async at the moment. This error is often caused by accidentally adding `'use client'` to a module that was originally written for the server.",
               null === nextRenderLanes ? "An unknown Component" : "<" + nextRenderLanes + ">"
@@ -6913,11 +6913,11 @@ var CTMMonitor = (() => {
           workInProgress2.lanes = 0;
           ReactSharedInternals.H = null !== current2 && null !== current2.memoizedState ? HooksDispatcherOnUpdateInDEV : null !== hookTypesDev ? HooksDispatcherOnMountWithHookTypesInDEV : HooksDispatcherOnMountInDEV;
           shouldDoubleInvokeUserFnsInHooksDEV = nextRenderLanes = (workInProgress2.mode & StrictLegacyMode) !== NoMode;
-          var children = callComponentInDEV(Component6, props, secondArg);
+          var children = callComponentInDEV(Component7, props, secondArg);
           shouldDoubleInvokeUserFnsInHooksDEV = false;
           didScheduleRenderPhaseUpdateDuringThisPass && (children = renderWithHooksAgain(
             workInProgress2,
-            Component6,
+            Component7,
             props,
             secondArg
           ));
@@ -6926,7 +6926,7 @@ var CTMMonitor = (() => {
             try {
               children = renderWithHooksAgain(
                 workInProgress2,
-                Component6,
+                Component7,
                 props,
                 secondArg
               );
@@ -6965,7 +6965,7 @@ var CTMMonitor = (() => {
             "`use` was called from inside a try/catch block. This is not allowed and can lead to unexpected behavior. To handle errors triggered by `use`, wrap your component in a error boundary."
           )));
         }
-        function renderWithHooksAgain(workInProgress2, Component6, props, secondArg) {
+        function renderWithHooksAgain(workInProgress2, Component7, props, secondArg) {
           currentlyRenderingFiber = workInProgress2;
           var numberOfReRenders = 0;
           do {
@@ -6988,7 +6988,7 @@ var CTMMonitor = (() => {
             }
             hookTypesUpdateIndexDev = -1;
             ReactSharedInternals.H = HooksDispatcherOnRerenderInDEV;
-            children = callComponentInDEV(Component6, props, secondArg);
+            children = callComponentInDEV(Component7, props, secondArg);
           } while (didScheduleRenderPhaseUpdateDuringThisPass);
           return children;
         }
@@ -8209,17 +8209,17 @@ var CTMMonitor = (() => {
             null
           ));
         }
-        function resolveClassComponentProps(Component6, baseProps) {
+        function resolveClassComponentProps(Component7, baseProps) {
           var newProps = baseProps;
           if ("ref" in baseProps) {
             newProps = {};
             for (var propName in baseProps)
               "ref" !== propName && (newProps[propName] = baseProps[propName]);
           }
-          if (Component6 = Component6.defaultProps) {
+          if (Component7 = Component7.defaultProps) {
             newProps === baseProps && (newProps = assign({}, newProps));
-            for (var _propName in Component6)
-              void 0 === newProps[_propName] && (newProps[_propName] = Component6[_propName]);
+            for (var _propName in Component7)
+              void 0 === newProps[_propName] && (newProps[_propName] = Component7[_propName]);
           }
           return newProps;
         }
@@ -8448,8 +8448,8 @@ var CTMMonitor = (() => {
             renderLanes2
           );
         }
-        function updateForwardRef(current2, workInProgress2, Component6, nextProps, renderLanes2) {
-          Component6 = Component6.render;
+        function updateForwardRef(current2, workInProgress2, Component7, nextProps, renderLanes2) {
+          Component7 = Component7.render;
           var ref = workInProgress2.ref;
           if ("ref" in nextProps) {
             var propsWithoutRef = {};
@@ -8460,7 +8460,7 @@ var CTMMonitor = (() => {
           nextProps = renderWithHooks(
             current2,
             workInProgress2,
-            Component6,
+            Component7,
             propsWithoutRef,
             ref,
             renderLanes2
@@ -8473,19 +8473,19 @@ var CTMMonitor = (() => {
           reconcileChildren(current2, workInProgress2, nextProps, renderLanes2);
           return workInProgress2.child;
         }
-        function updateMemoComponent(current2, workInProgress2, Component6, nextProps, renderLanes2) {
+        function updateMemoComponent(current2, workInProgress2, Component7, nextProps, renderLanes2) {
           if (null === current2) {
-            var type = Component6.type;
-            if ("function" === typeof type && !shouldConstruct(type) && void 0 === type.defaultProps && null === Component6.compare)
-              return Component6 = resolveFunctionForHotReloading(type), workInProgress2.tag = 15, workInProgress2.type = Component6, validateFunctionComponentInDev(workInProgress2, type), updateSimpleMemoComponent(
+            var type = Component7.type;
+            if ("function" === typeof type && !shouldConstruct(type) && void 0 === type.defaultProps && null === Component7.compare)
+              return Component7 = resolveFunctionForHotReloading(type), workInProgress2.tag = 15, workInProgress2.type = Component7, validateFunctionComponentInDev(workInProgress2, type), updateSimpleMemoComponent(
                 current2,
                 workInProgress2,
-                Component6,
+                Component7,
                 nextProps,
                 renderLanes2
               );
             current2 = createFiberFromTypeAndProps(
-              Component6.type,
+              Component7.type,
               null,
               nextProps,
               workInProgress2,
@@ -8499,9 +8499,9 @@ var CTMMonitor = (() => {
           type = current2.child;
           if (!checkScheduledUpdateOrContext(current2, renderLanes2)) {
             var prevProps = type.memoizedProps;
-            Component6 = Component6.compare;
-            Component6 = null !== Component6 ? Component6 : shallowEqual3;
-            if (Component6(prevProps, nextProps) && current2.ref === workInProgress2.ref)
+            Component7 = Component7.compare;
+            Component7 = null !== Component7 ? Component7 : shallowEqual3;
+            if (Component7(prevProps, nextProps) && current2.ref === workInProgress2.ref)
               return bailoutOnAlreadyFinishedWork(
                 current2,
                 workInProgress2,
@@ -8514,7 +8514,7 @@ var CTMMonitor = (() => {
           current2.return = workInProgress2;
           return workInProgress2.child = current2;
         }
-        function updateSimpleMemoComponent(current2, workInProgress2, Component6, nextProps, renderLanes2) {
+        function updateSimpleMemoComponent(current2, workInProgress2, Component7, nextProps, renderLanes2) {
           if (null !== current2) {
             var prevProps = current2.memoizedProps;
             if (shallowEqual3(prevProps, nextProps) && current2.ref === workInProgress2.ref && workInProgress2.type === current2.type)
@@ -8526,7 +8526,7 @@ var CTMMonitor = (() => {
           return updateFunctionComponent(
             current2,
             workInProgress2,
-            Component6,
+            Component7,
             nextProps,
             renderLanes2
           );
@@ -8716,9 +8716,9 @@ var CTMMonitor = (() => {
               workInProgress2.flags |= 4194816;
           }
         }
-        function updateFunctionComponent(current2, workInProgress2, Component6, nextProps, renderLanes2) {
-          if (Component6.prototype && "function" === typeof Component6.prototype.render) {
-            var componentName2 = getComponentNameFromType(Component6) || "Unknown";
+        function updateFunctionComponent(current2, workInProgress2, Component7, nextProps, renderLanes2) {
+          if (Component7.prototype && "function" === typeof Component7.prototype.render) {
+            var componentName2 = getComponentNameFromType(Component7) || "Unknown";
             didWarnAboutBadClass[componentName2] || (console.error(
               "The <%s /> component appears to have a render method, but doesn't extend React.Component. This is likely to cause errors. Change %s to extend React.Component instead.",
               componentName2,
@@ -8729,15 +8729,15 @@ var CTMMonitor = (() => {
             workInProgress2,
             null
           );
-          null === current2 && (validateFunctionComponentInDev(workInProgress2, workInProgress2.type), Component6.contextTypes && (componentName2 = getComponentNameFromType(Component6) || "Unknown", didWarnAboutContextTypes[componentName2] || (didWarnAboutContextTypes[componentName2] = true, console.error(
+          null === current2 && (validateFunctionComponentInDev(workInProgress2, workInProgress2.type), Component7.contextTypes && (componentName2 = getComponentNameFromType(Component7) || "Unknown", didWarnAboutContextTypes[componentName2] || (didWarnAboutContextTypes[componentName2] = true, console.error(
             "%s uses the legacy contextTypes API which was removed in React 19. Use React.createContext() with React.useContext() instead. (https://react.dev/link/legacy-context)",
             componentName2
           ))));
           prepareToReadContext(workInProgress2);
-          Component6 = renderWithHooks(
+          Component7 = renderWithHooks(
             current2,
             workInProgress2,
-            Component6,
+            Component7,
             nextProps,
             void 0,
             renderLanes2
@@ -8747,30 +8747,30 @@ var CTMMonitor = (() => {
             return bailoutHooks(current2, workInProgress2, renderLanes2), bailoutOnAlreadyFinishedWork(current2, workInProgress2, renderLanes2);
           isHydrating && nextProps && pushMaterializedTreeId(workInProgress2);
           workInProgress2.flags |= 1;
-          reconcileChildren(current2, workInProgress2, Component6, renderLanes2);
+          reconcileChildren(current2, workInProgress2, Component7, renderLanes2);
           return workInProgress2.child;
         }
-        function replayFunctionComponent(current2, workInProgress2, nextProps, Component6, secondArg, renderLanes2) {
+        function replayFunctionComponent(current2, workInProgress2, nextProps, Component7, secondArg, renderLanes2) {
           prepareToReadContext(workInProgress2);
           hookTypesUpdateIndexDev = -1;
           ignorePreviousDependencies = null !== current2 && current2.type !== workInProgress2.type;
           workInProgress2.updateQueue = null;
           nextProps = renderWithHooksAgain(
             workInProgress2,
-            Component6,
+            Component7,
             nextProps,
             secondArg
           );
           finishRenderingHooks(current2, workInProgress2);
-          Component6 = checkDidRenderIdHook();
+          Component7 = checkDidRenderIdHook();
           if (null !== current2 && !didReceiveUpdate)
             return bailoutHooks(current2, workInProgress2, renderLanes2), bailoutOnAlreadyFinishedWork(current2, workInProgress2, renderLanes2);
-          isHydrating && Component6 && pushMaterializedTreeId(workInProgress2);
+          isHydrating && Component7 && pushMaterializedTreeId(workInProgress2);
           workInProgress2.flags |= 1;
           reconcileChildren(current2, workInProgress2, nextProps, renderLanes2);
           return workInProgress2.child;
         }
-        function updateClassComponent(current2, workInProgress2, Component6, nextProps, renderLanes2) {
+        function updateClassComponent(current2, workInProgress2, Component7, nextProps, renderLanes2) {
           switch (shouldErrorImpl(workInProgress2)) {
             case false:
               var _instance = workInProgress2.stateNode, state = new workInProgress2.type(
@@ -8802,18 +8802,18 @@ var CTMMonitor = (() => {
           prepareToReadContext(workInProgress2);
           if (null === workInProgress2.stateNode) {
             state = emptyContextObject;
-            _instance = Component6.contextType;
-            "contextType" in Component6 && null !== _instance && (void 0 === _instance || _instance.$$typeof !== REACT_CONTEXT_TYPE) && !didWarnAboutInvalidateContextType.has(Component6) && (didWarnAboutInvalidateContextType.add(Component6), lane = void 0 === _instance ? " However, it is set to undefined. This can be caused by a typo or by mixing up named and default imports. This can also happen due to a circular dependency, so try moving the createContext() call to a separate file." : "object" !== typeof _instance ? " However, it is set to a " + typeof _instance + "." : _instance.$$typeof === REACT_CONSUMER_TYPE ? " Did you accidentally pass the Context.Consumer instead?" : " However, it is set to an object with keys {" + Object.keys(_instance).join(", ") + "}.", console.error(
+            _instance = Component7.contextType;
+            "contextType" in Component7 && null !== _instance && (void 0 === _instance || _instance.$$typeof !== REACT_CONTEXT_TYPE) && !didWarnAboutInvalidateContextType.has(Component7) && (didWarnAboutInvalidateContextType.add(Component7), lane = void 0 === _instance ? " However, it is set to undefined. This can be caused by a typo or by mixing up named and default imports. This can also happen due to a circular dependency, so try moving the createContext() call to a separate file." : "object" !== typeof _instance ? " However, it is set to a " + typeof _instance + "." : _instance.$$typeof === REACT_CONSUMER_TYPE ? " Did you accidentally pass the Context.Consumer instead?" : " However, it is set to an object with keys {" + Object.keys(_instance).join(", ") + "}.", console.error(
               "%s defines an invalid contextType. contextType should point to the Context object returned by React.createContext().%s",
-              getComponentNameFromType(Component6) || "Component",
+              getComponentNameFromType(Component7) || "Component",
               lane
             ));
             "object" === typeof _instance && null !== _instance && (state = readContext(_instance));
-            _instance = new Component6(nextProps, state);
+            _instance = new Component7(nextProps, state);
             if (workInProgress2.mode & StrictLegacyMode) {
               setIsStrictModeForDevtools(true);
               try {
-                _instance = new Component6(nextProps, state);
+                _instance = new Component7(nextProps, state);
               } finally {
                 setIsStrictModeForDevtools(false);
               }
@@ -8823,20 +8823,20 @@ var CTMMonitor = (() => {
             workInProgress2.stateNode = _instance;
             _instance._reactInternals = workInProgress2;
             _instance._reactInternalInstance = fakeInternalInstance;
-            "function" === typeof Component6.getDerivedStateFromProps && null === state && (state = getComponentNameFromType(Component6) || "Component", didWarnAboutUninitializedState.has(state) || (didWarnAboutUninitializedState.add(state), console.error(
+            "function" === typeof Component7.getDerivedStateFromProps && null === state && (state = getComponentNameFromType(Component7) || "Component", didWarnAboutUninitializedState.has(state) || (didWarnAboutUninitializedState.add(state), console.error(
               "`%s` uses `getDerivedStateFromProps` but its initial state is %s. This is not recommended. Instead, define the initial state by assigning an object to `this.state` in the constructor of `%s`. This ensures that `getDerivedStateFromProps` arguments have a consistent shape.",
               state,
               null === _instance.state ? "null" : "undefined",
               state
             )));
-            if ("function" === typeof Component6.getDerivedStateFromProps || "function" === typeof _instance.getSnapshotBeforeUpdate) {
+            if ("function" === typeof Component7.getDerivedStateFromProps || "function" === typeof _instance.getSnapshotBeforeUpdate) {
               var foundWillUpdateName = lane = state = null;
               "function" === typeof _instance.componentWillMount && true !== _instance.componentWillMount.__suppressDeprecationWarning ? state = "componentWillMount" : "function" === typeof _instance.UNSAFE_componentWillMount && (state = "UNSAFE_componentWillMount");
               "function" === typeof _instance.componentWillReceiveProps && true !== _instance.componentWillReceiveProps.__suppressDeprecationWarning ? lane = "componentWillReceiveProps" : "function" === typeof _instance.UNSAFE_componentWillReceiveProps && (lane = "UNSAFE_componentWillReceiveProps");
               "function" === typeof _instance.componentWillUpdate && true !== _instance.componentWillUpdate.__suppressDeprecationWarning ? foundWillUpdateName = "componentWillUpdate" : "function" === typeof _instance.UNSAFE_componentWillUpdate && (foundWillUpdateName = "UNSAFE_componentWillUpdate");
               if (null !== state || null !== lane || null !== foundWillUpdateName) {
-                _instance = getComponentNameFromType(Component6) || "Component";
-                var newApiName = "function" === typeof Component6.getDerivedStateFromProps ? "getDerivedStateFromProps()" : "getSnapshotBeforeUpdate()";
+                _instance = getComponentNameFromType(Component7) || "Component";
+                var newApiName = "function" === typeof Component7.getDerivedStateFromProps ? "getDerivedStateFromProps()" : "getSnapshotBeforeUpdate()";
                 didWarnAboutLegacyLifecyclesAndDerivedState.has(_instance) || (didWarnAboutLegacyLifecyclesAndDerivedState.add(_instance), console.error(
                   "Unsafe legacy lifecycles will not be called for components using new component APIs.\n\n%s uses %s but also contains the following legacy lifecycles:%s%s%s\n\nThe above lifecycles should be removed. Learn more about this warning here:\nhttps://react.dev/link/unsafe-component-lifecycles",
                   _instance,
@@ -8848,8 +8848,8 @@ var CTMMonitor = (() => {
               }
             }
             _instance = workInProgress2.stateNode;
-            state = getComponentNameFromType(Component6) || "Component";
-            _instance.render || (Component6.prototype && "function" === typeof Component6.prototype.render ? console.error(
+            state = getComponentNameFromType(Component7) || "Component";
+            _instance.render || (Component7.prototype && "function" === typeof Component7.prototype.render ? console.error(
               "No `render` method found on the %s instance: did you accidentally return an object from the constructor?",
               state
             ) : console.error(
@@ -8868,11 +8868,11 @@ var CTMMonitor = (() => {
               "contextType was defined as an instance property on %s. Use a static property to define contextType instead.",
               state
             );
-            Component6.childContextTypes && !didWarnAboutChildContextTypes.has(Component6) && (didWarnAboutChildContextTypes.add(Component6), console.error(
+            Component7.childContextTypes && !didWarnAboutChildContextTypes.has(Component7) && (didWarnAboutChildContextTypes.add(Component7), console.error(
               "%s uses the legacy childContextTypes API which was removed in React 19. Use React.createContext() instead. (https://react.dev/link/legacy-context)",
               state
             ));
-            Component6.contextTypes && !didWarnAboutContextTypes$1.has(Component6) && (didWarnAboutContextTypes$1.add(Component6), console.error(
+            Component7.contextTypes && !didWarnAboutContextTypes$1.has(Component7) && (didWarnAboutContextTypes$1.add(Component7), console.error(
               "%s uses the legacy contextTypes API which was removed in React 19. Use React.createContext() with static contextType instead. (https://react.dev/link/legacy-context)",
               state
             ));
@@ -8880,9 +8880,9 @@ var CTMMonitor = (() => {
               "%s has a method called componentShouldUpdate(). Did you mean shouldComponentUpdate()? The name is phrased as a question because the function is expected to return a value.",
               state
             );
-            Component6.prototype && Component6.prototype.isPureReactComponent && "undefined" !== typeof _instance.shouldComponentUpdate && console.error(
+            Component7.prototype && Component7.prototype.isPureReactComponent && "undefined" !== typeof _instance.shouldComponentUpdate && console.error(
               "%s has a method called shouldComponentUpdate(). shouldComponentUpdate should not be used when extending React.PureComponent. Please extend React.Component if shouldComponentUpdate is used.",
-              getComponentNameFromType(Component6) || "A pure component"
+              getComponentNameFromType(Component7) || "A pure component"
             );
             "function" === typeof _instance.componentDidUnmount && console.error(
               "%s has a method called componentDidUnmount(). But there is no such lifecycle method. Did you mean componentWillUnmount()?",
@@ -8910,9 +8910,9 @@ var CTMMonitor = (() => {
               state,
               state
             );
-            "function" !== typeof _instance.getSnapshotBeforeUpdate || "function" === typeof _instance.componentDidUpdate || didWarnAboutGetSnapshotBeforeUpdateWithoutDidUpdate.has(Component6) || (didWarnAboutGetSnapshotBeforeUpdateWithoutDidUpdate.add(Component6), console.error(
+            "function" !== typeof _instance.getSnapshotBeforeUpdate || "function" === typeof _instance.componentDidUpdate || didWarnAboutGetSnapshotBeforeUpdateWithoutDidUpdate.has(Component7) || (didWarnAboutGetSnapshotBeforeUpdateWithoutDidUpdate.add(Component7), console.error(
               "%s: getSnapshotBeforeUpdate() should be used with componentDidUpdate(). This component defines getSnapshotBeforeUpdate() only.",
-              getComponentNameFromType(Component6)
+              getComponentNameFromType(Component7)
             ));
             "function" === typeof _instance.getDerivedStateFromProps && console.error(
               "%s: getDerivedStateFromProps() is defined as an instance method and will be ignored. Instead, declare it as a static method.",
@@ -8922,12 +8922,12 @@ var CTMMonitor = (() => {
               "%s: getDerivedStateFromError() is defined as an instance method and will be ignored. Instead, declare it as a static method.",
               state
             );
-            "function" === typeof Component6.getSnapshotBeforeUpdate && console.error(
+            "function" === typeof Component7.getSnapshotBeforeUpdate && console.error(
               "%s: getSnapshotBeforeUpdate() is defined as a static method and will be ignored. Instead, declare it as an instance method.",
               state
             );
             (lane = _instance.state) && ("object" !== typeof lane || isArrayImpl(lane)) && console.error("%s.state: must be set to an object or null", state);
-            "function" === typeof _instance.getChildContext && "object" !== typeof Component6.childContextTypes && console.error(
+            "function" === typeof _instance.getChildContext && "object" !== typeof Component7.childContextTypes && console.error(
               "%s.getChildContext(): childContextTypes must be defined in order to use getChildContext().",
               state
             );
@@ -8936,9 +8936,9 @@ var CTMMonitor = (() => {
             _instance.state = workInProgress2.memoizedState;
             _instance.refs = {};
             initializeUpdateQueue(workInProgress2);
-            state = Component6.contextType;
+            state = Component7.contextType;
             _instance.context = "object" === typeof state && null !== state ? readContext(state) : emptyContextObject;
-            _instance.state === nextProps && (state = getComponentNameFromType(Component6) || "Component", didWarnAboutDirectlyAssigningPropsToState.has(state) || (didWarnAboutDirectlyAssigningPropsToState.add(state), console.error(
+            _instance.state === nextProps && (state = getComponentNameFromType(Component7) || "Component", didWarnAboutDirectlyAssigningPropsToState.has(state) || (didWarnAboutDirectlyAssigningPropsToState.add(state), console.error(
               "%s: It is not recommended to assign props directly to state because updates to props won't be reflected in state. In most cases, it is better to use props directly.",
               state
             )));
@@ -8951,14 +8951,14 @@ var CTMMonitor = (() => {
               _instance
             );
             _instance.state = workInProgress2.memoizedState;
-            state = Component6.getDerivedStateFromProps;
+            state = Component7.getDerivedStateFromProps;
             "function" === typeof state && (applyDerivedStateFromProps(
               workInProgress2,
-              Component6,
+              Component7,
               state,
               nextProps
             ), _instance.state = workInProgress2.memoizedState);
-            "function" === typeof Component6.getDerivedStateFromProps || "function" === typeof _instance.getSnapshotBeforeUpdate || "function" !== typeof _instance.UNSAFE_componentWillMount && "function" !== typeof _instance.componentWillMount || (state = _instance.state, "function" === typeof _instance.componentWillMount && _instance.componentWillMount(), "function" === typeof _instance.UNSAFE_componentWillMount && _instance.UNSAFE_componentWillMount(), state !== _instance.state && (console.error(
+            "function" === typeof Component7.getDerivedStateFromProps || "function" === typeof _instance.getSnapshotBeforeUpdate || "function" !== typeof _instance.UNSAFE_componentWillMount && "function" !== typeof _instance.componentWillMount || (state = _instance.state, "function" === typeof _instance.componentWillMount && _instance.componentWillMount(), "function" === typeof _instance.UNSAFE_componentWillMount && _instance.UNSAFE_componentWillMount(), state !== _instance.state && (console.error(
               "%s.componentWillMount(): Assigning directly to this.state is deprecated (except inside a component's constructor). Use setState instead.",
               getComponentNameFromFiber(workInProgress2) || "Component"
             ), classComponentUpdater.enqueueReplaceState(
@@ -8972,13 +8972,13 @@ var CTMMonitor = (() => {
           } else if (null === current2) {
             _instance = workInProgress2.stateNode;
             var unresolvedOldProps = workInProgress2.memoizedProps;
-            lane = resolveClassComponentProps(Component6, unresolvedOldProps);
+            lane = resolveClassComponentProps(Component7, unresolvedOldProps);
             _instance.props = lane;
             var oldContext = _instance.context;
-            foundWillUpdateName = Component6.contextType;
+            foundWillUpdateName = Component7.contextType;
             state = emptyContextObject;
             "object" === typeof foundWillUpdateName && null !== foundWillUpdateName && (state = readContext(foundWillUpdateName));
-            newApiName = Component6.getDerivedStateFromProps;
+            newApiName = Component7.getDerivedStateFromProps;
             foundWillUpdateName = "function" === typeof newApiName || "function" === typeof _instance.getSnapshotBeforeUpdate;
             unresolvedOldProps = workInProgress2.pendingProps !== unresolvedOldProps;
             foundWillUpdateName || "function" !== typeof _instance.UNSAFE_componentWillReceiveProps && "function" !== typeof _instance.componentWillReceiveProps || (unresolvedOldProps || oldContext !== state) && callComponentWillReceiveProps(
@@ -8995,12 +8995,12 @@ var CTMMonitor = (() => {
             oldContext = workInProgress2.memoizedState;
             unresolvedOldProps || oldState !== oldContext || hasForceUpdate ? ("function" === typeof newApiName && (applyDerivedStateFromProps(
               workInProgress2,
-              Component6,
+              Component7,
               newApiName,
               nextProps
             ), oldContext = workInProgress2.memoizedState), (lane = hasForceUpdate || checkShouldComponentUpdate(
               workInProgress2,
-              Component6,
+              Component7,
               lane,
               nextProps,
               oldState,
@@ -9011,14 +9011,14 @@ var CTMMonitor = (() => {
             _instance = workInProgress2.stateNode;
             cloneUpdateQueue(current2, workInProgress2);
             state = workInProgress2.memoizedProps;
-            foundWillUpdateName = resolveClassComponentProps(Component6, state);
+            foundWillUpdateName = resolveClassComponentProps(Component7, state);
             _instance.props = foundWillUpdateName;
             newApiName = workInProgress2.pendingProps;
             oldState = _instance.context;
-            oldContext = Component6.contextType;
+            oldContext = Component7.contextType;
             lane = emptyContextObject;
             "object" === typeof oldContext && null !== oldContext && (lane = readContext(oldContext));
-            unresolvedOldProps = Component6.getDerivedStateFromProps;
+            unresolvedOldProps = Component7.getDerivedStateFromProps;
             (oldContext = "function" === typeof unresolvedOldProps || "function" === typeof _instance.getSnapshotBeforeUpdate) || "function" !== typeof _instance.UNSAFE_componentWillReceiveProps && "function" !== typeof _instance.componentWillReceiveProps || (state !== newApiName || oldState !== lane) && callComponentWillReceiveProps(
               workInProgress2,
               _instance,
@@ -9033,12 +9033,12 @@ var CTMMonitor = (() => {
             var newState = workInProgress2.memoizedState;
             state !== newApiName || oldState !== newState || hasForceUpdate || null !== current2 && null !== current2.dependencies && checkIfContextChanged(current2.dependencies) ? ("function" === typeof unresolvedOldProps && (applyDerivedStateFromProps(
               workInProgress2,
-              Component6,
+              Component7,
               unresolvedOldProps,
               nextProps
             ), newState = workInProgress2.memoizedState), (foundWillUpdateName = hasForceUpdate || checkShouldComponentUpdate(
               workInProgress2,
-              Component6,
+              Component7,
               foundWillUpdateName,
               nextProps,
               oldState,
@@ -9056,9 +9056,9 @@ var CTMMonitor = (() => {
           if (lane || state) {
             lane = workInProgress2.stateNode;
             setCurrentFiber(workInProgress2);
-            if (state && "function" !== typeof Component6.getDerivedStateFromError)
-              Component6 = null, profilerStartTime = -1;
-            else if (Component6 = callRenderInDEV(lane), workInProgress2.mode & StrictLegacyMode) {
+            if (state && "function" !== typeof Component7.getDerivedStateFromError)
+              Component7 = null, profilerStartTime = -1;
+            else if (Component7 = callRenderInDEV(lane), workInProgress2.mode & StrictLegacyMode) {
               setIsStrictModeForDevtools(true);
               try {
                 callRenderInDEV(lane);
@@ -9075,9 +9075,9 @@ var CTMMonitor = (() => {
             ), workInProgress2.child = reconcileChildFibers(
               workInProgress2,
               null,
-              Component6,
+              Component7,
               renderLanes2
-            )) : reconcileChildren(current2, workInProgress2, Component6, renderLanes2);
+            )) : reconcileChildren(current2, workInProgress2, Component7, renderLanes2);
             workInProgress2.memoizedState = lane.state;
             current2 = workInProgress2.child;
           } else
@@ -9099,19 +9099,19 @@ var CTMMonitor = (() => {
           reconcileChildren(current2, workInProgress2, nextChildren, renderLanes2);
           return workInProgress2.child;
         }
-        function validateFunctionComponentInDev(workInProgress2, Component6) {
-          Component6 && Component6.childContextTypes && console.error(
+        function validateFunctionComponentInDev(workInProgress2, Component7) {
+          Component7 && Component7.childContextTypes && console.error(
             "childContextTypes cannot be defined on a function component.\n  %s.childContextTypes = ...",
-            Component6.displayName || Component6.name || "Component"
+            Component7.displayName || Component7.name || "Component"
           );
-          "function" === typeof Component6.getDerivedStateFromProps && (workInProgress2 = getComponentNameFromType(Component6) || "Unknown", didWarnAboutGetDerivedStateOnFunctionComponent[workInProgress2] || (console.error(
+          "function" === typeof Component7.getDerivedStateFromProps && (workInProgress2 = getComponentNameFromType(Component7) || "Unknown", didWarnAboutGetDerivedStateOnFunctionComponent[workInProgress2] || (console.error(
             "%s: Function components do not support getDerivedStateFromProps.",
             workInProgress2
           ), didWarnAboutGetDerivedStateOnFunctionComponent[workInProgress2] = true));
-          "object" === typeof Component6.contextType && null !== Component6.contextType && (Component6 = getComponentNameFromType(Component6) || "Unknown", didWarnAboutContextTypeOnFunctionComponent[Component6] || (console.error(
+          "object" === typeof Component7.contextType && null !== Component7.contextType && (Component7 = getComponentNameFromType(Component7) || "Unknown", didWarnAboutContextTypeOnFunctionComponent[Component7] || (console.error(
             "%s: Function components do not support contextType.",
-            Component6
-          ), didWarnAboutContextTypeOnFunctionComponent[Component6] = true));
+            Component7
+          ), didWarnAboutContextTypeOnFunctionComponent[Component7] = true));
         }
         function mountSuspenseOffscreenState(renderLanes2) {
           return { baseLanes: renderLanes2, cachePool: getSuspendedCache() };
@@ -19764,11 +19764,11 @@ var CTMMonitor = (() => {
           pendingLegacyContextWarning = /* @__PURE__ */ new Map();
         };
         var callComponent = {
-          react_stack_bottom_frame: function(Component6, props, secondArg) {
+          react_stack_bottom_frame: function(Component7, props, secondArg) {
             var wasRendering = isRendering;
             isRendering = true;
             try {
-              return Component6(props, secondArg);
+              return Component7(props, secondArg);
             } finally {
               isRendering = wasRendering;
             }
@@ -26990,7 +26990,7 @@ var CTMMonitor = (() => {
 
   // node_modules/lucide-react/dist/esm/createLucideIcon.js
   var createLucideIcon = (iconName, iconNode) => {
-    const Component6 = (0, import_react2.forwardRef)(
+    const Component7 = (0, import_react2.forwardRef)(
       ({ className, ...props }, ref) => (0, import_react2.createElement)(Icon, {
         ref,
         iconNode,
@@ -26998,8 +26998,8 @@ var CTMMonitor = (() => {
         ...props
       })
     );
-    Component6.displayName = `${iconName}`;
-    return Component6;
+    Component7.displayName = `${iconName}`;
+    return Component7;
   };
 
   // node_modules/lucide-react/dist/esm/icons/activity.js
@@ -47712,6 +47712,25 @@ var CTMMonitor = (() => {
   });
 
   // app.js
+  var ErrorBoundary = class extends import_react39.Component {
+    constructor(props) {
+      super(props);
+      this.state = { hasError: false, error: null, errorInfo: null };
+    }
+    static getDerivedStateFromError(error) {
+      return { hasError: true, error };
+    }
+    componentDidCatch(error, errorInfo) {
+      this.setState({ errorInfo });
+      console.error("[CTM] React Error:", error, errorInfo);
+    }
+    render() {
+      if (this.state.hasError) {
+        return /* @__PURE__ */ import_react39.default.createElement("div", { style: { padding: "20px", fontFamily: "monospace", background: "#1a1a1a", margin: "20px", borderRadius: "8px", border: "1px solid #333" } }, /* @__PURE__ */ import_react39.default.createElement("div", { style: { color: "#f87171", fontSize: "16px", marginBottom: "10px" } }, "REACT RENDER ERROR"), /* @__PURE__ */ import_react39.default.createElement("pre", { style: { color: "#fbbf24", whiteSpace: "pre-wrap", wordBreak: "break-word" } }, this.state.error?.toString()), /* @__PURE__ */ import_react39.default.createElement("pre", { style: { color: "#666", fontSize: "11px", marginTop: "10px", whiteSpace: "pre-wrap" } }, this.state.errorInfo?.componentStack));
+      }
+      return this.props.children;
+    }
+  };
   var VERSION = "v1.0.0";
   var DEFAULT_POLL_INTERVAL = 5e3;
   var MAX_HISTORY_POINTS = 800;
@@ -48221,7 +48240,7 @@ var CTMMonitor = (() => {
     const rootEl = document.getElementById("root");
     console.log("[CTM] Root element:", rootEl);
     const root = (0, import_client.createRoot)(rootEl);
-    root.render(/* @__PURE__ */ import_react39.default.createElement(App, null));
+    root.render(/* @__PURE__ */ import_react39.default.createElement(ErrorBoundary, null, /* @__PURE__ */ import_react39.default.createElement(App, null)));
     console.log("[CTM] App rendered");
   } catch (e) {
     console.error("[CTM] Render error:", e);
