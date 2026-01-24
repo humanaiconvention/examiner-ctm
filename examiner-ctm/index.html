@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Examiner-CTM v5.1.1 | HumanAI Convention</title>
+  <title>Examiner-CTM v5.2 | HumanAI Convention</title>
   <meta name="description" content="Continuous Thought Machine with Recursive Memory, 7 Sovereign Pillars, and Hybrid Loss Architecture for multi-domain reasoning">
   <link rel="icon" href="/logo.svg" type="image/svg+xml">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -62,8 +62,8 @@
       <div>
         <h1 class="text-3xl font-bold">Examiner-CTM</h1>
         <div class="flex items-center gap-3 mt-1">
-          <span class="text-xs font-mono px-2 py-0.5 bg-green-500/20 text-green-400 rounded">v5.1.1</span>
-          <span class="text-xs text-gray-500">Sovereign Logic Foundation</span>
+          <span class="text-xs font-mono px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded">v5.2</span>
+          <span class="text-xs text-gray-500">Sovereign Logic Foundation with Auto-Grounding</span>
         </div>
       </div>
     </div>
@@ -86,7 +86,9 @@
 
 A **Continuous Thought Machine** ([arXiv:2505.05522](https://arxiv.org/abs/2505.05522)) with **Recursive Memory**, **7 Sovereign Pillars**, and **Hybrid Loss Architecture** for multi-domain reasoning.
 
-**Current Version**: v5.1.1 (Bug Fixes & Verification)
+**Current Version**: v5.2 (Auto-Grounding Injection System) - 2026-01-24
+
+**Previous**: v5.1.1 (Bug Fixes) → v5.1 (AMER-RCL Curriculum) → v5.0 (CUDA Tile + NeMo Gym)
 
 ---
 
@@ -156,6 +158,36 @@ Each pillar is a **full CTM instance** specialized for a cognitive domain:
 
 ---
 
+## v5.2 Enhancement: Auto-Grounding Injection System
+
+### Cascading Intervention Before Collapse
+
+**Concept**: Automatically inject external grounding (context search + advisor ensemble) when semantic collapse signatures are detected, **BEFORE** training pause.
+
+**Design Philosophy**: C_eff(t) ≥ E(t) - actively increase corrective bandwidth before giving up (Haslam, 2025)
+
+**Two Triggers**:
+1. **Proactive** (every 10 steps): Monitor C_eff(t) ≥ E(t) viability condition
+2. **Reactive** (on warnings): Detect reward↓ + loss→ temporal signature
+
+**Cascading Interventions**:
+| Severity | Trigger | Cost | Action |
+|----------|---------|------|--------|
+| Light | margin > -0.1 | Low | Context search (pillar-preferred) |
+| Moderate | -0.3 to -0.1 OR warning #2 | Medium | Advisor ensemble (5 models) |
+| Critical | < -0.5 OR warning #3 | High | Both + force bypass cooldowns |
+
+**Pillar-Aware Preferences**:
+- **Reasoning** (LOGOS, SOPHIA, NOMOS, PSYCHE) → Prefer advisor ensemble
+- **Factual** (PHYSIS, BIOS, OIKOS) → Prefer context search
+- **Smart fallback**: If preferred method on cooldown, try alternative
+
+**Status**: ✅ Fully integrated with unit tests passing
+
+**Reference**: [Haslam (2025)](https://zenodo.org/records/18091864) "Semantic Grounding and the Preservation of Information in Recursive Systems"
+
+---
+
 ## v5.1.1 Enhancements
 
 ### Bug Fixes & Verification
@@ -207,11 +239,12 @@ Each pillar is a **full CTM instance** specialized for a cognitive domain:
 
 ### Papers
 
-1. **CTM**: [arXiv:2505.05522](https://arxiv.org/abs/2505.05522)
-2. **RLM**: [arXiv:2512.24601](https://arxiv.org/abs/2512.24601)
-3. **Budget Governor**: [arXiv:2501.12948](https://arxiv.org/abs/2501.12948)
-4. **mHC**: [arXiv:2512.24880v2](https://arxiv.org/html/2512.24880v2)
-5. **Engram**: [arXiv:2601.07372](https://arxiv.org/abs/2601.07372)
+1. **CTM**: [arXiv:2505.05522](https://arxiv.org/abs/2505.05522) - Continuous Thought Machine
+2. **RLM**: [arXiv:2512.24601](https://arxiv.org/abs/2512.24601) - Recursive Memory Protocol
+3. **Budget Governor**: [arXiv:2501.12948](https://arxiv.org/abs/2501.12948) - Dynamic compute allocation
+4. **mHC**: [arXiv:2512.24880v2](https://arxiv.org/html/2512.24880v2) - Manifold Hyper-Connections
+5. **Engram**: [arXiv:2601.07372](https://arxiv.org/abs/2601.07372) - Conditional memory
+6. **Semantic Grounding**: [Haslam (2025)](https://zenodo.org/records/18091864) - Preservation of Information in Recursive Systems
 
 ### Resources
 
