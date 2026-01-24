@@ -893,5 +893,14 @@ const App = () => {
   );
 };
 
-const root = createRoot(document.getElementById('root'));
-root.render(<App />);
+console.log('[CTM] Starting app...');
+try {
+  const rootEl = document.getElementById('root');
+  console.log('[CTM] Root element:', rootEl);
+  const root = createRoot(rootEl);
+  root.render(<App />);
+  console.log('[CTM] App rendered');
+} catch (e) {
+  console.error('[CTM] Render error:', e);
+  document.body.innerHTML = `<pre style="color:red;padding:20px">ERROR: ${e.message}\n${e.stack}</pre>`;
+}
