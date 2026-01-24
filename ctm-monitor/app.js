@@ -782,6 +782,52 @@ const App = () => {
           />
         </div>
 
+        {/* Auto-Grounding Intervention Status (v5.2) */}
+        <div className="bg-gradient-to-br from-[#1a1a2e] via-[#111113] to-[#0a0a0c] border border-emerald-500/30 rounded-lg p-4 shadow-lg shadow-emerald-500/10">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
+              <h3 className="text-xs font-mono text-emerald-400 uppercase tracking-wider">Auto-Grounding System</h3>
+              <span className="text-[10px] font-mono text-emerald-600">(v5.2 - Cascading Interventions)</span>
+            </div>
+            <div className="text-[10px] font-mono text-gray-500">C_eff(t) ≥ E(t) Viability</div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Context Injections */}
+            <div className="bg-[#0a0a0c]/60 border border-blue-500/20 rounded p-3 hover:border-blue-500/40 transition">
+              <div className="text-[10px] text-blue-400 uppercase font-mono mb-2">Context Searches</div>
+              <div className="text-2xl font-mono text-blue-300">0</div>
+              <div className="text-[9px] text-gray-600 mt-1">Light interventions</div>
+            </div>
+
+            {/* Advisor Consultations */}
+            <div className="bg-[#0a0a0c]/60 border border-purple-500/20 rounded p-3 hover:border-purple-500/40 transition">
+              <div className="text-[10px] text-purple-400 uppercase font-mono mb-2">Advisor Calls</div>
+              <div className="text-2xl font-mono text-purple-300">0</div>
+              <div className="text-[9px] text-gray-600 mt-1">Moderate interventions</div>
+            </div>
+
+            {/* Combined (Critical) */}
+            <div className="bg-[#0a0a0c]/60 border border-red-500/20 rounded p-3 hover:border-red-500/40 transition">
+              <div className="text-[10px] text-red-400 uppercase font-mono mb-2">Critical (Combined)</div>
+              <div className="text-2xl font-mono text-red-300">0</div>
+              <div className="text-[9px] text-gray-600 mt-1">Context + advisor forced</div>
+            </div>
+
+            {/* Viability Margin */}
+            <div className="bg-[#0a0a0c]/60 border border-emerald-500/20 rounded p-3 hover:border-emerald-500/40 transition">
+              <div className="text-[10px] text-emerald-400 uppercase font-mono mb-2">Viability Margin</div>
+              <div className="text-2xl font-mono text-emerald-300">--</div>
+              <div className="text-[9px] text-gray-600 mt-1">C_eff - E(t) delta</div>
+            </div>
+          </div>
+
+          <div className="mt-3 text-[9px] font-mono text-gray-600 pt-3 border-t border-white/5">
+            <span className="text-emerald-500">Strategy:</span> Light (margin &gt; -0.1) → Moderate (-0.3 to -0.1, warning #2) → Critical (&lt; -0.5, warning #3, force bypass)
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-80">
           <div className="lg:col-span-2 bg-gradient-to-br from-[#111113] to-[#0a0a0c] border border-white/10 rounded-lg p-4 flex flex-col shadow-lg">
             <div className="flex justify-between items-center mb-4">
