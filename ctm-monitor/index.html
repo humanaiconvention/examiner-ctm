@@ -45,7 +45,17 @@
   </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div id="root" style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0a0a0c;color:#e0e0e0;font-family:monospace;">Loading CTM Monitor...</div>
   <script src="./app.bundle.js"></script>
+  <script>
+    window.addEventListener('error', e => {
+      document.getElementById('root').innerHTML = '<div style="padding:20px;color:#ff6b6b"><h1>Error Loading App</h1><pre>' + e.message + '</pre></div>';
+    });
+    setTimeout(() => {
+      if (!document.querySelector('[class*="flex"]')) {
+        document.getElementById('root').innerHTML = '<div style="padding:20px;color:#ff6b6b">Failed to load app. Check console.</div>';
+      }
+    }, 3000);
+  </script>
 </body>
 </html>
