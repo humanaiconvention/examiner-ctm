@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Module Test</title>
+</head>
+<body>
+  <div id="root">Loading...</div>
+  <script type="module">
+    console.log('Script executing...');
+    try {
+      const root = document.getElementById('root');
+      root.textContent = 'Modules working! Time: ' + new Date().toISOString();
+    } catch(e) {
+      document.getElementById('root').textContent = 'Error: ' + e.message;
+    }
+  </script>
+</body>
+</html>
