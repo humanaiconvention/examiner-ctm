@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CTM Monitor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; background: #0a0a0c; color: #e0e0e0; }
+  </style>
+</head>
+<body>
+  <div class="min-h-screen bg-gradient-to-b from-[#0a0a0c] to-[#050507] text-white p-6">
+    <div class="max-w-4xl mx-auto space-y-6">
+      <h1 class="text-3xl font-bold">Examiner-CTM Training Monitor</h1>
+
+      <div id="status" class="p-4 bg-[#111113] border border-white/10 rounded-lg">
+        <div class="text-sm text-gray-500">STATUS</div>
+        <div id="status-text" class="text-lg font-mono mt-2">Loading...</div>
+      </div>
+
+      <div id="data" class="p-4 bg-[#111113] border border-white/10 rounded-lg">
+        <div class="text-sm text-gray-500 mb-2">LATEST DATA</div>
+        <pre id="data-text" class="text-xs font-mono overflow-auto max-h-96 text-gray-300">Fetching...</pre>
+      </div>
+
+      <div id="logs" class="p-4 bg-[#111113] border border-white/10 rounded-lg">
+        <div class="text-sm text-gray-500 mb-2">LOG STREAM</div>
+        <div id="log-text" class="text-xs font-mono space-y-1 max-h-64 overflow-y-auto">Waiting for data...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DATA_URL = './data/metrics.jsonl';
+    let lastFetchTime = 0;
+
+    async function fetchData() {
+      try {
+        const response = await fetch(DATA_URL + '?t=' + Date.now());
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const text = await response.text();
+        const lines = text.split('\n').filter(l => l.trim());
+        const entries = lines.map(line => {
+          try {
+            const cleaned = line.replace(/:\s*NaN/g, ': null');
+            return JSON.parse(cleaned);
+          } catch { return null; }
+        }).filter(e => e && typeof e.step === 'number');
+
+        if (entries.length === 0) {
+          document.getElementById('status-text').textContent = 'No data loaded';
+          return;
+        }
+
+        const latest = entries[entries.length - 1];
+        const time = new Date().toLocaleTimeString();
+
+        document.getElementById('status-text').textContent =
+          `Step ${latest.step} | Loss: ${latest.loss === null ? 'NaN' : latest.loss.toFixed(4)} | Reward: ${latest.reward.toFixed(3)} | Updated: ${time}`;
+
+        document.getElementById('data-text').textContent = JSON.stringify(latest, null, 2);
+
+        const logHtml = entries.slice(-20).reverse().map((e, i) =>
+          `<div class="text-gray-400">[${new Date(e.timestamp).toLocaleTimeString()}] Step ${e.step} | ${e.domain} | Loss: ${e.loss === null ? 'NaN' : e.loss.toFixed(4)} | Reward: ${e.reward.toFixed(2)}</div>`
+        ).join('');
+        document.getElementById('log-text').innerHTML = logHtml;
+
+        document.getElementById('status-text').parentElement.parentElement.classList.remove('border-red-500/50');
+        document.getElementById('status-text').parentElement.parentElement.classList.add('border-green-500/50');
+      } catch (err) {
+        document.getElementById('status-text').textContent = 'ERROR: ' + err.message;
+        document.getElementById('status-text').parentElement.parentElement.classList.add('border-red-500/50');
+        console.error(err);
+      }
+    }
+
+    fetchData();
+    setInterval(fetchData, 5000);
+  </script>
+</body>
+</html>
