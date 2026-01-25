@@ -9,9 +9,10 @@ CTM Monitor provides live visualization of training metrics, collapse detection 
 ## Features
 
 - **Real-time Metrics**: Loss, rewards, and gradient norms
-- **Collapse Detection**: Visual alerts for semantic collapse signatures
+- **Collapse Detection**: Visual alerts for semantic collapse signatures (Haslam 2025)
 - **Per-Pillar Tracking**: Individual specialist domain performance
-- **Auto-grounding Status**: Intervention timeline visualization
+- **Auto-grounding Status**: Intervention timeline visualization (v5.2+)
+- **Recursive Weight Monitoring**: Parameter savings tracking (v5.3+)
 - **JSONL Data Feed**: Integrated with live metrics from parallel_training_metrics.jsonl
 
 ## Files
@@ -52,8 +53,9 @@ python sync_metrics_lite.py
 - Training progress chart
 - Loss and reward trends
 - Per-pillar specialist performance
-- Collapse detector warnings
+- Collapse detector warnings (central + 7 pillars)
 - Auto-grounding intervention timeline
+- **v5.3+**: Recursive weight parameter savings visualization
 
 ### Simple View (simple.html)
 - Lightweight single-page view
@@ -62,11 +64,14 @@ python sync_metrics_lite.py
 
 ## Integration
 
-Designed to work with Examiner-CTM v5.3:
+**Examiner-CTM v5.3 (Recursive Weight Derivation)**
 - Reads from `parallel_training_metrics.jsonl`
-- Receives collapse detection events
-- Tracks auto-grounding interventions
-- Shows recursive weight parameter savings (v5.3+)
+- Receives collapse detection events (central + per-pillar monitors)
+- Tracks auto-grounding interventions (cascading severity levels)
+- **New**: Shows recursive weight parameter savings
+  - Central NLM: ~5.4% savings via derived W2
+  - Per-specialist: ~91.2% savings via cross-specialist weight sharing
+  - Total system: **80.5% parameter reduction** (13,764 vs 70,656 params)
 
 ## Requirements
 
