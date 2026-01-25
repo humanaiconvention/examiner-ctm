@@ -2452,8 +2452,11 @@ class UnifiedTrainer:
 
             # High Heaven Mode: Interleaved Corpus Training (Batch Training to saturate GPU)
             # 30% chance per step to run a heavy corpus batch (or always if high_heaven is aggressive)
-            if hasattr(self, 'high_heaven') and self.high_heaven and self.corpus_loader and random.random() < 0.3:
-                corpus_loss = self.train_step_corpus_self_test()
+            # v5.3: If torch.compile failed (g++ check), we need to be MORE aggressive to fill VRAM
+            if hasattr(self, 'high_heaven') and self.high_heaven and self.corpus_loader:
+                # Force corpus training 50% of the time to ensure VRAM utilization
+                if random.random() < 0.5:
+                     corpus_loss = self.train_step_corpus_self_test()
                 # print(f"  [HighHeaven] Corpus Self-test: {corpus_loss:.4f} reward")
 
             # Phase 2: Viability check (every 10 steps)
