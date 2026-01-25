@@ -8,6 +8,7 @@ import os
 import random
 import torch.distributions as dist
 from torch.func import functional_call, vmap, grad
+from typing import Literal, Optional
 
 # GPU Performance Optimization Utilities ---
 
@@ -355,15 +356,48 @@ class NeuralSynchronization(nn.Module):
 
 
 class ContinuousThoughtMachine(nn.Module):
-    """True CTM per arXiv:2505.05522v4"""
-    def __init__(self, d_model, memory_length, num_thoughts=5, d_out=None):
+    """True CTM per arXiv:2505.05522v4
+
+    v5.3: Supports Recursive Weight Derivation via use_recursive_weights flag.
+    When enabled, uses RecursiveNLM which derives W2 from W1 via learned operators,
+    achieving 80.5% parameter savings with 7 specialists.
+    """
+    def __init__(
+        self,
+        d_model,
+        memory_length,
+        num_thoughts=5,
+        d_out=None,
+        use_recursive_weights: bool = False,
+        recursive_operator: Literal['spectral', 'linear', 'residual'] = 'spectral',
+        recursive_operator_rank: int = 8,
+    ):
         super().__init__()
         self.d_model = d_model
         self.memory_length = memory_length
         self.num_thoughts = num_thoughts
+        self.use_recursive_weights = use_recursive_weights
+        self.recursive_operator = recursive_operator
+        self.recursive_operator_rank = recursive_operator_rank
         d_out = d_out or d_model
-        
-        self.nlm = NeuronLevelModel(d_model, memory_length)
+
+        # v5.3: Choose NLM implementation based on recursive weight flag
+        if use_recursive_weights:
+            try:
+                from recursive_weights import RecursiveNLM
+                self.nlm = RecursiveNLM(
+                    d_model=d_model,
+                    memory_length=memory_length,
+                    d_hidden=4,
+                    operator=recursive_operator,
+                    operator_rank=recursive_operator_rank,
+                )
+                print(f"[v5.3] Using RecursiveNLM with {recursive_operator} operator (rank={recursive_operator_rank})")
+            except ImportError:
+                print("[v5.3] Warning: recursive_weights module not found, falling back to standard NLM")
+                self.nlm = NeuronLevelModel(d_model, memory_length)
+        else:
+            self.nlm = NeuronLevelModel(d_model, memory_length)
         self.synapse = nn.Linear(d_model * 2, d_model)  # U-Net style in paper, simplified here
         
         self.z_init = nn.Parameter(torch.randn(d_model) * 0.02)
@@ -659,6 +693,24 @@ class ContinuousThoughtMachine(nn.Module):
         target_nlm.update_weights(grads, lr)
 
         return dual_tick_loss, 0.0  # Return loss and dummy reward for interface compatibility
+
+    def get_nlm_parameter_report(self) -> dict:
+        """
+        v5.3: Get parameter savings report for the NLM.
+
+        Returns parameter comparison between standard and recursive NLM.
+        Only meaningful when use_recursive_weights=True.
+        """
+        if hasattr(self.nlm, 'parameter_report'):
+            return self.nlm.parameter_report()
+        else:
+            # Standard NLM - compute basic stats
+            return {
+                'original_total': sum(p.numel() for p in self.nlm.parameters()),
+                'recursive_total': sum(p.numel() for p in self.nlm.parameters()),
+                'savings_percent': 0.0,
+                'note': 'Standard NLM (no recursive weights)'
+            }
 
 
 def ctm_dual_tick_loss(outputs, targets, num_classes=None):

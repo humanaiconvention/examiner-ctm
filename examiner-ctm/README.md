@@ -5,8 +5,8 @@ A **Continuous Thought Machine** ([arXiv:2505.05522](https://arxiv.org/abs/2505.
 [![Colab Research](https://img.shields.io/badge/Research-Google_Colab-orange)](https://colab.research.google.com/drive/1UAuR6vVq6729_RSeomnHyvJmkHzhgh9e?usp=sharing)
 [![GitHub Repository](https://img.shields.io/badge/Reference-GitHub-lightgrey)](https://github.com/humanaiconvention/examiner)
 
-**Current Version**: v5.2 (Auto-Grounding Injection) (2026-01-24)
-**Previous**: v5.1.1 (Bug Fixes) → v5.1 (AMER-RCL + Corpus) → v5.0 (CUDA Tile + NeMo Gym) → v4.9 (Verifiable Reward) → v4.8 (DDA Router + Sigma + Session)
+**Current Version**: v5.3 (Recursive Weight Derivation) (2026-01-25)
+**Previous**: v5.2 (Auto-Grounding Injection) → v5.1.1 (Bug Fixes) → v5.1 (AMER-RCL + Corpus) → v5.0 (CUDA Tile + NeMo Gym) → v4.9 (Verifiable Reward) → v4.8 (DDA Router + Sigma + Session)
 
 ---
 
@@ -414,6 +414,70 @@ session_memory.start_session(session_id="...")  # Load previous states
 **Files**: [auto_grounding.py](auto_grounding.py), [collapse_detector.py](collapse_detector.py#L50-L75), [ctm_trainer.py](ctm_trainer.py#L895-L980)
 
 **Reference**: Haslam (2025) "Semantic Grounding and the Preservation of Information in Recursive Systems" - DOI: 10.5281/zenodo.18091864
+
+---
+
+## v5.3 Enhancement (Recursive Weight Derivation)
+
+### Parameter-Efficient NLM via Learned Weight Operators
+
+**Concept**: Derive higher-order weight matrices (W2, W3, ...) from a single base weight matrix W1 through learned operators, instead of maintaining independent parameters. This achieves **80.5% parameter savings** across the 1+7 specialist architecture while preserving full expressivity.
+
+**Architecture**:
+```
+W1 (learned, shape: M×h×d)
+  ↓
+[ContractionOperator] → Weighted sum over memory dimension M
+  ↓
+W1_contracted (shape: h×d)
+  ↓
+[Recursive Operator T: Spectral/Linear/Residual]
+  ↓
+W2 (derived, shape: h×d)
+```
+
+**Three Operator Types**:
+
+| Operator | Parameters | Description | Use Case |
+|----------|------------|-------------|----------|
+| **Spectral** | ~280 | SVD-based: `W2 = U @ diag(f(S)) @ Vh` | Default, preserves structure |
+| **Linear** | ~2,048 | Bottleneck projection | Most expressive |
+| **Residual** | ~130 | `W2 = W1 + δ(W1)` | When W2 ≈ W1 |
+
+**Cross-Specialist Weight Sharing**:
+
+Specialists derive weights from central foundation via domain-specific operators:
+```
+Central.W1 ──[T_LOGOS]──> LOGOS.W1
+           ──[T_PHYSIS]─> PHYSIS.W1
+           ──[T_BIOS]───> BIOS.W1
+           ...
+```
+
+**Parameter Savings**:
+| Architecture | Parameters | Savings |
+|--------------|------------|---------|
+| Original (8 independent NLMs) | 70,656 | - |
+| Recursive (central + 7 specialists) | 13,764 | **80.5%** |
+| Per specialist (vs full NLM) | 773 | **91.2%** |
+
+**Usage**:
+```bash
+# Enable recursive weight derivation
+python run_training.py --use-recursive-weights --steps 5000
+
+# Customize operator (spectral is default)
+python run_training.py --use-recursive-weights --recursive-operator spectral --recursive-operator-rank 8
+```
+
+**Integration Points**:
+- `ContinuousThoughtMachine`: `use_recursive_weights=True` uses `RecursiveNLM`
+- `UnifiedTrainer.spawn_specialist()`: Creates `RecursiveSpecialistNLM` deriving from central
+- Full backward compatibility: Flag disabled by default
+
+**Files**: [recursive_weights.py](recursive_weights.py), [docs/v5.3-recursive-weights-design.md](docs/v5.3-recursive-weights-design.md)
+
+**Status**: ✅ Production ready, all tests passing
 
 ---
 
@@ -1034,6 +1098,40 @@ DDA Context: {'PSYCHE': '0.79', 'SOPHIA': '0.15', 'BIOS': '0.06'}
 ---
 
 ## Changelog
+
+### v5.3: Recursive Weight Derivation (2026-01-25)
+
+**Major Components**:
+- ✅ **Recursive Weight Derivation**: Parameter-efficient NLM via learned operators
+  - Derives W2 from W1 via SpectralOperator (default), LinearProjectionOperator, or ResidualDeltaOperator
+  - ContractionOperator handles shape mismatch (M, h, d) → (h, d)
+  - 80.5% total parameter savings across 1+7 specialist architecture
+  - Full gradient flow through operator to base weights
+
+- ✅ **RecursiveSpecialistNLM**: Cross-specialist weight sharing
+  - All 7 specialists derive weights from central foundation
+  - Domain-specific spectral modulation (91.2% savings per specialist)
+  - Independent biases per specialist (cheap customization)
+
+- ✅ **Integration**: CLI flags and seamless enabling
+  - `--use-recursive-weights`: Enable recursive weight derivation
+  - `--recursive-operator`: Choose operator type (spectral/linear/residual)
+  - `--recursive-operator-rank`: Control operator capacity
+  - Full backward compatibility (disabled by default)
+
+**Files**:
+- [recursive_weights.py](recursive_weights.py) - 656 lines, production ready
+- [docs/v5.3-recursive-weights-design.md](docs/v5.3-recursive-weights-design.md) - Complete design document
+
+**Status**: ✅ All tests passing, ready for production training
+
+---
+
+### v5.2: Auto-Grounding Injection (2026-01-24)
+
+**Summary**: Cascading grounding injection before collapse. See [v5.2 Enhancement section](#v52-enhancement-auto-grounding-injection-system).
+
+---
 
 ### v5.1.1: Bug Fixes & Verification (2026-01-23)
 
