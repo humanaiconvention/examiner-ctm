@@ -2371,14 +2371,23 @@ class UnifiedTrainer:
             msg = f"CTM Heartbeat: Step {step} | Syncing Logic Foundation Metrics"
             subprocess.run(["git", "commit", "-m", msg], check=False)
 
-            # 3. Push to current branch (private repo)
-            subprocess.run(["git", "push"], check=False)
-
-            # 4. Also push to public repo if 'public' remote exists (for live dashboard)
-            result = subprocess.run(["git", "remote", "get-url", "public"], capture_output=True, text=True)
-            if result.returncode == 0:
-                print("Pushing to public repo for live dashboard...")
-                subprocess.run(["git", "push", "public", "HEAD:live"], check=False)
+            # Check and push to each remote safely
+            for remote in ['origin', 'private', 'website', 'public']:
+                try:
+                    # Check if remote exists
+                    res = subprocess.run(["git", "remote", "get-url", remote], capture_output=True, text=True)
+                    if res.returncode == 0:
+                        branch = "live" if remote == "website" else "parallel-ctm-marathon"
+                        if remote == "origin": branch = subprocess.check_output(["git", "branch", "--show-current"]).decode().strip()
+                        
+                        # Special handling for website branch mapping
+                        target_ref = f"HEAD:{branch}" if remote != "website" else "HEAD:gh-pages"
+                        
+                        print(f"[Git Sync] Pushing to {remote}...")
+                        subprocess.run(["git", "push", remote, target_ref], check=False)
+                        print(f"[Git Sync] Pushed to {remote} successfully")
+                except Exception:
+                    continue
 
             print("Git Push Complete.")
         except Exception as e:
