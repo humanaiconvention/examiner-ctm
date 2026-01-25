@@ -43,7 +43,7 @@ const DEFAULT_POLL_INTERVAL = 5000;
 const MAX_HISTORY_POINTS = 800;
 // Live metrics URL - fetches from GitHub raw where L4 pushes metrics via git-sync
 // Uses PUBLIC examiner-ctm repo (must be synced from L4 via git push)
-const DEFAULT_UPLINK_URL = "https://raw.githubusercontent.com/humanaiconvention/examiner/parallel-ctm-marathon/examiner-ctm/parallel_training_metrics.jsonl";
+const DEFAULT_UPLINK_URL = "https://raw.githubusercontent.com/humanaiconvention/examiner-ctm/live/examiner-ctm/parallel_training_metrics.jsonl";
 const TRAINING_STEP_TARGET = 5000;
 
 // Pillar Configuration - 7 Sovereign Pillars
@@ -609,6 +609,28 @@ const App = () => {
       return;
     }
 
+    // Load Training 2 historical data
+    if (trainingRun === 'TRAINING_2' && (logs.length === 0 || logs.length < 10)) {
+      const loadTraining2 = async () => {
+        try {
+          const response = await fetch('./data/training_2.jsonl');
+          const text = await response.text();
+          setBytesRead(text.length);
+          const parsed = parseJSONL(text);
+          if (parsed.length > 0) {
+            setLogs(parsed.slice(-MAX_HISTORY_POINTS));
+            setErrorMsg(null);
+            setIsPolling(false);
+          }
+        } catch (err) {
+          console.error('[CTM] Failed to load Training 2:', err);
+          setErrorMsg(`Failed to load Training 2: ${err.message}`);
+        }
+      };
+      loadTraining2();
+      return;
+    }
+
     // Live polling mode
     if (dataMode === 'LOCAL_FILE' || trainingRun === 'TRAINING_1') return;
 
@@ -743,6 +765,17 @@ const App = () => {
                 }`}
               >
                 📊 Training 1 (v4.8)
+              </button>
+              <div className="h-4 w-px bg-white/10" />
+              <button
+                onClick={() => { setTrainingRun('TRAINING_2'); setLogs([]); }}
+                className={`text-xs font-mono px-2 py-1 rounded transition ${
+                  trainingRun === 'TRAINING_2'
+                    ? 'bg-emerald-500/30 text-emerald-400 border border-emerald-500/50'
+                    : 'text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                📊 Training 2 (v5.2.1)
               </button>
               <div className="h-4 w-px bg-white/10" />
               <button
