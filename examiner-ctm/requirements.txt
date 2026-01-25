@@ -1,5 +1,5 @@
-# Examiner-CTM v5.2 Requirements
-# Core dependencies for training
+# Examiner-CTM v5.3 Requirements
+# Core dependencies for training with Recursive Weight Derivation
 
 # PyTorch (install separately with CUDA support)
 # torch>=2.0.0
