@@ -2289,14 +2289,21 @@ class UnifiedTrainer:
             import subprocess
             # 1. Add metrics and progress logs (skip binary checkpoints)
             subprocess.run(["git", "add", self.log_file, "training_log.txt"], check=False)
-            
+
             # 2. Commit with step info
             step = getattr(self, 'global_train_step', 0)
             msg = f"CTM Heartbeat: Step {step} | Syncing Logic Foundation Metrics"
             subprocess.run(["git", "commit", "-m", msg], check=False)
-            
-            # 3. Push to current branch
+
+            # 3. Push to current branch (private repo)
             subprocess.run(["git", "push"], check=False)
+
+            # 4. Also push to public repo if 'public' remote exists (for live dashboard)
+            result = subprocess.run(["git", "remote", "get-url", "public"], capture_output=True, text=True)
+            if result.returncode == 0:
+                print("Pushing to public repo for live dashboard...")
+                subprocess.run(["git", "push", "public", "HEAD:live"], check=False)
+
             print("Git Push Complete.")
         except Exception as e:
             print(f"Warning: Git Sync failed ({e}). Continuing training.")
