@@ -47731,10 +47731,10 @@ var CTMMonitor = (() => {
       return this.props.children;
     }
   };
-  var VERSION = "v1.1.0";
+  var VERSION = "v1.3.0";
   var DEFAULT_POLL_INTERVAL = 5e3;
   var MAX_HISTORY_POINTS = 800;
-  var DEFAULT_UPLINK_URL = "https://raw.githubusercontent.com/humanaiconvention/examiner-ctm/live/parallel_training_metrics.jsonl";
+  var DEFAULT_UPLINK_URL = "https://raw.githubusercontent.com/humanaiconvention/examiner-ctm/live/examiner-ctm/parallel_training_metrics.jsonl";
   var TRAINING_STEP_TARGET = 5e3;
   var PILLAR_CONFIG = {
     log: { name: "LOGOS", desc: "Formal logic & mathematics", color: "#10b981" },
@@ -47961,7 +47961,7 @@ var CTMMonitor = (() => {
           },
           className: `w-full p-3 rounded text-left border transition-all ${url === DEFAULT_UPLINK_URL ? "bg-green-500/20 border-green-500/50 text-green-300" : "bg-black/40 border-white/5 text-gray-400 hover:border-white/20"}`
         },
-        /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex justify-between items-center" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "font-bold font-mono text-xs flex items-center gap-2" }, /* @__PURE__ */ import_react39.default.createElement(Github, { className: "w-3 h-3" }), " Live v5.2 Training"), /* @__PURE__ */ import_react39.default.createElement("span", { className: "text-[9px] uppercase border border-green-500/30 px-1 rounded text-green-500" }, "Live")),
+        /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex justify-between items-center" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "font-bold font-mono text-xs flex items-center gap-2" }, /* @__PURE__ */ import_react39.default.createElement(Github, { className: "w-3 h-3" }), " Live v5.3 Training"), /* @__PURE__ */ import_react39.default.createElement("span", { className: "text-[9px] uppercase border border-green-500/30 px-1 rounded text-green-500" }, "Live")),
         /* @__PURE__ */ import_react39.default.createElement("div", { className: "opacity-60 text-[9px] mt-1 font-mono break-all" }, "humanaiconvention/examiner \u2192 parallel_training_metrics.jsonl")
       )), /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex gap-2 pt-2 border-t border-white/5" }, /* @__PURE__ */ import_react39.default.createElement(
         "input",
@@ -48010,7 +48010,7 @@ var CTMMonitor = (() => {
     const parseJSONL = (text) => {
       return text.split("\n").filter((line) => line.trim()).map((line) => {
         try {
-          const cleaned = line.replace(/:\s*NaN/g, ": null");
+          const cleaned = line.replace(/:\s*(NaN|Infinity|-Infinity)/g, ": null");
           return JSON.parse(cleaned);
         } catch (e) {
           return null;
@@ -48058,6 +48058,26 @@ var CTMMonitor = (() => {
           }
         };
         loadTraining1();
+        return;
+      }
+      if (trainingRun === "TRAINING_2" && (logs.length === 0 || logs.length < 10)) {
+        const loadTraining2 = async () => {
+          try {
+            const response = await fetch("./data/training_2.jsonl");
+            const text = await response.text();
+            setBytesRead(text.length);
+            const parsed = parseJSONL(text);
+            if (parsed.length > 0) {
+              setLogs(parsed.slice(-MAX_HISTORY_POINTS));
+              setErrorMsg(null);
+              setIsPolling(false);
+            }
+          } catch (err) {
+            console.error("[CTM] Failed to load Training 2:", err);
+            setErrorMsg(`Failed to load Training 2: ${err.message}`);
+          }
+        };
+        loadTraining2();
         return;
       }
       if (dataMode === "LOCAL_FILE" || trainingRun === "TRAINING_1") return;
@@ -48169,12 +48189,22 @@ var CTMMonitor = (() => {
       "button",
       {
         onClick: () => {
+          setTrainingRun("TRAINING_2");
+          setLogs([]);
+        },
+        className: `text-xs font-mono px-2 py-1 rounded transition ${trainingRun === "TRAINING_2" ? "bg-emerald-500/30 text-emerald-400 border border-emerald-500/50" : "text-gray-500 hover:text-gray-300"}`
+      },
+      "\u{1F4CA} Training 2 (v5.2.1)"
+    ), /* @__PURE__ */ import_react39.default.createElement("div", { className: "h-4 w-px bg-white/10" }), /* @__PURE__ */ import_react39.default.createElement(
+      "button",
+      {
+        onClick: () => {
           setTrainingRun("LIVE");
           setErrorMsg(null);
         },
         className: `text-xs font-mono px-2 py-1 rounded transition ${trainingRun === "LIVE" ? "bg-cyan-500/30 text-cyan-400 border border-cyan-500/50" : "text-gray-500 hover:text-gray-300"}`
       },
-      "\u{1F534} Live (v5.2)"
+      "\u{1F534} Live (v5.3)"
     )), /* @__PURE__ */ import_react39.default.createElement(
       "div",
       {
@@ -48262,7 +48292,7 @@ var CTMMonitor = (() => {
         )));
       }
       return null;
-    })(), /* @__PURE__ */ import_react39.default.createElement("div", { className: "bg-gradient-to-br from-[#1a1a2e] via-[#111113] to-[#0a0a0c] border border-emerald-500/30 rounded-lg p-4 shadow-lg shadow-emerald-500/10" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex justify-between items-center mb-4" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex items-center gap-3" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "w-3 h-3 rounded-full bg-emerald-400 animate-pulse" }), /* @__PURE__ */ import_react39.default.createElement("h3", { className: "text-xs font-mono text-emerald-400 uppercase tracking-wider" }, "Auto-Grounding System"), /* @__PURE__ */ import_react39.default.createElement("span", { className: "text-[10px] font-mono text-emerald-600" }, "(v5.2 - Cascading Interventions)")), /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-[10px] font-mono text-gray-500" }, "C_eff(t) \u2265 E(t) Viability")), /* @__PURE__ */ import_react39.default.createElement("div", { className: "grid grid-cols-1 md:grid-cols-4 gap-4" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "bg-[#0a0a0c]/60 border border-blue-500/20 rounded p-3 hover:border-blue-500/40 transition" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-[10px] text-blue-400 uppercase font-mono mb-2" }, "Context Searches"), /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-2xl font-mono text-blue-300" }, "0"), /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-[9px] text-gray-600 mt-1" }, "Light interventions")), /* @__PURE__ */ import_react39.default.createElement("div", { className: "bg-[#0a0a0c]/60 border border-purple-500/20 rounded p-3 hover:border-purple-500/40 transition" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-[10px] text-purple-400 uppercase font-mono mb-2" }, "Advisor Calls"), /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-2xl font-mono text-purple-300" }, "0"), /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-[9px] text-gray-600 mt-1" }, "Moderate interventions")), /* @__PURE__ */ import_react39.default.createElement("div", { className: "bg-[#0a0a0c]/60 border border-red-500/20 rounded p-3 hover:border-red-500/40 transition" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-[10px] text-red-400 uppercase font-mono mb-2" }, "Critical (Combined)"), /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-2xl font-mono text-red-300" }, "0"), /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-[9px] text-gray-600 mt-1" }, "Context + advisor forced")), /* @__PURE__ */ import_react39.default.createElement("div", { className: "bg-[#0a0a0c]/60 border border-emerald-500/20 rounded p-3 hover:border-emerald-500/40 transition" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-[10px] text-emerald-400 uppercase font-mono mb-2" }, "Viability Margin"), /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-2xl font-mono text-emerald-300" }, "--"), /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-[9px] text-gray-600 mt-1" }, "C_eff - E(t) delta"))), /* @__PURE__ */ import_react39.default.createElement("div", { className: "mt-3 text-[9px] font-mono text-gray-600 pt-3 border-t border-white/5" }, /* @__PURE__ */ import_react39.default.createElement("span", { className: "text-emerald-500" }, "Strategy:"), " Light (margin > -0.1) \u2192 Moderate (-0.3 to -0.1, warning #2) \u2192 Critical (< -0.5, warning #3, force bypass)")), /* @__PURE__ */ import_react39.default.createElement("div", { className: "grid grid-cols-1 lg:grid-cols-3 gap-6 h-80" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "lg:col-span-2 bg-gradient-to-br from-[#111113] to-[#0a0a0c] border border-white/10 rounded-lg p-4 flex flex-col shadow-lg" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex justify-between items-center mb-4" }, /* @__PURE__ */ import_react39.default.createElement("h3", { className: "text-xs font-mono text-gray-400 uppercase" }, "Training Dynamics"), /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex space-x-4 text-[10px] font-mono" }, /* @__PURE__ */ import_react39.default.createElement("span", { className: "flex items-center text-cyan-400" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "w-2 h-2 bg-cyan-400 rounded-full mr-1" }), " Loss"), /* @__PURE__ */ import_react39.default.createElement("span", { className: "flex items-center text-yellow-400" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "w-2 h-2 bg-yellow-400 rounded-full mr-1" }), " Reward"))), /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex-1 w-full min-h-0" }, /* @__PURE__ */ import_react39.default.createElement(ResponsiveContainer, { width: "100%", height: "100%" }, /* @__PURE__ */ import_react39.default.createElement(ComposedChart, { data: logs }, /* @__PURE__ */ import_react39.default.createElement(CartesianGrid, { strokeDasharray: "3 3", stroke: "#333", vertical: false }), /* @__PURE__ */ import_react39.default.createElement(
+    })(), /* @__PURE__ */ import_react39.default.createElement("div", { className: "bg-gradient-to-br from-[#1a1a2e] via-[#111113] to-[#0a0a0c] border border-emerald-500/30 rounded-lg p-4 shadow-lg shadow-emerald-500/10" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex justify-between items-center mb-4" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex items-center gap-3" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "w-3 h-3 rounded-full bg-emerald-400 animate-pulse" }), /* @__PURE__ */ import_react39.default.createElement("h3", { className: "text-xs font-mono text-emerald-400 uppercase tracking-wider" }, "Auto-Grounding System"), /* @__PURE__ */ import_react39.default.createElement("span", { className: "text-[10px] font-mono text-emerald-600" }, "(v5.3 - Cascading Interventions)")), /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-[10px] font-mono text-gray-500" }, "C_eff(t) \u2265 E(t) Viability")), /* @__PURE__ */ import_react39.default.createElement("div", { className: "grid grid-cols-1 md:grid-cols-4 gap-4" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "bg-[#0a0a0c]/60 border border-blue-500/20 rounded p-3 hover:border-blue-500/40 transition" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-[10px] text-blue-400 uppercase font-mono mb-2" }, "Context Searches"), /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-2xl font-mono text-blue-300" }, "0"), /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-[9px] text-gray-600 mt-1" }, "Light interventions")), /* @__PURE__ */ import_react39.default.createElement("div", { className: "bg-[#0a0a0c]/60 border border-purple-500/20 rounded p-3 hover:border-purple-500/40 transition" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-[10px] text-purple-400 uppercase font-mono mb-2" }, "Advisor Calls"), /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-2xl font-mono text-purple-300" }, "0"), /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-[9px] text-gray-600 mt-1" }, "Moderate interventions")), /* @__PURE__ */ import_react39.default.createElement("div", { className: "bg-[#0a0a0c]/60 border border-red-500/20 rounded p-3 hover:border-red-500/40 transition" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-[10px] text-red-400 uppercase font-mono mb-2" }, "Critical (Combined)"), /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-2xl font-mono text-red-300" }, "0"), /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-[9px] text-gray-600 mt-1" }, "Context + advisor forced")), /* @__PURE__ */ import_react39.default.createElement("div", { className: "bg-[#0a0a0c]/60 border border-emerald-500/20 rounded p-3 hover:border-emerald-500/40 transition" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-[10px] text-emerald-400 uppercase font-mono mb-2" }, "Viability Margin"), /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-2xl font-mono text-emerald-300" }, "--"), /* @__PURE__ */ import_react39.default.createElement("div", { className: "text-[9px] text-gray-600 mt-1" }, "C_eff - E(t) delta"))), /* @__PURE__ */ import_react39.default.createElement("div", { className: "mt-3 text-[9px] font-mono text-gray-600 pt-3 border-t border-white/5" }, /* @__PURE__ */ import_react39.default.createElement("span", { className: "text-emerald-500" }, "Strategy:"), " Light (margin > -0.1) \u2192 Moderate (-0.3 to -0.1, warning #2) \u2192 Critical (< -0.5, warning #3, force bypass)")), /* @__PURE__ */ import_react39.default.createElement("div", { className: "grid grid-cols-1 lg:grid-cols-3 gap-6 h-80" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "lg:col-span-2 bg-gradient-to-br from-[#111113] to-[#0a0a0c] border border-white/10 rounded-lg p-4 flex flex-col shadow-lg" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex justify-between items-center mb-4" }, /* @__PURE__ */ import_react39.default.createElement("h3", { className: "text-xs font-mono text-gray-400 uppercase" }, "Training Dynamics"), /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex space-x-4 text-[10px] font-mono" }, /* @__PURE__ */ import_react39.default.createElement("span", { className: "flex items-center text-cyan-400" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "w-2 h-2 bg-cyan-400 rounded-full mr-1" }), " Loss"), /* @__PURE__ */ import_react39.default.createElement("span", { className: "flex items-center text-yellow-400" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "w-2 h-2 bg-yellow-400 rounded-full mr-1" }), " Reward"))), /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex-1 w-full min-h-0" }, /* @__PURE__ */ import_react39.default.createElement(ResponsiveContainer, { width: "100%", height: "100%" }, /* @__PURE__ */ import_react39.default.createElement(ComposedChart, { data: logs }, /* @__PURE__ */ import_react39.default.createElement(CartesianGrid, { strokeDasharray: "3 3", stroke: "#333", vertical: false }), /* @__PURE__ */ import_react39.default.createElement(
       XAxis,
       {
         dataKey: "step",
