@@ -2793,13 +2793,22 @@ class UnifiedTrainer:
         checkpoint_data = torch.load(load_path, map_location=self.device())
         
         # Load central (Safely handle compiled state dicts)
-        self._safe_load_state_dict(self.model, checkpoint_data["central_model"])
+        try:
+            self._safe_load_state_dict(self.model, checkpoint_data["central_model"])
+        except RuntimeError as e:
+            print(f"\n[Warning] Checkpoint Architecture Mismatch ({e}).")
+            print("Assuming change in model structure (e.g., Recursive Weights enabled).")
+            print("Starting fresh from Step 0 to accommodate new architecture.")
+            return 0
         
         # Load specialists
         if "specialist_branches" in checkpoint_data:
             for domain, state in checkpoint_data["specialist_branches"].items():
                 if domain in self.specialist_branches:
-                    self.specialist_branches[domain].load_state_dict(state)
+                    try:
+                        self.specialist_branches[domain].load_state_dict(state)
+                    except RuntimeError:
+                        print(f"  [Warning] Specialist {domain} architecture mismatch. Re-initializing.")
             print(f"Resumed {len(checkpoint_data['specialist_branches'])} Specialist branches.")
             
         # Load curriculum (Phase 3 Migration Safety)

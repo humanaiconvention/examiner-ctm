@@ -34,9 +34,18 @@ class CTMTelemetry:
         if not HAS_WEBSOCKETS:
             print("  [Telemetry] Sidecar disabled (websockets not found).")
             return
-        print(f"  [Telemetry] Sidecar starting on ws://0.0.0.0:{self.port}...")
-        async with websockets.serve(self.handle_client, "0.0.0.0", self.port):
-            await asyncio.Future()  # run forever
+        
+        try:
+            print(f"  [Telemetry] Sidecar starting on ws://0.0.0.0:{self.port}...")
+            async with websockets.serve(self.handle_client, "0.0.0.0", self.port):
+                await asyncio.Future()  # run forever
+        except OSError as e:
+            if e.errno == 98: # Address already in use
+                print(f"  [Warning] Telemetry port {self.port} busy. Sidecar disabled.")
+            else:
+                print(f"  [Warning] Telemetry start failed: {e}")
+        except Exception as e:
+            print(f"  [Warning] Telemetry sidecar error: {e}")
 
     async def handle_client(self, websocket):
         """Send live metrics to connected AI Studio dashboard"""

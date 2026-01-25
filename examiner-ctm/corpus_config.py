@@ -9,11 +9,9 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 # Base corpus directory - platform aware
-if sys.platform == "win32":
-    CORPUS_ROOT = Path("D:/articles")
-else:
-    # Linux/L4 - use home directory corpus
-    CORPUS_ROOT = Path.home() / "examiner-ctm" / "corpus"
+# Use relative path from this script to be robust to installation directory
+SCRIPT_DIR = Path(__file__).parent.absolute()
+CORPUS_ROOT = SCRIPT_DIR / "corpus"
 
 # Progressive learning phases
 CORPUS_PHASES = {
