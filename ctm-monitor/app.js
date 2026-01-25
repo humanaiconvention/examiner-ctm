@@ -733,7 +733,7 @@ const App = () => {
                     : 'text-gray-500 hover:text-gray-300'
                 }`}
               >
-                Training 1 (Collapse)
+                📊 Training 1 (v4.8)
               </button>
               <div className="h-4 w-px bg-white/10" />
               <button
@@ -744,7 +744,7 @@ const App = () => {
                     : 'text-gray-500 hover:text-gray-300'
                 }`}
               >
-                Live Stream
+                🔴 Live (v5.2)
               </button>
             </div>
 
