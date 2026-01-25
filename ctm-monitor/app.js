@@ -38,13 +38,13 @@ class ErrorBoundary extends Component {
 }
 
 // Configuration
-const VERSION = "v1.3.0";
+const VERSION = "v5.3";
 const DEFAULT_POLL_INTERVAL = 5000;
 const MAX_HISTORY_POINTS = 800;
 // Live metrics URL - fetches from GitHub raw where L4 pushes metrics via git-sync
 // Uses PUBLIC examiner-ctm repo (must be synced from L4 via git push)
 const DEFAULT_UPLINK_URL = "/examiner-ctm/parallel_training_metrics.jsonl";
-const TRAINING_STEP_TARGET = 5000;
+const TRAINING_STEP_TARGET = 5500;
 
 // Pillar Configuration - 7 Sovereign Pillars
 const PILLAR_CONFIG = {
