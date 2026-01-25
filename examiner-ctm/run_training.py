@@ -112,6 +112,15 @@ Collapse Detection:
     parser.add_argument('--checkpoint-dir', type=str, default='checkpoints',
                         help='Checkpoint directory (default: checkpoints)')
 
+    # v5.3: Recursive Weight Derivation
+    parser.add_argument('--use-recursive-weights', action='store_true',
+                        help='Enable v5.3 Recursive Weight Derivation (80%% parameter savings)')
+    parser.add_argument('--recursive-operator', type=str, default='spectral',
+                        choices=['spectral', 'linear', 'residual'],
+                        help='Recursive weight operator type (default: spectral)')
+    parser.add_argument('--recursive-operator-rank', type=int, default=8,
+                        help='Rank for recursive weight operators (default: 8)')
+
     args = parser.parse_args()
 
     # Check requirements
@@ -134,17 +143,34 @@ Collapse Detection:
     print(f"Trend window: {args.trend_window}")
     print(f"Git sync: {args.git_sync}")
     print(f"Resume: {args.resume}")
+
+    # v5.3: Recursive Weights Configuration
+    if args.use_recursive_weights:
+        print(f"\n[v5.3] RECURSIVE WEIGHT DERIVATION: ENABLED")
+        print(f"       Operator: {args.recursive_operator}")
+        print(f"       Operator rank: {args.recursive_operator_rank}")
+    else:
+        print(f"\n[v5.3] Recursive Weight Derivation: Disabled (use --use-recursive-weights to enable)")
+
     print("=" * 60)
 
     # Initialize CTM model
     model = ContinuousThoughtMachine(
         d_model=768,           # Embedding dimension
         memory_length=15,      # Recursive memory window
-        num_thoughts=10        # Thought iterations per step
+        num_thoughts=10,       # Thought iterations per step
+        use_recursive_weights=args.use_recursive_weights,
+        recursive_operator=args.recursive_operator,
+        recursive_operator_rank=args.recursive_operator_rank,
     )
 
-    # Initialize trainer with model
-    trainer = UnifiedTrainer(model=model)
+    # Initialize trainer with model (passing recursive weight config)
+    trainer = UnifiedTrainer(
+        model=model,
+        use_recursive_weights=args.use_recursive_weights,
+        recursive_operator=args.recursive_operator,
+        recursive_operator_rank=args.recursive_operator_rank,
+    )
 
     # Update collapse detector settings
     if hasattr(trainer, 'collapse_detector'):
@@ -203,6 +229,32 @@ Collapse Detection:
     if hasattr(trainer, 'auto_grounding'):
         print(f"\nAuto-Grounding Interventions:")
         trainer.auto_grounding.print_status()
+
+    # v5.3: Recursive Weight Parameter Savings Report
+    if args.use_recursive_weights:
+        print(f"\n[v5.3] Recursive Weight Parameter Savings:")
+        central_report = model.get_nlm_parameter_report()
+        print(f"  Central NLM: {central_report.get('recursive_total', 'N/A'):,} params "
+              f"({central_report.get('savings_percent', 0):.1f}% savings)")
+
+        # Report specialist savings
+        if hasattr(trainer, 'specialist_branches'):
+            total_specialist_params = 0
+            for domain, spec in trainer.specialist_branches.items():
+                if hasattr(spec, '_is_recursive_specialist') and spec._is_recursive_specialist:
+                    spec_report = spec.nlm.parameter_report()
+                    total_specialist_params += spec_report.get('specialist_params', 0)
+                    print(f"  {domain} Specialist: {spec_report.get('specialist_params', 'N/A'):,} params")
+
+            # Calculate total system savings
+            if total_specialist_params > 0:
+                try:
+                    from recursive_weights import total_parameter_savings
+                    savings = total_parameter_savings(model.nlm, {d: s.nlm for d, s in trainer.specialist_branches.items() if hasattr(s, '_is_recursive_specialist')})
+                    print(f"\n  TOTAL SYSTEM SAVINGS: {savings['absolute_savings']:,} params "
+                          f"({savings['percent_savings']:.1f}%)")
+                except Exception as e:
+                    print(f"  (Could not compute total savings: {e})")
 
     print(f"\nFinal step: {trainer.global_train_step}")
     print("=" * 60)
