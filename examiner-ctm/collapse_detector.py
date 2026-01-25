@@ -212,20 +212,20 @@ class CollapseDetector:
         - Model loses external fidelity (OOD accuracy drops)
         - Model maintains internal consistency (perplexity stable)
         """
-        reward_declining = reward_trend < self.reward_decline_threshold
-        loss_stable = abs(loss_trend) < self.loss_stable_threshold or loss_trend < 0
+        reward_declining = bool(reward_trend < self.reward_decline_threshold)
+        loss_stable = bool(abs(loss_trend) < self.loss_stable_threshold or loss_trend < 0)
 
         signature_detected = reward_declining and loss_stable
 
         detection = {
             'step': step,
-            'signature_detected': signature_detected,
-            'reward_trend': reward_trend,
-            'loss_trend': loss_trend,
-            'divergence': divergence,
+            'signature_detected': bool(signature_detected),
+            'reward_trend': float(reward_trend) if reward_trend is not None else None,
+            'loss_trend': float(loss_trend) if loss_trend is not None else None,
+            'divergence': float(divergence) if divergence is not None else None,
             'reward_declining': reward_declining,
             'loss_stable': loss_stable,
-            'warning_count': self.warning_count
+            'warning_count': int(self.warning_count)
         }
 
         if signature_detected:
@@ -333,17 +333,25 @@ class CollapseDetector:
     def _log_detection(self, step, reward, loss, reward_trend, loss_trend,
                        divergence, detection, domain):
         """Log detection to JSONL file."""
+        # Helper to convert numpy types to native Python types for JSON
+        def to_json_safe(val):
+            if val is None:
+                return None
+            if hasattr(val, 'item'):  # numpy scalar
+                return val.item()
+            return val
+
         entry = {
             'timestamp': datetime.utcnow().isoformat(),
-            'step': step,
-            'reward': reward,
-            'loss': loss,
-            'reward_trend': reward_trend,
-            'loss_trend': loss_trend,
-            'divergence': divergence,
-            'signature_detected': detection['signature_detected'] if detection else False,
-            'warning_count': self.warning_count,
-            'domain': domain
+            'step': int(step),
+            'reward': to_json_safe(reward),
+            'loss': to_json_safe(loss),
+            'reward_trend': to_json_safe(reward_trend),
+            'loss_trend': to_json_safe(loss_trend),
+            'divergence': to_json_safe(divergence),
+            'signature_detected': bool(detection['signature_detected']) if detection else False,
+            'warning_count': int(self.warning_count),
+            'domain': str(domain) if domain else None
         }
 
         with open(self.log_file, 'a', encoding='utf-8') as f:
