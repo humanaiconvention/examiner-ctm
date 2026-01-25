@@ -47731,11 +47731,11 @@ var CTMMonitor = (() => {
       return this.props.children;
     }
   };
-  var VERSION = "v1.0.0";
+  var VERSION = "v1.1.0";
   var DEFAULT_POLL_INTERVAL = 5e3;
   var MAX_HISTORY_POINTS = 800;
-  var DEFAULT_UPLINK_URL = "./data/metrics.jsonl";
-  var TRAINING_STEP_TARGET = 3e3;
+  var DEFAULT_UPLINK_URL = "https://raw.githubusercontent.com/humanaiconvention/examiner/main/parallel_training_metrics.jsonl";
+  var TRAINING_STEP_TARGET = 5e3;
   var PILLAR_CONFIG = {
     log: { name: "LOGOS", desc: "Formal logic & mathematics", color: "#10b981" },
     phy: { name: "PHYSIS", desc: "Physical reality & causality", color: "#3b82f6" },
@@ -47952,7 +47952,7 @@ var CTMMonitor = (() => {
       },
       /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex items-center gap-3 mb-2" }, /* @__PURE__ */ import_react39.default.createElement(Globe, { className: mode === "LIVE_URL" ? "text-green-400" : "text-gray-500" }), /* @__PURE__ */ import_react39.default.createElement("div", { className: "font-mono text-sm font-bold text-gray-200" }, "LIVE UPLINK")),
       /* @__PURE__ */ import_react39.default.createElement("p", { className: "text-xs text-gray-500 mb-3" }, "Connect to repository or training instance"),
-      mode === "LIVE_URL" && /* @__PURE__ */ import_react39.default.createElement("div", { className: "space-y-4" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "space-y-2" }, /* @__PURE__ */ import_react39.default.createElement("label", { className: "text-[10px] text-gray-500 font-mono uppercase font-bold tracking-wider" }, "GitHub Repository"), /* @__PURE__ */ import_react39.default.createElement(
+      mode === "LIVE_URL" && /* @__PURE__ */ import_react39.default.createElement("div", { className: "space-y-4" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "space-y-2" }, /* @__PURE__ */ import_react39.default.createElement("label", { className: "text-[10px] text-gray-500 font-mono uppercase font-bold tracking-wider" }, "Live Training (L4 Instance)"), /* @__PURE__ */ import_react39.default.createElement(
         "button",
         {
           onClick: (e) => {
@@ -47961,8 +47961,8 @@ var CTMMonitor = (() => {
           },
           className: `w-full p-3 rounded text-left border transition-all ${url === DEFAULT_UPLINK_URL ? "bg-green-500/20 border-green-500/50 text-green-300" : "bg-black/40 border-white/5 text-gray-400 hover:border-white/20"}`
         },
-        /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex justify-between items-center" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "font-bold font-mono text-xs flex items-center gap-2" }, /* @__PURE__ */ import_react39.default.createElement(Github, { className: "w-3 h-3" }), " Main Training Log"), /* @__PURE__ */ import_react39.default.createElement("span", { className: "text-[9px] uppercase border border-green-500/30 px-1 rounded text-green-500" }, "Recommended")),
-        /* @__PURE__ */ import_react39.default.createElement("div", { className: "opacity-60 text-[9px] mt-1 font-mono break-all" }, "humanaiconvention/ctm-monitor")
+        /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex justify-between items-center" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "font-bold font-mono text-xs flex items-center gap-2" }, /* @__PURE__ */ import_react39.default.createElement(Github, { className: "w-3 h-3" }), " Live v5.2 Training"), /* @__PURE__ */ import_react39.default.createElement("span", { className: "text-[9px] uppercase border border-green-500/30 px-1 rounded text-green-500" }, "Live")),
+        /* @__PURE__ */ import_react39.default.createElement("div", { className: "opacity-60 text-[9px] mt-1 font-mono break-all" }, "humanaiconvention/examiner \u2192 parallel_training_metrics.jsonl")
       )), /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex gap-2 pt-2 border-t border-white/5" }, /* @__PURE__ */ import_react39.default.createElement(
         "input",
         {

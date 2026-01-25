@@ -38,11 +38,12 @@ class ErrorBoundary extends Component {
 }
 
 // Configuration
-const VERSION = "v1.0.0";
+const VERSION = "v1.1.0";
 const DEFAULT_POLL_INTERVAL = 5000;
 const MAX_HISTORY_POINTS = 800;
-const DEFAULT_UPLINK_URL = "./data/metrics.jsonl";
-const TRAINING_STEP_TARGET = 3000;
+// Live metrics URL - fetches from GitHub raw where L4 pushes metrics via git-sync
+const DEFAULT_UPLINK_URL = "https://raw.githubusercontent.com/humanaiconvention/examiner/main/parallel_training_metrics.jsonl";
+const TRAINING_STEP_TARGET = 5000;
 
 // Pillar Configuration - 7 Sovereign Pillars
 const PILLAR_CONFIG = {
@@ -416,18 +417,18 @@ const UplinkController = ({ isOpen, onClose, mode, setMode, url, setUrl, onFileS
                 {mode === 'LIVE_URL' && (
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <label className="text-[10px] text-gray-500 font-mono uppercase font-bold tracking-wider">GitHub Repository</label>
+                      <label className="text-[10px] text-gray-500 font-mono uppercase font-bold tracking-wider">Live Training (L4 Instance)</label>
                       <button
                         onClick={(e) => { e.stopPropagation(); setUrl(DEFAULT_UPLINK_URL); }}
                         className={`w-full p-3 rounded text-left border transition-all ${url === DEFAULT_UPLINK_URL ? 'bg-green-500/20 border-green-500/50 text-green-300' : 'bg-black/40 border-white/5 text-gray-400 hover:border-white/20'}`}
                       >
                         <div className="flex justify-between items-center">
                           <div className="font-bold font-mono text-xs flex items-center gap-2">
-                            <Github className="w-3 h-3" /> Main Training Log
+                            <Github className="w-3 h-3" /> Live v5.2 Training
                           </div>
-                          <span className="text-[9px] uppercase border border-green-500/30 px-1 rounded text-green-500">Recommended</span>
+                          <span className="text-[9px] uppercase border border-green-500/30 px-1 rounded text-green-500">Live</span>
                         </div>
-                        <div className="opacity-60 text-[9px] mt-1 font-mono break-all">humanaiconvention/ctm-monitor</div>
+                        <div className="opacity-60 text-[9px] mt-1 font-mono break-all">humanaiconvention/examiner → parallel_training_metrics.jsonl</div>
                       </button>
                     </div>
 
