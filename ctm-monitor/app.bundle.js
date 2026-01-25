@@ -48098,7 +48098,13 @@ var CTMMonitor = (() => {
           }
         } catch (err) {
           console.error("[CTM] Fetch error:", err.name, err.message, err);
-          setErrorMsg(`Connection error: ${err.message}`);
+          let errorMessage = `Connection error: ${err.message}`;
+          if (err.message.includes("404") || err.message.includes("HTTP 404")) {
+            errorMessage = "No live metrics available yet. Training may not be running or git-sync not enabled.";
+          } else if (err.message.includes("CORS") || err.message.includes("cross-origin")) {
+            errorMessage = "CORS blocked. Try using Training 1 historical data instead.";
+          }
+          setErrorMsg(errorMessage);
           setDebugLog({
             timestamp: (/* @__PURE__ */ new Date()).toISOString(),
             url: targetUrl,
