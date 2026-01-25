@@ -42,7 +42,8 @@ const VERSION = "v1.1.0";
 const DEFAULT_POLL_INTERVAL = 5000;
 const MAX_HISTORY_POINTS = 800;
 // Live metrics URL - fetches from GitHub raw where L4 pushes metrics via git-sync
-const DEFAULT_UPLINK_URL = "https://raw.githubusercontent.com/humanaiconvention/examiner/main/parallel_training_metrics.jsonl";
+// Uses PUBLIC examiner-ctm repo (must be synced from L4 via git push)
+const DEFAULT_UPLINK_URL = "https://raw.githubusercontent.com/humanaiconvention/examiner-ctm/live/parallel_training_metrics.jsonl";
 const TRAINING_STEP_TARGET = 5000;
 
 // Pillar Configuration - 7 Sovereign Pillars
