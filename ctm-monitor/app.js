@@ -38,7 +38,7 @@ class ErrorBoundary extends Component {
 }
 
 // Configuration
-const VERSION = "v1.1.0";
+const VERSION = "v1.3.0";
 const DEFAULT_POLL_INTERVAL = 5000;
 const MAX_HISTORY_POINTS = 800;
 // Live metrics URL - fetches from GitHub raw where L4 pushes metrics via git-sync
@@ -425,7 +425,7 @@ const UplinkController = ({ isOpen, onClose, mode, setMode, url, setUrl, onFileS
                       >
                         <div className="flex justify-between items-center">
                           <div className="font-bold font-mono text-xs flex items-center gap-2">
-                            <Github className="w-3 h-3" /> Live v5.2 Training
+                            <Github className="w-3 h-3" /> Live v5.3 Training
                           </div>
                           <span className="text-[9px] uppercase border border-green-500/30 px-1 rounded text-green-500">Live</span>
                         </div>
@@ -541,8 +541,8 @@ const App = () => {
       .filter(line => line.trim())
       .map(line => {
         try {
-          // Replace NaN with null for valid JSON
-          const cleaned = line.replace(/:\s*NaN/g, ': null');
+          // Replace NaN/Infinity with null for valid JSON
+          const cleaned = line.replace(/:\s*(NaN|Infinity|-Infinity)/g, ': null');
           return JSON.parse(cleaned);
         }
         catch (e) { return null; }
@@ -753,7 +753,7 @@ const App = () => {
                     : 'text-gray-500 hover:text-gray-300'
                 }`}
               >
-                🔴 Live (v5.2)
+                🔴 Live (v5.3)
               </button>
             </div>
 
@@ -926,13 +926,13 @@ const App = () => {
           return null;
         })()}
 
-        {/* Auto-Grounding Intervention Status (v5.2) */}
+        {/* Auto-Grounding Intervention Status (v5.3) */}
         <div className="bg-gradient-to-br from-[#1a1a2e] via-[#111113] to-[#0a0a0c] border border-emerald-500/30 rounded-lg p-4 shadow-lg shadow-emerald-500/10">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
               <h3 className="text-xs font-mono text-emerald-400 uppercase tracking-wider">Auto-Grounding System</h3>
-              <span className="text-[10px] font-mono text-emerald-600">(v5.2 - Cascading Interventions)</span>
+              <span className="text-[10px] font-mono text-emerald-600">(v5.3 - Cascading Interventions)</span>
             </div>
             <div className="text-[10px] font-mono text-gray-500">C_eff(t) ≥ E(t) Viability</div>
           </div>
