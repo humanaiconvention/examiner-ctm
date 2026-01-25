@@ -4,11 +4,16 @@ Maps the D:\articles corpus to training phases and pillar domains.
 """
 
 import os
+import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 
-# Base corpus directory
-CORPUS_ROOT = Path("D:/articles")
+# Base corpus directory - platform aware
+if sys.platform == "win32":
+    CORPUS_ROOT = Path("D:/articles")
+else:
+    # Linux/L4 - use home directory corpus
+    CORPUS_ROOT = Path.home() / "examiner-ctm" / "corpus"
 
 # Progressive learning phases
 CORPUS_PHASES = {
