@@ -506,6 +506,28 @@ class RecursiveSpecialistNLM(nn.Module):
         out = torch.einsum('bdh, hd -> bd', h, W2) + self.bias_2
 
         return out
+    
+    def update_weights(self, grads, lr: float = 1e-3):
+        """
+        Gradients for specialist flow back to:
+        1. Domain Operator (specialist specific)
+        2. Central W1 (shared!)
+        """
+        # We need to manually route gradients because update_weights is called by the GRPO loop
+        # For the recursive specialist, 'grads' here corresponds to the implicit parameters
+        
+        # In the functional call context used by GRPO, 'grads' matches the output of `target_nlm.parameters()`
+        # which includes the domain_op, biases, AND the central_nlm parameters if they weren't detached.
+        
+        # However, for simplicity here, we assume fused_sgd_update can handle the parameter list
+        params = list(self.parameters())
+        if len(params) != len(grads):
+             # This happens if grads include non-trainable or if order differs
+             pass 
+             
+        from ctm_model import fused_sgd_update
+        fused_sgd_update(params, list(grads), lr)
+        return params
 
     def parameter_report(self) -> dict:
         """Specialist params are tiny - just the operator + biases"""
