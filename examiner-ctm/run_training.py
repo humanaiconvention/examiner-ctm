@@ -120,6 +120,8 @@ Collapse Detection:
     # Import trainer (after requirements check)
     print("\nInitializing Examiner-CTM Trainer...")
     from ctm_trainer import UnifiedTrainer
+    from ctm_model import ContinuousThoughtMachine
+    import torch
 
     # Configuration banner
     print("\n" + "=" * 60)
@@ -134,8 +136,15 @@ Collapse Detection:
     print(f"Resume: {args.resume}")
     print("=" * 60)
 
-    # Initialize trainer
-    trainer = UnifiedTrainer()
+    # Initialize CTM model
+    model = ContinuousThoughtMachine(
+        d_model=768,           # Embedding dimension
+        memory_length=15,      # Recursive memory window
+        num_thoughts=10        # Thought iterations per step
+    )
+
+    # Initialize trainer with model
+    trainer = UnifiedTrainer(model=model)
 
     # Update collapse detector settings
     if hasattr(trainer, 'collapse_detector'):

@@ -9,13 +9,12 @@ Provides:
 - Foundation for NeMo Gym integration
 
 Compatible with:
-- OpenAI Gym 0.26+
+- Gymnasium 0.29+ (preferred)
+- OpenAI Gym 0.26+ (legacy)
 - NVIDIA NeMo
 - Standard RL algorithms (PPO, GRPO, A3C, etc.)
 """
 
-import gym
-from gym import spaces
 import numpy as np
 import torch
 from typing import Tuple, Dict, Any, Optional
@@ -23,6 +22,14 @@ from dataclasses import dataclass
 import json
 from pathlib import Path
 from datetime import datetime
+
+# Gymnasium (modern) or gym (legacy) import
+try:
+    import gymnasium as gym
+    from gymnasium import spaces
+except ImportError:
+    import gym
+    from gym import spaces
 
 
 @dataclass

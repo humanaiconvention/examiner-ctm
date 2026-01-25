@@ -57,21 +57,21 @@ try:
     CUDA_TILE_AVAILABLE = True
 except ImportError:
     CUDA_TILE_AVAILABLE = False
-    print("[v5.0] Warning: CUDA Tile not available. Falling back to PyTorch operations.")
+    # Optional CUDA Tile optimization - silent fallback to PyTorch
 
 try:
     from nemo_gym_interface import GymEnvironmentManager, create_pillar_environment, create_multi_pillar_environment
     GYM_INTERFACE_AVAILABLE = True
 except ImportError:
     GYM_INTERFACE_AVAILABLE = False
-    print("[v5.0] Warning: Gym interface not available.")
+    # Optional RL interface - silent fallback
 
 try:
     from nemo_gym_training import NeMoGymTrainer, NeMoGymConfig, create_nemo_trainer, create_nemo_config
     NEMO_GYM_AVAILABLE = True
 except ImportError:
     NEMO_GYM_AVAILABLE = False
-    print("[v5.0] Warning: NeMo Gym not available.")
+    # Optional NeMo integration - silent fallback
 
 # Class removed - now imported from ctm_telemetry
 
@@ -658,7 +658,7 @@ class HFDatasetWrapper(Dataset):
         return torch.tensor(tokens[:-1], dtype=torch.long), torch.tensor(tokens[1:], dtype=torch.long)
 
 class UnifiedTrainer:
-    def __init__(self, model, scotus_path=None, high_heaven=False, mitosis=False, advisor_provider="lfm", distributed=False, grounding_url=None, tokenizer_name="tiiuae/Falcon-H1R-7B", checkpoint_dir="Examiner1/models/examiner_h1r_phase3b"):
+    def __init__(self, model, scotus_path=None, high_heaven=False, mitosis=False, advisor_provider="lfm", distributed=False, grounding_url=None, tokenizer_name="LiquidAI/LFM2.5-1.2B-Thinking", checkpoint_dir="checkpoints"):
         self.mitosis = mitosis
         self.model = model
         self.high_heaven = high_heaven
@@ -785,6 +785,7 @@ class UnifiedTrainer:
             distributed=distributed,
             grounding_url=grounding_url
         )
+        self.grounding_client = get_grounding_client(grounding_url)
         self.research_domains = ["LOGOS", "PHYSIS", "BIOS", "NOMOS", "PSYCHE", "SOPHIA", "OIKOS"] # All pillars grounded
 
         # Phase 4 Enhancements (v4.9):

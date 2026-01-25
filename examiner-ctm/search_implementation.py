@@ -229,9 +229,14 @@ class RealSearchProvider:
 
         return "\n".join(lines)
 
-    def domain_specific_search(self, query: str, domain: str) -> List[SearchResult]:
+    def domain_specific_search(self, query: str, domain: str, max_results: int = 5) -> List[SearchResult]:
         """
         Route search query through domain-specific filters.
+
+        Args:
+            query: Search query
+            domain: Pillar domain for source filtering
+            max_results: Maximum number of results to return
 
         Domain → Preferred Sources:
         - LOGOS: arxiv.org, mathoverflow.net, academic papers
@@ -257,7 +262,7 @@ class RealSearchProvider:
         if filters:
             filtered_query = f"{query} {filters[0]}"
 
-        return self.search(filtered_query, domain)
+        return self.search(filtered_query, domain, max_results=max_results)
 
     def get_stats(self) -> Dict:
         """Return usage statistics"""

@@ -22,7 +22,7 @@ try:
     CUDA_TILE_AVAILABLE = True
 except ImportError:
     CUDA_TILE_AVAILABLE = False
-    warnings.warn("CUDA Tile not installed. Install via: pip install torch-cuda-tile")
+    # Optional optimization - no warning needed, gracefully fallback
 
 
 class CUDATileMatmul(nn.Module):
