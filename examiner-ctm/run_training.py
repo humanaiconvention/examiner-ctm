@@ -197,7 +197,11 @@ Collapse Detection:
     
     # Load Corpus if in High Heaven mode
     if args.high_heaven:
-        trainer.load_corpus_data(batch_size=args.batch_size)
+        try:
+            trainer.load_corpus_data(batch_size=args.batch_size)
+        except Exception as e:
+            print(f"\n[High Heaven] Warning: Corpus loading failed ({e}).\n"
+                  f"              Proceeding with Pure Synthetic Logic at Batch {args.batch_size}.")
 
     # Update collapse detector settings
     if hasattr(trainer, 'collapse_detector'):
