@@ -48087,8 +48087,9 @@ var CTMMonitor = (() => {
           clearTimeout(timeoutId);
           console.log("[CTM] Response status:", response.status, response.ok);
           if (!response.ok || response.status === 0) {
-            console.log("[CTM] Fetch failed, attempting local relative path fallback...");
-            const localResponse = await fetch("parallel_training_metrics.jsonl?no_cache=" + Date.now());
+            console.log("[CTM] Primary fetch failed, attempting secondary source...");
+            const fallbackUrl = "/examiner-ctm/parallel_training_metrics.jsonl?no_cache=" + Date.now();
+            const localResponse = await fetch(fallbackUrl);
             if (localResponse.ok) {
               const localText = await localResponse.text();
               setBytesRead(localText.length);
@@ -48098,7 +48099,7 @@ var CTMMonitor = (() => {
                 setErrorMsg(null);
                 console.log("[CTM] Fallback success.");
                 setDebugLog({
-                  url: "parallel_training_metrics.jsonl (Fallback)",
+                  url: fallbackUrl + " (Fallback)",
                   status: 200,
                   message: "OK (Local)",
                   timestamp: (/* @__PURE__ */ new Date()).toISOString()
@@ -48106,6 +48107,8 @@ var CTMMonitor = (() => {
                 setTimeout(() => setIsPolling(false), 800);
                 return;
               }
+            } else {
+              setErrorMsg("Live data source returning 404/Private. Please ensure 'examiner-ctm' repo is Public.");
             }
           }
           const rawText = await response.text();

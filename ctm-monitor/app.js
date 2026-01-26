@@ -640,12 +640,15 @@ const App = () => {
         clearTimeout(timeoutId);
         console.log('[CTM] Response status:', response.status, response.ok);
         
-        // --- FALLBACK FOR CROSS-ORIGIN TESTING ---
-        // If we get a 0 (CORS opaque) or >399, try the relative path directly as a last resort
-        // (This helps when view_browser_page navigates within the same origin)
+        // --- UNIVERSAL FALLBACK CHAIN ---
+        // 1. Try Raw GitHub (Absolute)
+        // 2. Try Relative Path (Root of host)
+        // 3. Try Local fallback (CORS opaque)
         if (!response.ok || response.status === 0) {
-            console.log('[CTM] Fetch failed, attempting local relative path fallback...');
-            const localResponse = await fetch("parallel_training_metrics.jsonl?no_cache=" + Date.now());
+            console.log('[CTM] Primary fetch failed, attempting secondary source...');
+            const fallbackUrl = "/examiner-ctm/parallel_training_metrics.jsonl?no_cache=" + Date.now();
+            const localResponse = await fetch(fallbackUrl);
+            
             if (localResponse.ok) {
                  const localText = await localResponse.text();
                  setBytesRead(localText.length);
@@ -655,7 +658,7 @@ const App = () => {
                      setErrorMsg(null);
                      console.log('[CTM] Fallback success.');
                      setDebugLog({ 
-                        url: "parallel_training_metrics.jsonl (Fallback)", 
+                        url: fallbackUrl + " (Fallback)", 
                         status: 200, 
                         message: "OK (Local)", 
                         timestamp: new Date().toISOString() 
@@ -663,6 +666,8 @@ const App = () => {
                      setTimeout(() => setIsPolling(false), 800);
                      return;
                  }
+            } else {
+                setErrorMsg("Live data source returning 404/Private. Please ensure 'examiner-ctm' repo is Public.");
             }
         }
         // -----------------------------------------
