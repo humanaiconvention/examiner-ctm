@@ -140,11 +140,13 @@ OUTPUT: Pure causal reasoning. No conversational filler."""
     results_list = []
     def run_query(m_info):
         provider, model = m_info
-        result = query_single_advisor(provider, model, prompt)
         model_name = model.split('/')[-1] if '/' in model else model
+        print(f"    -> Querying {provider.upper()}:{model_name}...")
+        result = query_single_advisor(provider, model, prompt)
         result["label"] = f"{provider.upper()}:{model_name}"
         return result
 
+    print(f"  [Ensemble] Querying {len(ENSEMBLE_MODELS)} advisors in parallel...")
     with ThreadPoolExecutor(max_workers=len(ENSEMBLE_MODELS)) as executor:
         results_list = list(executor.map(run_query, ENSEMBLE_MODELS))
     

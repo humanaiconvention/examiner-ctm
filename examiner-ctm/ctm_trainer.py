@@ -88,7 +88,7 @@ class SearchInterface:
         self.grounding_url = grounding_url
         self.cache = {}
         self.last_call_time = 0 
-        self.cooldown = 60 # 1 minute rate limit
+        self.cooldown = 10 # 10 seconds rate limit (reduced from 60s for multi-pillar efficiency)
 
     def search_web(self, query, domain="LOGOS"):
         """

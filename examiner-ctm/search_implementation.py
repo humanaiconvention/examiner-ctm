@@ -44,7 +44,13 @@ class RealSearchProvider:
         """
         self.provider = provider
         self.brave_api_key = os.environ.get("BRAVE_SEARCH_API_KEY", "")
-        self.searxng_url = os.environ.get("SEARXNG_URL", "https://searx.be")
+        self.searxng_instances = [
+            "https://searx.be", 
+            "https://searx.online", 
+            "https://searx.work",
+            "https://priv.au"
+        ]
+        self.searxng_url = os.environ.get("SEARXNG_URL", self.searxng_instances[0])
         self.cache = {}
         self.request_count = 0
 
@@ -162,34 +168,48 @@ class RealSearchProvider:
         """
         Query SearXNG instance (self-hosted or public).
         Completely anonymous, no rate limits enforced by default.
-        Default: https://searx.be (public instance)
         """
-        url = f"{self.searxng_url}/search"
-        params = {
-            "q": query,
-            "format": "json",
-            "pageno": 1,
-            "limit": max_results,
-        }
+        # Try primary URL first, then fall back to list
+        urls_to_try = [self.searxng_url] + [u for u in self.searxng_instances if u != self.searxng_url]
+        
+        last_error = None
+        for url in urls_to_try:
+            try:
+                search_url = f"{url}/search"
+                params = {
+                    "q": query,
+                    "format": "json",
+                    "pageno": 1,
+                    "limit": max_results,
+                }
 
-        resp = requests.get(url, params=params, timeout=10)
-        resp.raise_for_status()
+                resp = requests.get(search_url, params=params, timeout=10)
+                resp.raise_for_status()
 
-        data = resp.json()
-        results = []
+                data = resp.json()
+                results = []
 
-        for item in data.get("results", [])[:max_results]:
-            results.append(
-                SearchResult(
-                    title=item.get("title", ""),
-                    url=item.get("url", ""),
-                    snippet=item.get("content", ""),
-                    source="searxng"
-                )
-            )
+                for item in data.get("results", [])[:max_results]:
+                    results.append(
+                        SearchResult(
+                            title=item.get("title", ""),
+                            url=item.get("url", ""),
+                            snippet=item.get("content", ""),
+                            source=f"searxng ({url.split('//')[-1]})"
+                        )
+                    )
 
-        self.request_count += 1
-        return results
+                if results:
+                    self.request_count += 1
+                    return results
+            except Exception as e:
+                print(f"    SearXNG instance {url} failed: {e}")
+                last_error = e
+                continue
+        
+        if last_error:
+            raise last_error
+        return []
 
     def format_as_context(self, results: List[SearchResult], max_length: int = 500) -> str:
         """
