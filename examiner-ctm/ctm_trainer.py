@@ -2374,8 +2374,6 @@ class UnifiedTrainer:
             "extra": extra_metrics
         })
 
-        })
-
         # Logic for automatic telemetry push is now handled in train_parallel
 
     def budget_governor(self, domain):
@@ -2422,11 +2420,19 @@ class UnifiedTrainer:
             subprocess.run(["git", "commit", "-m", msg, "--allow-empty"], check=False)
 
             # 3. Push to Public Live branch (for dashboard)
-            # Standardize origin:live
-            print(f"[Git Sync] Pushing to origin:live...")
-            result = subprocess.run(["git", "push", "origin", "HEAD:live", "--force"], capture_output=True, text=True)
+            # Find the best remote (monitor preferred, then origin)
+            remote = "origin"
+            try:
+                res = subprocess.run(["git", "remote"], capture_output=True, text=True)
+                if "monitor" in res.stdout:
+                    remote = "monitor"
+            except:
+                pass
+
+            print(f"[Git Sync] Pushing to {remote}:live...")
+            result = subprocess.run(["git", "push", remote, "HEAD:live", "--force"], capture_output=True, text=True)
             if result.returncode == 0:
-                print("[Git Sync] Pushed to origin:live successfully")
+                print(f"[Git Sync] Pushed to {remote}:live successfully")
             else:
                 print(f"[Git Sync] Push failed: {result.stderr}")
 
