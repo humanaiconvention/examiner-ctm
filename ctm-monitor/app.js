@@ -533,7 +533,12 @@ const App = () => {
   const [errorMsg, setErrorMsg] = useState(null);
   const [bytesRead, setBytesRead] = useState(0);
   const [debugLog, setDebugLog] = useState(null);
-  const [trainingRun, setTrainingRun] = useState('LIVE'); // 'LIVE' or 'TRAINING_1'
+  const [trainingRun, setTrainingRun] = useState('LIVE');
+  const [availableTrainings, setAvailableTrainings] = useState([
+    { id: 'LIVE', name: '🔴 Live (v5.3)', version: 'v5.3', url: DEFAULT_UPLINK_URL, type: 'live' },
+    { id: 'TRAINING_1', name: '📊 Training 1 (v5.1)', version: 'v5.1', url: './data/training_1.jsonl', type: 'historical' },
+    { id: 'TRAINING_2', name: '📊 Training 2 (v5.2.1)', version: 'v5.2.1', url: './data/training_2.jsonl', type: 'historical' },
+  ]);
 
   const parseJSONL = (text) => {
     return text
@@ -587,52 +592,36 @@ const App = () => {
   };
 
   useEffect(() => {
-    // Load Training 1 historical data
-    if (trainingRun === 'TRAINING_1' && logs.length === 0) {
-      const loadTraining1 = async () => {
-        try {
-          const response = await fetch('./data/training_1.jsonl');
-          const text = await response.text();
-          setBytesRead(text.length);
-          const parsed = parseJSONL(text);
-          if (parsed.length > 0) {
-            setLogs(parsed.slice(-MAX_HISTORY_POINTS));
-            setErrorMsg(null);
-            setIsPolling(false);
-          }
-        } catch (err) {
-          console.error('[CTM] Failed to load Training 1:', err);
-          setErrorMsg(`Failed to load Training 1: ${err.message}`);
-        }
-      };
-      loadTraining1();
-      return;
-    }
+    const activeRun = availableTrainings.find(t => t.id === trainingRun);
+    if (!activeRun) return;
 
-    // Load Training 2 historical data
-    if (trainingRun === 'TRAINING_2' && (logs.length === 0 || logs.length < 10)) {
-      const loadTraining2 = async () => {
+    if (activeRun.type === 'historical') {
+      const loadHistorical = async () => {
         try {
-          const response = await fetch('./data/training_2.jsonl');
+          // Add a small delay for visual feedback of loading
+          setIsPolling(true);
+          const response = await fetch(activeRun.url);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const text = await response.text();
           setBytesRead(text.length);
           const parsed = parseJSONL(text);
           if (parsed.length > 0) {
             setLogs(parsed.slice(-MAX_HISTORY_POINTS));
             setErrorMsg(null);
-            setIsPolling(false);
           }
+          setIsPolling(false);
         } catch (err) {
-          console.error('[CTM] Failed to load Training 2:', err);
-          setErrorMsg(`Failed to load Training 2: ${err.message}`);
+          console.error(`[CTM] Failed to load ${activeRun.name}:`, err);
+          setErrorMsg(`Failed to load ${activeRun.name}: ${err.message}`);
+          setIsPolling(false);
         }
       };
-      loadTraining2();
+      loadHistorical();
       return;
     }
 
     // Live polling mode
-    if (dataMode === 'LOCAL_FILE' || trainingRun === 'TRAINING_1') return;
+    if (dataMode === 'LOCAL_FILE') return;
 
     const intervalId = setInterval(async () => {
       setIsPolling(true);
@@ -782,39 +771,24 @@ const App = () => {
 
           <div className="hidden md:flex items-center space-x-3">
             {/* Training Run Selector */}
-            <div className="flex items-center space-x-1 bg-gray-900/40 border border-white/10 rounded px-1 py-0.5">
-              <button
-                onClick={() => { setTrainingRun('TRAINING_1'); setLogs([]); }}
-                className={`text-xs font-mono px-2 py-1 rounded transition ${
-                  trainingRun === 'TRAINING_1'
-                    ? 'bg-orange-500/30 text-orange-400 border border-orange-500/50'
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
+            <div className="flex items-center space-x-2 bg-black/40 border border-white/10 rounded-lg p-1 px-2">
+              <span className="text-[10px] text-gray-600 font-mono hidden sm:inline mr-1">RUN:</span>
+              <select 
+                onChange={(e) => { setTrainingRun(e.target.value); setErrorMsg(null); }}
+                value={trainingRun}
+                className="bg-transparent text-xs font-mono text-gray-400 outline-none cursor-pointer focus:text-cyan-400 border-none"
               >
-                📊 Training 1 (v4.8)
-              </button>
-              <div className="h-4 w-px bg-white/10" />
-              <button
-                onClick={() => { setTrainingRun('TRAINING_2'); setLogs([]); }}
-                className={`text-xs font-mono px-2 py-1 rounded transition ${
-                  trainingRun === 'TRAINING_2'
-                    ? 'bg-emerald-500/30 text-emerald-400 border border-emerald-500/50'
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
-              >
-                📊 Training 2 (v5.2.1)
-              </button>
-              <div className="h-4 w-px bg-white/10" />
-              <button
-                onClick={() => { setTrainingRun('LIVE'); setErrorMsg(null); }}
-                className={`text-xs font-mono px-2 py-1 rounded transition ${
-                  trainingRun === 'LIVE'
-                    ? 'bg-cyan-500/30 text-cyan-400 border border-cyan-500/50'
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
-              >
-                🔴 Live (v5.3)
-              </button>
+                <optgroup label="CURRENT" className="bg-[#111113]">
+                  {availableTrainings.filter(t => t.type === 'live').map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="PAST TRAININGS" className="bg-[#111113]">
+                  {availableTrainings.filter(t => t.type === 'historical').map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </optgroup>
+              </select>
             </div>
 
             <div

@@ -47731,11 +47731,11 @@ var CTMMonitor = (() => {
       return this.props.children;
     }
   };
-  var VERSION = "v1.3.0";
+  var VERSION = "v5.3";
   var DEFAULT_POLL_INTERVAL = 5e3;
   var MAX_HISTORY_POINTS = 800;
   var DEFAULT_UPLINK_URL = "/examiner-ctm/parallel_training_metrics.jsonl";
-  var TRAINING_STEP_TARGET = 5e3;
+  var TRAINING_STEP_TARGET = 5500;
   var PILLAR_CONFIG = {
     log: { name: "LOGOS", desc: "Formal logic & mathematics", color: "#10b981" },
     phy: { name: "PHYSIS", desc: "Physical reality & causality", color: "#3b82f6" },
@@ -48007,6 +48007,11 @@ var CTMMonitor = (() => {
     const [bytesRead, setBytesRead] = (0, import_react39.useState)(0);
     const [debugLog, setDebugLog] = (0, import_react39.useState)(null);
     const [trainingRun, setTrainingRun] = (0, import_react39.useState)("LIVE");
+    const [availableTrainings, setAvailableTrainings] = (0, import_react39.useState)([
+      { id: "LIVE", name: "\u{1F534} Live (v5.3)", version: "v5.3", url: DEFAULT_UPLINK_URL, type: "live" },
+      { id: "TRAINING_1", name: "\u{1F4CA} Training 1 (v5.1)", version: "v5.1", url: "./data/training_1.jsonl", type: "historical" },
+      { id: "TRAINING_2", name: "\u{1F4CA} Training 2 (v5.2.1)", version: "v5.2.1", url: "./data/training_2.jsonl", type: "historical" }
+    ]);
     const parseJSONL = (text) => {
       return text.split("\n").filter((line) => line.trim()).map((line) => {
         try {
@@ -48040,47 +48045,32 @@ var CTMMonitor = (() => {
       return collapseSteps;
     };
     (0, import_react39.useEffect)(() => {
-      if (trainingRun === "TRAINING_1" && logs.length === 0) {
-        const loadTraining1 = async () => {
+      const activeRun = availableTrainings.find((t) => t.id === trainingRun);
+      if (!activeRun) return;
+      if (activeRun.type === "historical") {
+        const loadHistorical = async () => {
           try {
-            const response = await fetch("./data/training_1.jsonl");
+            setIsPolling(true);
+            const response = await fetch(activeRun.url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const text = await response.text();
             setBytesRead(text.length);
             const parsed = parseJSONL(text);
             if (parsed.length > 0) {
               setLogs(parsed.slice(-MAX_HISTORY_POINTS));
               setErrorMsg(null);
-              setIsPolling(false);
             }
+            setIsPolling(false);
           } catch (err) {
-            console.error("[CTM] Failed to load Training 1:", err);
-            setErrorMsg(`Failed to load Training 1: ${err.message}`);
+            console.error(`[CTM] Failed to load ${activeRun.name}:`, err);
+            setErrorMsg(`Failed to load ${activeRun.name}: ${err.message}`);
+            setIsPolling(false);
           }
         };
-        loadTraining1();
+        loadHistorical();
         return;
       }
-      if (trainingRun === "TRAINING_2" && (logs.length === 0 || logs.length < 10)) {
-        const loadTraining2 = async () => {
-          try {
-            const response = await fetch("./data/training_2.jsonl");
-            const text = await response.text();
-            setBytesRead(text.length);
-            const parsed = parseJSONL(text);
-            if (parsed.length > 0) {
-              setLogs(parsed.slice(-MAX_HISTORY_POINTS));
-              setErrorMsg(null);
-              setIsPolling(false);
-            }
-          } catch (err) {
-            console.error("[CTM] Failed to load Training 2:", err);
-            setErrorMsg(`Failed to load Training 2: ${err.message}`);
-          }
-        };
-        loadTraining2();
-        return;
-      }
-      if (dataMode === "LOCAL_FILE" || trainingRun === "TRAINING_1") return;
+      if (dataMode === "LOCAL_FILE") return;
       const intervalId = setInterval(async () => {
         setIsPolling(true);
         setLastPollTime(/* @__PURE__ */ new Date());
@@ -48096,6 +48086,28 @@ var CTMMonitor = (() => {
           });
           clearTimeout(timeoutId);
           console.log("[CTM] Response status:", response.status, response.ok);
+          if (!response.ok || response.status === 0) {
+            console.log("[CTM] Fetch failed, attempting local relative path fallback...");
+            const localResponse = await fetch("parallel_training_metrics.jsonl?no_cache=" + Date.now());
+            if (localResponse.ok) {
+              const localText = await localResponse.text();
+              setBytesRead(localText.length);
+              const localParsed = parseJSONL(localText);
+              if (localParsed.length > 0) {
+                setLogs(localParsed.slice(-MAX_HISTORY_POINTS));
+                setErrorMsg(null);
+                console.log("[CTM] Fallback success.");
+                setDebugLog({
+                  url: "parallel_training_metrics.jsonl (Fallback)",
+                  status: 200,
+                  message: "OK (Local)",
+                  timestamp: (/* @__PURE__ */ new Date()).toISOString()
+                });
+                setTimeout(() => setIsPolling(false), 800);
+                return;
+              }
+            }
+          }
           const rawText = await response.text();
           console.log("[CTM] Bytes received:", rawText.length);
           const capturedDebug = {
@@ -48175,36 +48187,18 @@ var CTMMonitor = (() => {
         onFileSelect: handleFileLoad,
         debugLog
       }
-    ), /* @__PURE__ */ import_react39.default.createElement("header", { className: "sticky top-0 z-40 h-14 bg-[#0a0a0c]/90 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6 shadow-lg" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex items-center space-x-4" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex items-center space-x-2" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: `w-2 h-2 rounded-full ${isPolling ? "bg-cyan-400 pulse-glow" : "bg-red-500"}` }), /* @__PURE__ */ import_react39.default.createElement("a", { href: "/examiner-ctm/", className: "font-mono text-sm font-bold tracking-tight text-gray-200 hover:text-purple-400 transition" }, "EXAMINER-CTM")), /* @__PURE__ */ import_react39.default.createElement("div", { className: "h-4 w-px bg-white/10" }), /* @__PURE__ */ import_react39.default.createElement("span", { className: "text-xs text-gray-500 font-mono" }, VERSION), /* @__PURE__ */ import_react39.default.createElement("div", { className: "hidden md:flex items-center space-x-3" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex items-center space-x-1 bg-gray-900/40 border border-white/10 rounded px-1 py-0.5" }, /* @__PURE__ */ import_react39.default.createElement(
-      "button",
+    ), /* @__PURE__ */ import_react39.default.createElement("header", { className: "sticky top-0 z-40 h-14 bg-[#0a0a0c]/90 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6 shadow-lg" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex items-center space-x-4" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex items-center space-x-2" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: `w-2 h-2 rounded-full ${isPolling ? "bg-cyan-400 pulse-glow" : "bg-red-500"}` }), /* @__PURE__ */ import_react39.default.createElement("a", { href: "/examiner-ctm/", className: "font-mono text-sm font-bold tracking-tight text-gray-200 hover:text-purple-400 transition" }, "EXAMINER-CTM")), /* @__PURE__ */ import_react39.default.createElement("div", { className: "h-4 w-px bg-white/10" }), /* @__PURE__ */ import_react39.default.createElement("span", { className: "text-xs text-gray-500 font-mono" }, VERSION), /* @__PURE__ */ import_react39.default.createElement("div", { className: "hidden md:flex items-center space-x-3" }, /* @__PURE__ */ import_react39.default.createElement("div", { className: "flex items-center space-x-2 bg-black/40 border border-white/10 rounded-lg p-1 px-2" }, /* @__PURE__ */ import_react39.default.createElement("span", { className: "text-[10px] text-gray-600 font-mono hidden sm:inline mr-1" }, "RUN:"), /* @__PURE__ */ import_react39.default.createElement(
+      "select",
       {
-        onClick: () => {
-          setTrainingRun("TRAINING_1");
-          setLogs([]);
-        },
-        className: `text-xs font-mono px-2 py-1 rounded transition ${trainingRun === "TRAINING_1" ? "bg-orange-500/30 text-orange-400 border border-orange-500/50" : "text-gray-500 hover:text-gray-300"}`
-      },
-      "\u{1F4CA} Training 1 (v4.8)"
-    ), /* @__PURE__ */ import_react39.default.createElement("div", { className: "h-4 w-px bg-white/10" }), /* @__PURE__ */ import_react39.default.createElement(
-      "button",
-      {
-        onClick: () => {
-          setTrainingRun("TRAINING_2");
-          setLogs([]);
-        },
-        className: `text-xs font-mono px-2 py-1 rounded transition ${trainingRun === "TRAINING_2" ? "bg-emerald-500/30 text-emerald-400 border border-emerald-500/50" : "text-gray-500 hover:text-gray-300"}`
-      },
-      "\u{1F4CA} Training 2 (v5.2.1)"
-    ), /* @__PURE__ */ import_react39.default.createElement("div", { className: "h-4 w-px bg-white/10" }), /* @__PURE__ */ import_react39.default.createElement(
-      "button",
-      {
-        onClick: () => {
-          setTrainingRun("LIVE");
+        onChange: (e) => {
+          setTrainingRun(e.target.value);
           setErrorMsg(null);
         },
-        className: `text-xs font-mono px-2 py-1 rounded transition ${trainingRun === "LIVE" ? "bg-cyan-500/30 text-cyan-400 border border-cyan-500/50" : "text-gray-500 hover:text-gray-300"}`
+        value: trainingRun,
+        className: "bg-transparent text-xs font-mono text-gray-400 outline-none cursor-pointer focus:text-cyan-400 border-none"
       },
-      "\u{1F534} Live (v5.3)"
+      /* @__PURE__ */ import_react39.default.createElement("optgroup", { label: "CURRENT", className: "bg-[#111113]" }, availableTrainings.filter((t) => t.type === "live").map((t) => /* @__PURE__ */ import_react39.default.createElement("option", { key: t.id, value: t.id }, t.name))),
+      /* @__PURE__ */ import_react39.default.createElement("optgroup", { label: "PAST TRAININGS", className: "bg-[#111113]" }, availableTrainings.filter((t) => t.type === "historical").map((t) => /* @__PURE__ */ import_react39.default.createElement("option", { key: t.id, value: t.id }, t.name)))
     )), /* @__PURE__ */ import_react39.default.createElement(
       "div",
       {
