@@ -9,9 +9,32 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 # Base corpus directory - platform aware
-# Use relative path from this script to be robust to installation directory
 SCRIPT_DIR = Path(__file__).parent.absolute()
-CORPUS_ROOT = SCRIPT_DIR / "corpus"
+
+# Discovery logic for CORPUS_ROOT
+def discover_corpus_root():
+    # 1. Check for Environment Variable
+    env_root = os.environ.get("CTM_CORPUS_ROOT")
+    if env_root and os.path.exists(env_root):
+        return Path(env_root)
+        
+    # 2. Check for parallel directory (L4 Structure: ~/examiner-ctm/corpus)
+    # If script is in ~/examiner-ctm/examiner-ctm/corpus_config.py
+    parent_corpus = SCRIPT_DIR.parent / "corpus"
+    if parent_corpus.exists() and any(parent_corpus.iterdir()):
+        # Check if it has more than just the foundational files
+        if (parent_corpus / "humanities").exists() or (parent_corpus / "camel-ai-biology").exists():
+            return parent_corpus
+            
+    # 3. Check for local articles (typical dev path)
+    if os.name == 'nt' and os.path.exists("D:\\articles"):
+        return Path("D:\\articles")
+        
+    # 4. Default to script-relative
+    return SCRIPT_DIR / "corpus"
+
+CORPUS_ROOT = discover_corpus_root()
+print(f"[CorpusConfig] Resolved CORPUS_ROOT: {CORPUS_ROOT}")
 
 # Progressive learning phases
 CORPUS_PHASES = {

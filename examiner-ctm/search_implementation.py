@@ -137,14 +137,14 @@ class RealSearchProvider:
         Rate limit: Reasonable (10-20 req/min recommended)
         """
         try:
-            import duckduckgo_search
-        except ImportError:
-            raise ImportError("Install duckduckgo-search: pip install duckduckgo-search")
-
-        ddg = duckduckgo_search.DDGS()
-        results = []
-
-        try:
+            # Try the new ddgs library first, then the legacy one
+            try:
+                from ddgs import DDGS
+            except ImportError:
+                import duckduckgo_search
+                from duckduckgo_search import DDGS
+            
+            ddg = DDGS()
             raw_results = ddg.text(query, max_results=max_results)
 
             for item in raw_results[:max_results]:

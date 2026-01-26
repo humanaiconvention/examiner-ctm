@@ -43,12 +43,17 @@ class GroundingClient:
             endpoint = f"{self.server_url.rstrip('/')}/query"
             try:
                 # Use asycnio thread pool for blocking request
+                print(f"    [GroundingClient] Sending request to {endpoint} (ID: {request_id})...")
+                import time
+                start_time = time.time()
                 loop = asyncio.get_event_loop()
                 response = await loop.run_in_executor(
                     None, 
                     lambda: requests.post(endpoint, json=req, timeout=120)
                 )
+                duration = time.time() - start_time
                 if response.status_code == 200:
+                    print(f"    [GroundingClient] Response received in {duration:.2f}s.")
                     return response.json()
                 else:
                     print(f"  [GroundingClient] HTTP Error {response.status_code}: {response.text}")

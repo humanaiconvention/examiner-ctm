@@ -36,7 +36,7 @@ def check_requirements():
     required_packages = [
         'torch', 'transformers', 'peft', 'datasets', 'accelerate',
         'trl', 'sentence-transformers', 'scipy', 'tqdm', 'einops',
-        'duckduckgo-search', 'requests'
+        'duckduckgo-search', 'ddgs', 'requests'
     ]
 
     missing = []
