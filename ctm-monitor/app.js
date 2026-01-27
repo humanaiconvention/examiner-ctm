@@ -41,7 +41,7 @@ class ErrorBoundary extends Component {
 const VERSION = "v5.3";
 const DEFAULT_POLL_INTERVAL = 5000;
 const MAX_HISTORY_POINTS = 800;
-const DEFAULT_UPLINK_URL = "https://raw.githubusercontent.com/humanaiconvention/ctm-monitor/main/parallel_training_metrics.jsonl";
+const DEFAULT_UPLINK_URL = "https://raw.githubusercontent.com/humanaiconvention/ctm-monitor/main/examiner-ctm/parallel_training_metrics.jsonl";
 const TRAINING_STEP_TARGET = 5500;
 
 // Pillar Configuration - 7 Sovereign Pillars
