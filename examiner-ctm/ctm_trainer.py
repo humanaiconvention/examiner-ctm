@@ -2439,26 +2439,47 @@ class UnifiedTrainer:
                 pass
 
             if remote == "monitor-repo":
-            # SURGICAL SYNC: Push metrics without wiping out the rest of the repo
-            print(f"[Git Sync] Performing Non-Destructive Data Sync to {remote}:main...")
+            # TRULY SURGICAL SYNC: Push ONLY the metrics file to the root of the remote repo
+            # Preserves the Dashboard code while updating live metrics.
+            print(f"[Git Sync] Performing Truly Surgical Data Sync to {remote}:main...")
             try:
-                # 1. Pull latest to avoid conflicts
-                subprocess.run(["git", "pull", remote, "main", "--no-rebase"], check=False)
-                # 2. Add ONLY the metrics file
-                subprocess.run(["git", "add", self.log_file], check=True)
-                # 3. Commit only that file
+                # 1. Create a blob for the metrics file
+                blob_hash = subprocess.check_output(["git", "hash-object", "-w", self.log_file]).decode().strip()
+                
+                # 2. Get the current tree from remote
+                subprocess.run(["git", "fetch", remote, "main"], check=False)
+                parent_commit = subprocess.check_output(["git", "rev-parse", f"{remote}/main"]).decode().strip()
+                parent_tree = subprocess.check_output(["git", "rev-parse", f"{parent_commit}^{{tree}}"]).decode().strip()
+                
+                # 3. Use mktree to create a new tree based on the parent but with the updated blob
+                # We use a trick: git ls-tree -r + grep/filter + git mktree
+                tree_lines = subprocess.check_output(["git", "ls-tree", "-r", parent_tree]).decode().strip().split('\n')
+                new_tree_lines = []
+                log_filename = os.path.basename(self.log_file)
+                for line in tree_lines:
+                    if not line.endswith(f"\t{log_filename}"):
+                        new_tree_lines.append(line)
+                new_tree_lines.append(f"100644 blob {blob_hash}\t{log_filename}")
+                
+                new_tree_hash = subprocess.run(["git", "mktree"], input="\n".join(new_tree_lines).encode(), capture_output=True, check=True).stdout.decode().strip()
+                
+                # 4. Create a commit with the parent
                 commit_msg = f"CTM Data Sync: Step {step}"
-                subprocess.run(["git", "commit", "-m", commit_msg], check=False)
-                # 4. Push to main
-                result = subprocess.run(["git", "push", remote, "HEAD:main"], capture_output=True, text=True)
+                new_commit_hash = subprocess.check_output(["git", "commit-tree", new_tree_hash, "-p", parent_commit, "-m", commit_msg]).decode().strip()
+                
+                # 5. Push specifically that commit to the remote main
+                result = subprocess.run(["git", "push", remote, f"{new_commit_hash}:main"], capture_output=True, text=True)
                 
                 if result.returncode == 0:
                     print(f"[Git Sync] Surgical Push to {remote}:main successful")
                 else:
-                    print(f"[Git Sync] Surgical Push failed (retrying with force): {result.stderr}")
-                    subprocess.run(["git", "push", remote, "HEAD:main", "--force"], check=False)
+                    print(f"[Git Sync] Surgical Push failed: {result.stderr}")
             except Exception as e:
-                print(f"[Git Sync] Error during surgical push: {e}")
+                print(f"[Git Sync] Error during truly surgical push: {e}")
+                # Fallback to standard non-destructive push if mktree voodoo fails
+                subprocess.run(["git", "add", self.log_file], check=False)
+                subprocess.run(["git", "commit", "-m", f"CTM Sync: {step}"], check=False)
+                subprocess.run(["git", "push", remote, "HEAD:main"], check=False)
             else:
                 # Standard Sync
                 print(f"[Git Sync] Pushing to {remote}:live...")
