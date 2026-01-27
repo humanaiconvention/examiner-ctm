@@ -176,6 +176,9 @@ Collapse Detection:
     print("=" * 60)
 
     # Initialize CTM model
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+    
     model = ContinuousThoughtMachine(
         d_model=768,           # Embedding dimension
         memory_length=15,      # Recursive memory window
@@ -183,7 +186,7 @@ Collapse Detection:
         use_recursive_weights=args.use_recursive_weights,
         recursive_operator=args.recursive_operator,
         recursive_operator_rank=args.recursive_operator_rank,
-    )
+    ).to(device)
     
     # Compile model in High Heaven mode for speed
     # Compile model in High Heaven mode for speed (Skip if compiler missing)
