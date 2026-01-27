@@ -652,7 +652,13 @@ class HFDatasetWrapper(Dataset):
 
     def __getitem__(self, idx):
         item = self.data[idx]
-        tokens = self.tokenizer.encode(item.get('text', ""))
+        # Use tokenizer truncation to avoid "Sequence length is longer..." warnings
+        tokens = self.tokenizer.encode(
+            item.get('text', ""), 
+            truncation=True, 
+            max_length=self.seq_len + 1
+        )
+        # Fallback manual truncation/padding just in case
         if len(tokens) > self.seq_len + 1: tokens = tokens[:self.seq_len + 1]
         elif len(tokens) < self.seq_len + 1: tokens += [self.tokenizer.eos_token_id] * (self.seq_len + 1 - len(tokens))
         return torch.tensor(tokens[:-1], dtype=torch.long), torch.tensor(tokens[1:], dtype=torch.long)
