@@ -2439,29 +2439,26 @@ class UnifiedTrainer:
                 pass
 
             if remote == "monitor-repo":
-                # SURGICAL SYNC: Push ONLY the metrics file to avoid code clutter
-                print(f"[Git Sync] Performing Pure Data Sync to {remote}:main...")
-                try:
-                    # Uses a temporary index to create a commit with only the log file
-                    env = os.environ.copy()
-                    env["GIT_INDEX_FILE"] = ".git/index.monitor"
-                    subprocess.run(["git", "add", self.log_file], env=env, check=True)
-                    tree_hash = subprocess.check_output(["git", "write-tree"], env=env).decode().strip()
-                    commit_msg = f"CTM Data Sync: Step {step}"
-                    commit_hash = subprocess.check_output(["git", "commit-tree", tree_hash, "-m", commit_msg]).decode().strip()
-                    
-                    result = subprocess.run(["git", "push", remote, f"{commit_hash}:main", "--force"], capture_output=True, text=True)
-                    if result.returncode == 0:
-                        print(f"[Git Sync] Surgical Push to {remote}:main successful")
-                    else:
-                        print(f"[Git Sync] Surgical Push failed: {result.stderr}")
-                    
-                    if os.path.exists(".git/index.monitor"):
-                        os.remove(".git/index.monitor")
-                except Exception as e:
-                    print(f"[Git Sync] Error during surgical push: {e}")
-                    # Fallback to standard push if surgical fails
+            # SURGICAL SYNC: Push metrics without wiping out the rest of the repo
+            print(f"[Git Sync] Performing Non-Destructive Data Sync to {remote}:main...")
+            try:
+                # 1. Pull latest to avoid conflicts
+                subprocess.run(["git", "pull", remote, "main", "--no-rebase"], check=False)
+                # 2. Add ONLY the metrics file
+                subprocess.run(["git", "add", self.log_file], check=True)
+                # 3. Commit only that file
+                commit_msg = f"CTM Data Sync: Step {step}"
+                subprocess.run(["git", "commit", "-m", commit_msg], check=False)
+                # 4. Push to main
+                result = subprocess.run(["git", "push", remote, "HEAD:main"], capture_output=True, text=True)
+                
+                if result.returncode == 0:
+                    print(f"[Git Sync] Surgical Push to {remote}:main successful")
+                else:
+                    print(f"[Git Sync] Surgical Push failed (retrying with force): {result.stderr}")
                     subprocess.run(["git", "push", remote, "HEAD:main", "--force"], check=False)
+            except Exception as e:
+                print(f"[Git Sync] Error during surgical push: {e}")
             else:
                 # Standard Sync
                 print(f"[Git Sync] Pushing to {remote}:live...")
