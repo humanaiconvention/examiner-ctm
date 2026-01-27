@@ -47734,7 +47734,7 @@ var CTMMonitor = (() => {
   var VERSION = "v5.3";
   var DEFAULT_POLL_INTERVAL = 5e3;
   var MAX_HISTORY_POINTS = 800;
-  var DEFAULT_UPLINK_URL = "https://raw.githubusercontent.com/humanaiconvention/examiner-ctm/live/parallel_training_metrics.jsonl";
+  var DEFAULT_UPLINK_URL = "https://raw.githubusercontent.com/humanaiconvention/ctm-monitor/main/parallel_training_metrics.jsonl";
   var TRAINING_STEP_TARGET = 5500;
   var PILLAR_CONFIG = {
     log: { name: "LOGOS", desc: "Formal logic & mathematics", color: "#10b981" },
