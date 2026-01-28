@@ -1,0 +1,6 @@
+{
+  "status": "ok",
+  "service": "web",
+  "time": "__INJECT_BUILD_TIME__",
+  "buildTime": "2026-01-28T20:19:11.549Z"
+}
