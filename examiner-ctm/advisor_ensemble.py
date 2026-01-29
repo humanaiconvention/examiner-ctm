@@ -36,6 +36,7 @@ ENSEMBLE_MODELS = [
     ("openrouter", "anthropic/claude-sonnet-4.5"), # Anthropic Latest
     ("gcp_qwen", "qwen3-next-80b"),
     ("gcp_llama", "meta/llama-4-maverick-17b-128e-instruct-maas"),
+    ("gcp_claude", "claude-opus-4-5@20251101"), # New Vertex AI model
 ]
 
 def query_openrouter(model: str, prompt: str) -> dict:
@@ -62,9 +63,19 @@ def query_openrouter(model: str, prompt: str) -> dict:
 def _get_gcp_auth():
     import google.auth
     from google.auth.transport.requests import Request
-    creds, _ = google.auth.default()
-    creds.refresh(Request())
-    return creds.token
+    try:
+        creds, _ = google.auth.default()
+        creds.refresh(Request())
+        return creds.token
+    except Exception:
+        # Fallback to gcloud if available (common for local dev)
+        try:
+            import subprocess
+            # Use shell=True for .CMD files on Windows
+            result = subprocess.run("gcloud auth print-access-token", shell=True, capture_output=True, text=True, check=True)
+            return result.stdout.strip()
+        except Exception:
+            raise Exception("GCP credentials not found. Try 'gcloud auth application-default login'")
 
 def query_gcp_qwen(prompt: str) -> dict:
     """Query Qwen3-next-80B via GCP Vertex AI MaaS (Predict API)."""
@@ -109,12 +120,35 @@ def query_gcp_llama4(model: str, prompt: str) -> dict:
     except Exception as e:
         return {"model": model, "trace": None, "success": False, "error": str(e)}
 
+def query_gcp_claude(model: str, prompt: str) -> dict:
+    """Query Anthropic Claude via GCP Vertex AI library."""
+    if not GCP_PROJECT:
+        return {"model": model, "trace": None, "success": False, "error": "GCP Project not configured"}
+        
+    try:
+        from anthropic import AnthropicVertex
+        # Pass access_token from gcloud/ADC fallback
+        token = _get_gcp_auth()
+        client = AnthropicVertex(region=GCP_LOCATION, project_id=GCP_PROJECT, access_token=token)
+        message = client.messages.create(
+            max_tokens=200,
+            messages=[{"role": "user", "content": prompt}],
+            model=model,
+            temperature=0.3
+        )
+        trace = message.content[0].text
+        return {"model": model, "trace": trace, "success": True}
+    except Exception as e:
+        return {"model": model, "trace": None, "success": False, "error": str(e)}
+
 def query_single_advisor(provider: str, model: str, prompt: str) -> dict:
     """Route to correct provider."""
     if provider == "gcp_qwen":
         return query_gcp_qwen(prompt)
     if provider == "gcp_llama":
         return query_gcp_llama4(model, prompt)
+    if provider == "gcp_claude":
+        return query_gcp_claude(model, prompt)
     return query_openrouter(model, prompt)
 
 
@@ -150,6 +184,8 @@ OUTPUT: Pure causal reasoning. No conversational filler."""
     
     for r in results_list:
         print(f"  [{r['label']}] {'PASS' if r['success'] else 'FAIL'}")
+        if not r["success"]:
+            print(f"    Error: {r.get('error', 'Unknown Error')}")
     
     # Construct Consilience Trace (A/B/C/D/E)
     traces = []

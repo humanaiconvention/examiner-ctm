@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "generatedAt": "2025-09-29T18:51:06.088Z",
+  "aggregate": {
+    "generatedAt": "2025-09-29T18:24:04.521Z",
+    "configs": [],
+    "totalsByCode": {},
+    "totalErrors": 0,
+    "topCodes": []
+  },
+  "semantic": null,
+  "summary": {
+    "totalErrors": 0,
+    "syntactic": null,
+    "semantic": null,
+    "global": null,
+    "options": null
+  }
+}

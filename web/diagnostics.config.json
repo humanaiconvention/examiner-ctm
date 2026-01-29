@@ -1,0 +1,100 @@
+{
+  "$schema": "./diagnostics.config.schema.json",
+  "schemaVersion": 1,
+  "routes": ["/", "/learn-more", "/preview-questions", "/preview", "/explore", "/convene"],
+  "thresholds": {
+    "maxHtmlMs": null,
+    "maxBundleMs": null,
+    "universalMaxMs": null
+  },
+  "budgets": {
+    "maxMainBundleGzip": 95000,
+    "maxTotalJsGzip": 120000,
+    "maxTotalCssGzip": 25000
+  },
+  "lighthouse": {
+    "enabled": true,
+    "minScores": {
+  "performance": 0.5,
+      "accessibility": 0.9,
+      "best-practices": 0.9,
+      "seo": 0.85,
+      "pwa": 0
+    },
+    "maxVitals": {
+      "cls": 0.45,
+      "lcp": 5000,
+      "tbt": 300,
+      "inp": 6000
+    },
+    "extraAssertions": { "unused-javascript": 170 },
+    "warnMargins": {
+      "score": 0.05,
+      "cls": 0.05,
+      "lcpMs": 300,
+      "tbtMs": 50,
+      "inpMs": 30
+    },
+    "failOnAnyAssertion": true,
+    "strict": false
+  },
+  "regression": {
+    "enabled": true,
+    "window": 10,
+    "baselinePercentile": 75,
+    "performanceDropWarn": 0.05,
+    "performanceDropFail": 0.1,
+    "bundleGrowthWarnPct": 0.05,
+    "bundleGrowthFailPct": 0.1,
+    "totalJsGrowthWarnPct": 0.05,
+    "totalJsGrowthFailPct": 0.1,
+    "vitalsIncreaseWarnPct": 0.05,
+    "vitalsIncreaseFailPct": 0.1,
+    "improvementMinRelativePct": 0.01,
+    "improvementMinAbsolute": 5
+  },
+  "history": {
+    "file": "diagnose-history.json",
+    "maxEntries": 50,
+    "compactAfter": 40
+  },
+  "output": {
+    "htmlDashboard": true,
+    "open": false
+  },
+  "notifications": {
+    "slackWebhookEnv": "SLACK_WEBHOOK_URL",
+    "reportUrlEnv": "REPORT_PUBLIC_URL",
+    "webhooks": {
+      "failure": "SLACK_WEBHOOK_FAIL",
+      "regressionFail": "SLACK_WEBHOOK_REGRESSION",
+      "improvement": "SLACK_WEBHOOK_IMPROVE"
+    },
+    "on": ["failure", "regressionFail", "improvement", "improvementStreak"],
+    "maxFailuresInMessage": 6,
+    "improvementStreakLength": 3
+  },
+  "artifactUpload": {
+    "enabled": false,
+    "command": "node scripts/upload-artifacts.mjs",
+    "reportUrlFile": "report-url.txt"
+  },
+  "ratchet": {
+    "enabled": true,
+    "successStreakMin": 5,
+    "windowSize": 8,
+    "cooldownHours": 4,
+    "performanceStep": 0.02,
+    "performanceHeadroom": 0.03,
+    "clsStep": 0.02,
+    "clsHeadroom": 0.05,
+    "lcpStep": 200,
+    "lcpHeadroom": 600,
+    "inpStep": 500,
+    "inpHeadroom": 800,
+    "baselinePercentileFlipSuccesses": 10,
+    "flipBaselineTo": 60,
+    "stateFile": "diagnostics.ratchet.json",
+    "verbose": true
+  }
+}

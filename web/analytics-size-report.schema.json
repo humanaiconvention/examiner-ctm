@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/schemas/analytics-size-report.schema.json",
+  "title": "Analytics Size Report",
+  "type": "object",
+  "required": ["generated","report","deltas","budgets","ratchet"],
+  "properties": {
+    "generated": { "type": "string", "format": "date-time" },
+    "previousSnapshotTs": { "type": ["string","null"], "format": "date-time" },
+    "sparklineWindow": { "type": "integer", "minimum": 1 },
+    "schema": {
+      "type": "object",
+      "required": ["mode","strict","validationErrors"],
+      "properties": {
+        "mode": { "type": "string", "enum": ["off","warn","fail"] },
+        "strict": { "type": "boolean" },
+        "validationErrors": { "type": "array", "items": { "type": "object" } }
+      },
+      "additionalProperties": true
+    },
+    "report": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["chunk","gzipKB","gzipLimitKB","gzipHeadroomKB","status"],
+        "properties": {
+          "chunk": { "type": "string" },
+          "file": { "type": "string" },
+          "gzipKB": { "type": "number" },
+          "gzipLimitKB": { "type": "number" },
+          "gzipHeadroomKB": { "type": "number" },
+          "brotliKB": { "type": ["number","null"] },
+          "brotliLimitKB": { "type": ["number","null"] },
+            "brotliHeadroomKB": { "type": ["number","null"] },
+          "gzipDeltaKB": { "type": ["number","null"] },
+          "brotliDeltaKB": { "type": ["number","null"] },
+          "status": { "type": "string", "enum": ["OK","FAIL"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "deltas": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "gzipDeltaKB": { "type": ["number","null"] },
+          "brotliDeltaKB": { "type": ["number","null"] }
+        },
+        "required": ["gzipDeltaKB","brotliDeltaKB"],
+        "additionalProperties": false
+      }
+    },
+    "stableRuns": { "type": "integer", "minimum": 0 },
+    "budgets": { "type": "object" },
+    "history": {
+      "type": "object",
+      "properties": { "entries": { "type": "integer", "minimum": 0 } },
+      "required": ["entries"],
+      "additionalProperties": false
+    },
+    "ratchet": {
+      "type": "object",
+      "required": ["improvingRuns","applied","params"],
+      "properties": {
+        "improvingRuns": { "type": "integer", "minimum": 0 },
+        "applied": { "type": ["string","null"], "enum": ["reduced", null] },
+        "params": {
+          "type": "object",
+          "properties": {
+            "ratchetAfter": { "type": "number" },
+            "ratchetPercent": { "type": "number" },
+            "ratchetHeadroomThreshold": { "type": "number" },
+            "ratchetCooldown": { "type": "number" }
+          },
+          "required": ["ratchetAfter","ratchetPercent","ratchetHeadroomThreshold","ratchetCooldown"],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

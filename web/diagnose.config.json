@@ -1,0 +1,28 @@
+{
+  "routes": ["/", "/learn-more", "/preview-questions", "/explore"],
+  "maxHtmlMs": 1500,
+  "maxBundleMs": 3000,
+  "lighthouse": {
+    "enabled": true,
+    "minPerformance": 0.85,
+    "minAccessibility": 0.9,
+    "strict": false,
+    "maxCLS": 0.15,
+    "maxLCPms": 3500,
+    "failOnAnyAssertion": false
+  },
+  "playwrightSmoke": {
+    "enabled": false,
+    "pattern": "tests/smoke.spec.ts"
+  },
+  "historyFile": "diagnose-history.json",
+  "historyMax": 40,
+  "enforceSri": true,
+  "failOnWarning": true,
+  "validateSchema": true
+  ,"budgets": {
+    "maxMainBundleGzip": 120000,
+    "maxTotalJsGzip": 160000,
+    "maxTotalCssGzip": 40000
+  }
+}

@@ -1,0 +1,116 @@
+# ESLint Config Diff
+
+Generated: 2025-09-29T18:32:28.081Z
+Target file: `web\src\App.tsx`
+
+| Metric | Value |
+|--------|-------|
+| totalRulesRoot | 0 |
+| totalRulesWeb | 92 |
+| severityDifferences | 0 |
+| optionDifferences | 0 |
+| onlyInRoot | 0 |
+| onlyInWeb | 92 |
+| lintOnlyRoot | 0 |
+| lintOnlyWeb | 0 |
+
+## Rules Only In Web
+- @typescript-eslint/ban-ts-comment
+- @typescript-eslint/no-array-constructor
+- @typescript-eslint/no-duplicate-enum-values
+- @typescript-eslint/no-empty-object-type
+- @typescript-eslint/no-explicit-any
+- @typescript-eslint/no-extra-non-null-assertion
+- @typescript-eslint/no-misused-new
+- @typescript-eslint/no-namespace
+- @typescript-eslint/no-non-null-asserted-optional-chain
+- @typescript-eslint/no-require-imports
+- @typescript-eslint/no-this-alias
+- @typescript-eslint/no-unnecessary-type-constraint
+- @typescript-eslint/no-unsafe-declaration-merging
+- @typescript-eslint/no-unsafe-function-type
+- @typescript-eslint/no-unused-expressions
+- @typescript-eslint/no-unused-vars
+- @typescript-eslint/no-wrapper-object-types
+- @typescript-eslint/prefer-as-const
+- @typescript-eslint/prefer-namespace-keyword
+- @typescript-eslint/triple-slash-reference
+- constructor-super
+- for-direction
+- getter-return
+- no-array-constructor
+- no-async-promise-executor
+- no-case-declarations
+- no-class-assign
+- no-compare-neg-zero
+- no-cond-assign
+- no-console
+- no-const-assign
+- no-constant-binary-expression
+- no-constant-condition
+- no-control-regex
+- no-debugger
+- no-delete-var
+- no-dupe-args
+- no-dupe-class-members
+- no-dupe-else-if
+- no-dupe-keys
+- no-duplicate-case
+- no-empty
+- no-empty-character-class
+- no-empty-pattern
+- no-empty-static-block
+- no-ex-assign
+- no-extra-boolean-cast
+- no-fallthrough
+- no-func-assign
+- no-global-assign
+- no-import-assign
+- no-invalid-regexp
+- no-irregular-whitespace
+- no-loss-of-precision
+- no-misleading-character-class
+- no-new-native-nonconstructor
+- no-new-symbol
+- no-nonoctal-decimal-escape
+- no-obj-calls
+- no-octal
+- no-prototype-builtins
+- no-redeclare
+- no-regex-spaces
+- no-self-assign
+- no-setter-return
+- no-shadow-restricted-names
+- no-sparse-arrays
+- no-this-before-super
+- no-undef
+- no-unexpected-multiline
+- no-unreachable
+- no-unsafe-finally
+- no-unsafe-negation
+- no-unsafe-optional-chaining
+- no-unused-expressions
+- no-unused-labels
+- no-unused-private-class-members
+- no-unused-vars
+- no-useless-backreference
+- no-useless-catch
+- no-useless-escape
+- no-var
+- no-with
+- prefer-const
+- prefer-rest-params
+- prefer-spread
+- react-hooks/exhaustive-deps
+- react-hooks/rules-of-hooks
+- react-refresh/only-export-components
+- require-yield
+- use-isnan
+- valid-typeof
+
+## Lint Message Diff
+Sample files: 14
+Root messages: 0
+Web messages: 0
+Only root msgs: 0
+Only web msgs: 0

@@ -1,0 +1,1063 @@
+{
+  "runs": [
+    {
+      "ts": "2025-10-02T01:11:36.682Z",
+      "success": true,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        }
+      ],
+      "bundleMs": 4
+    },
+    {
+      "ts": "2025-10-02T01:13:01.292Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 3
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/preview",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        },
+        {
+          "target": "/convene",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p95": 3,
+      "bundleMs": 4
+    },
+    {
+      "ts": "2025-10-02T01:15:19.162Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p95": 3,
+      "bundleMs": 4
+    },
+    {
+      "ts": "2025-10-02T01:20:23.877Z",
+      "success": true,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 4,
+      "totalCssGzip": 0
+    },
+    {
+      "ts": "2025-10-02T01:21:23.342Z",
+      "success": true,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 1
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 4,
+      "totalCssGzip": 7438
+    },
+    {
+      "ts": "2025-10-02T01:23:00.606Z",
+      "success": true,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 4,
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T01:25:03.039Z",
+      "success": true,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 4,
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T01:28:28.696Z",
+      "success": true,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 6,
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T01:30:06.946Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 4
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 4,
+      "p95": 4,
+      "bundleMs": 5,
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T01:31:13.850Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 5,
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T01:32:27.837Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 5,
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T01:36:11.616Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 5,
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T01:38:31.293Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 5,
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T01:40:25.255Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 3
+        },
+        {
+          "target": "/learn-more",
+          "ms": 4
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 6,
+      "lh": {
+        "performance": 0.51,
+        "accessibility": 1,
+        "best-practices": 0.93,
+        "seo": 0.91
+      },
+      "lhMetrics": {
+        "cls": 0.41762778641171805,
+        "lcp": 4654.1251
+      },
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T01:56:04.298Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/preview",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        },
+        {
+          "target": "/convene",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 4,
+      "lh": {
+        "performance": 0.51,
+        "accessibility": 1,
+        "best-practices": 0.93,
+        "seo": 0.91
+      },
+      "lhMetrics": {
+        "cls": 0.41762778641171805,
+        "lcp": 4652.7387,
+        "tbt": 37,
+        "inp": 4652.7387,
+        "fcp": 1659.7387
+      },
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T02:18:26.023Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/preview",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        },
+        {
+          "target": "/convene",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 4,
+      "lh": {
+        "performance": 0.51,
+        "accessibility": 1,
+        "best-practices": 0.93,
+        "seo": 0.91
+      },
+      "lhMetrics": {
+        "cls": 0.41762778641171805,
+        "lcp": 4652.6499,
+        "tbt": 40,
+        "inp": 4652.6499,
+        "fcp": 1660.6499
+      },
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T02:27:04.618Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/preview",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        },
+        {
+          "target": "/convene",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 4,
+      "lh": {
+        "performance": 0.51,
+        "accessibility": 1,
+        "best-practices": 0.93,
+        "seo": 0.91
+      },
+      "lhMetrics": {
+        "cls": 0.41762778641171805,
+        "lcp": 4653.8832,
+        "tbt": 38,
+        "inp": 4653.8832,
+        "fcp": 1660.8832000000002
+      },
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T02:36:35.615Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/preview",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        },
+        {
+          "target": "/convene",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 4,
+      "lh": {
+        "performance": 0.51,
+        "accessibility": 1,
+        "best-practices": 0.93,
+        "seo": 0.91
+      },
+      "lhMetrics": {
+        "cls": 0.41762778641171805,
+        "lcp": 4653.353800000001,
+        "tbt": 41,
+        "inp": 4653.353800000001,
+        "fcp": 1660.3538
+      },
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T02:41:58.544Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/preview",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        },
+        {
+          "target": "/convene",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 4,
+      "lh": {
+        "performance": 0.51,
+        "accessibility": 1,
+        "best-practices": 0.93,
+        "seo": 0.91
+      },
+      "lhMetrics": {
+        "cls": 0.41762778641171805,
+        "lcp": 4653.3519,
+        "tbt": 39,
+        "inp": 4653.3519,
+        "fcp": 1660.3519
+      },
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T02:47:46.081Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/preview",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        },
+        {
+          "target": "/convene",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 4,
+      "lh": {
+        "performance": 0.51,
+        "accessibility": 1,
+        "best-practices": 0.93,
+        "seo": 0.91
+      },
+      "lhMetrics": {
+        "cls": 0.41762778641171805,
+        "lcp": 4652.9035,
+        "tbt": 46,
+        "inp": 4652.9035,
+        "fcp": 1661.9035
+      },
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T02:49:19.184Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/preview",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        },
+        {
+          "target": "/convene",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 4,
+      "lh": {
+        "performance": 0.51,
+        "accessibility": 1,
+        "best-practices": 0.93,
+        "seo": 0.91
+      },
+      "lhMetrics": {
+        "cls": 0.41762778641171805,
+        "lcp": 4653.399,
+        "tbt": 40,
+        "inp": 4653.399000000001,
+        "fcp": 1661.399
+      },
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T02:53:23.546Z",
+      "success": true,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/preview",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        },
+        {
+          "target": "/convene",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 4,
+      "lh": {
+        "performance": 0.51,
+        "accessibility": 1,
+        "best-practices": 0.93,
+        "seo": 0.91
+      },
+      "lhMetrics": {
+        "cls": 0.41762778641171805,
+        "lcp": 4653.0512,
+        "tbt": 39,
+        "inp": 4653.0512,
+        "fcp": 1660.0512
+      },
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071,
+      "meta": {
+        "baselineForced": true
+      }
+    },
+    {
+      "ts": "2025-10-02T02:54:06.603Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/preview",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        },
+        {
+          "target": "/convene",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 4,
+      "lh": {
+        "performance": 0.51,
+        "accessibility": 1,
+        "best-practices": 0.93,
+        "seo": 0.91
+      },
+      "lhMetrics": {
+        "cls": 0.41762778641171805,
+        "lcp": 4653.6986,
+        "tbt": 40,
+        "inp": 4653.6986,
+        "fcp": 1661.6985999999997
+      },
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T03:10:39.531Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 4
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/preview",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 3
+        },
+        {
+          "target": "/convene",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 4,
+      "p95": 4,
+      "bundleMs": 4,
+      "lh": {
+        "performance": 0.51,
+        "accessibility": 1,
+        "best-practices": 0.93,
+        "seo": 0.91
+      },
+      "lhMetrics": {
+        "cls": 0.41762778641171805,
+        "lcp": 4653.4967,
+        "tbt": 39,
+        "inp": 4653.4967,
+        "fcp": 1660.4967
+      },
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T03:12:17.852Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/preview",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        },
+        {
+          "target": "/convene",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 4,
+      "lh": {
+        "performance": 0.51,
+        "accessibility": 1,
+        "best-practices": 0.93,
+        "seo": 0.91
+      },
+      "lhMetrics": {
+        "cls": 0.41762778641171805,
+        "lcp": 4652.7764,
+        "tbt": 44,
+        "inp": 4652.7764,
+        "fcp": 1659.7763999999997
+      },
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T03:13:42.434Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 3
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/preview",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 2
+        },
+        {
+          "target": "/convene",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 3,
+      "p95": 3,
+      "bundleMs": 4,
+      "lh": {
+        "performance": 0.51,
+        "accessibility": 1,
+        "best-practices": 0.93,
+        "seo": 0.91
+      },
+      "lhMetrics": {
+        "cls": 0.41762778641171805,
+        "lcp": 4652.7764,
+        "tbt": 44,
+        "inp": 4652.7764,
+        "fcp": 1659.7763999999997
+      },
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    },
+    {
+      "ts": "2025-10-02T03:16:29.814Z",
+      "success": false,
+      "perf": [
+        {
+          "target": "/",
+          "ms": 4
+        },
+        {
+          "target": "/learn-more",
+          "ms": 4
+        },
+        {
+          "target": "/preview-questions",
+          "ms": 2
+        },
+        {
+          "target": "/preview",
+          "ms": 2
+        },
+        {
+          "target": "/explore",
+          "ms": 3
+        },
+        {
+          "target": "/convene",
+          "ms": 2
+        }
+      ],
+      "p50": 2,
+      "p90": 4,
+      "p95": 4,
+      "bundleMs": 4,
+      "lh": {
+        "performance": 0.51,
+        "accessibility": 1,
+        "best-practices": 0.93,
+        "seo": 0.91
+      },
+      "lhMetrics": {
+        "cls": 0.41762778641171805,
+        "lcp": 4652.7764,
+        "tbt": 44,
+        "inp": 4652.7764,
+        "fcp": 1659.7763999999997
+      },
+      "totalCssGzip": 7438,
+      "mainBundleGzip": 88071,
+      "totalJsGzip": 88071
+    }
+  ]
+}

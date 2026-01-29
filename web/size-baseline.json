@@ -1,0 +1,8 @@
+{
+  "maxTotalKb": 210,
+  "maxMainKb": 120,
+  "maxVendorReactKb": 190,
+  "maxVendorOtherKb": 30,
+  "maxMediaKb": 400,
+  "maxSingleMediaKb": 350
+}

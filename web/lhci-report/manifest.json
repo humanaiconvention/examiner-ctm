@@ -1,0 +1,14 @@
+[
+  {
+    "url": "http://localhost:64118/",
+    "isRepresentativeRun": true,
+    "htmlPath": "D:\\humanaiconvention\\web\\lhci-report\\localhost-_-2025_10_02_03_12_05.report.html",
+    "jsonPath": "D:\\humanaiconvention\\web\\lhci-report\\localhost-_-2025_10_02_03_12_05.report.json",
+    "summary": {
+      "performance": 0.51,
+      "accessibility": 1,
+      "best-practices": 0.93,
+      "seo": 0.91
+    }
+  }
+]

@@ -1,0 +1,132 @@
+/* New Quote Spotlight Styles (Integrated from Design) */
+.quote-spotlight-card {
+  position: relative;
+  width: 100%;
+  max-width: 900px; /* Max width from design intent */
+  margin: 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05); /* bg-white/5 */
+  backdrop-filter: blur(8px); /* backdrop-blur-smish */
+  border-radius: 0.75rem; /* rounded-xl */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); /* shadow-2xl */
+  overflow: hidden;
+  padding: 2.5rem 1.5rem; /* py-10 px-6 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1.25rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Ambient glow effects (optional, based on design blobs) */
+.quote-spotlight-container {
+  position: relative;
+  padding: 2rem 1rem;
+}
+
+.quote-spotlight-text {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(1.25rem, 4vw, 1.875rem); /* text-xl md:text-2xl lg:text-3xl */
+  font-weight: 300; /* font-light */
+  font-style: italic;
+  line-height: 1.375; /* leading-snug */
+  letter-spacing: -0.025em; /* tracking-tight */
+  color: #ffffff;
+  max-width: 64rem; /* max-w-5xl */
+  margin: 0 auto;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.quote-spotlight-text.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.quote-spotlight-meta {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end; /* Right align attribution */
+  width: 100%; /* Ensure it spans width to align right */
+  column-gap: 0.75rem; /* gap-x-3 */
+  row-gap: 0.25rem; /* gap-y-1 */
+  opacity: 0.9;
+  font-family: 'Inter', sans-serif;
+}
+
+.quote-author {
+  font-size: 0.75rem; /* text-xs */
+  font-weight: 500; /* font-medium */
+  text-transform: uppercase;
+  letter-spacing: 0.1em; /* tracking-widest */
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+}
+
+.quote-separator {
+  display: block;
+  height: 4px;
+  width: 4px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+.quote-year {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  white-space: nowrap;
+}
+
+.quote-source {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+  font-weight: 300;
+  white-space: nowrap;
+}
+
+/* Progress Bar */
+.quote-progress-track {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.quote-progress-fill {
+  height: 100%;
+  background-color: #4f46e5; /* Primary blue-ish */
+  box-shadow: 0 0 10px rgba(79, 70, 229, 0.5);
+  width: 0%;
+  transition: width linear;
+}
+
+/* Controls (hidden by default, appear on hover/interaction) */
+.quote-controls {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.quote-spotlight-card:hover .quote-controls {
+  opacity: 1;
+}
+
+.quote-control-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.quote-control-btn:hover {
+  color: #fff;
+}

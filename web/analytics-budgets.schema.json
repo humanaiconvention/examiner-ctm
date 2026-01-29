@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/analytics-budgets.schema.json",
+  "title": "Analytics Chunk Size Budgets",
+  "type": "object",
+  "required": ["chunks"],
+  "additionalProperties": false,
+  "properties": {
+    "notes": { "type": "string", "description": "Free-form notes or provenance of the baseline." },
+    "version": { "type": "integer", "minimum": 1, "description": "Schema version for future migrations." },
+    "chunks": {
+      "type": "object",
+      "description": "Per analytics chunk size limits (gzip and optional brotli).",
+      "additionalProperties": false,
+      "required": ["core", "engagement", "perf", "errors"],
+      "properties": {
+        "core": { "$ref": "#/definitions/chunkBudget" },
+        "engagement": { "$ref": "#/definitions/chunkBudget" },
+        "perf": { "$ref": "#/definitions/chunkBudget" },
+        "errors": { "$ref": "#/definitions/chunkBudget" }
+      }
+    }
+  },
+  "definitions": {
+    "chunkBudget": {
+      "type": "object",
+      "required": ["gzipKB"],
+      "additionalProperties": false,
+      "properties": {
+        "gzipKB": { "type": "number", "exclusiveMinimum": 0, "description": "Max allowed gzip size in KB (2 decimal precision)." },
+        "brotliKB": { "type": "number", "exclusiveMinimum": 0, "description": "Optional Brotli size cap in KB." },
+        "floorKB": { "type": "number", "exclusiveMinimum": 0, "description": "Do not ratchet below this floor when auto-tightening." },
+        "locked": { "type": "boolean", "description": "If true, ratchet logic will not reduce this chunk further." },
+        "meta": { "type": "string", "description": "Optional explanatory metadata for this chunk." }
+      }
+    }
+  }
+}

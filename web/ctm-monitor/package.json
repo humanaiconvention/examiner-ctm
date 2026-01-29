@@ -1,0 +1,18 @@
+{
+  "name": "ctm-monitor",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "esbuild app.js --bundle --outfile=app.bundle.js --format=iife --global-name=CTMMonitor --loader:.js=jsx",
+    "build-simple": "esbuild app-simple.js --bundle --outfile=app.bundle.js --format=iife --global-name=CTMMonitor --loader:.js=jsx"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.15.0",
+    "lucide-react": "^0.473.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.2"
+  }
+}

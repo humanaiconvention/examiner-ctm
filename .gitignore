@@ -1,0 +1,8 @@
+node_modules
+dist
+web/dist
+ctm-monitor/node_modules
+.gemini
+*.log
+venv
+.venv

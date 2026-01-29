@@ -1,0 +1,281 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "preview-diagnose-lighthouse",
+          "rules": [
+            {
+              "id": "categories.performance",
+              "name": "categories.performance",
+              "shortDescription": {
+                "text": "Lighthouse category score: performance"
+              },
+              "fullDescription": {
+                "text": "Lighthouse category score: performance"
+              },
+              "help": {
+                "text": "Threshold or quality gate enforced by preview-diagnose."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "category": "lighthouse",
+                "kind": "metric"
+              }
+            },
+            {
+              "id": "categories.accessibility",
+              "name": "categories.accessibility",
+              "shortDescription": {
+                "text": "Lighthouse category score: accessibility"
+              },
+              "fullDescription": {
+                "text": "Lighthouse category score: accessibility"
+              },
+              "help": {
+                "text": "Threshold or quality gate enforced by preview-diagnose."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "category": "lighthouse",
+                "kind": "metric"
+              }
+            },
+            {
+              "id": "categories.best-practices",
+              "name": "categories.best-practices",
+              "shortDescription": {
+                "text": "Lighthouse category score: best-practices"
+              },
+              "fullDescription": {
+                "text": "Lighthouse category score: best-practices"
+              },
+              "help": {
+                "text": "Threshold or quality gate enforced by preview-diagnose."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "category": "lighthouse",
+                "kind": "metric"
+              }
+            },
+            {
+              "id": "categories.seo",
+              "name": "categories.seo",
+              "shortDescription": {
+                "text": "Lighthouse category score: seo"
+              },
+              "fullDescription": {
+                "text": "Lighthouse category score: seo"
+              },
+              "help": {
+                "text": "Threshold or quality gate enforced by preview-diagnose."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "category": "lighthouse",
+                "kind": "metric"
+              }
+            },
+            {
+              "id": "cumulative-layout-shift",
+              "name": "cumulative-layout-shift",
+              "shortDescription": {
+                "text": "CLS (layout shift)"
+              },
+              "fullDescription": {
+                "text": "CLS (layout shift)"
+              },
+              "help": {
+                "text": "Threshold or quality gate enforced by preview-diagnose."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "category": "web-vitals",
+                "kind": "metric"
+              }
+            },
+            {
+              "id": "largest-contentful-paint",
+              "name": "largest-contentful-paint",
+              "shortDescription": {
+                "text": "LCP (largest contentful paint)"
+              },
+              "fullDescription": {
+                "text": "LCP (largest contentful paint)"
+              },
+              "help": {
+                "text": "Threshold or quality gate enforced by preview-diagnose."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "category": "web-vitals",
+                "kind": "metric"
+              }
+            },
+            {
+              "id": "total-blocking-time",
+              "name": "total-blocking-time",
+              "shortDescription": {
+                "text": "TBT (total blocking time)"
+              },
+              "fullDescription": {
+                "text": "TBT (total blocking time)"
+              },
+              "help": {
+                "text": "Threshold or quality gate enforced by preview-diagnose."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "category": "web-vitals",
+                "kind": "metric"
+              }
+            },
+            {
+              "id": "interaction-to-next-paint",
+              "name": "interaction-to-next-paint",
+              "shortDescription": {
+                "text": "INP (interaction to next paint)"
+              },
+              "fullDescription": {
+                "text": "INP (interaction to next paint)"
+              },
+              "help": {
+                "text": "Threshold or quality gate enforced by preview-diagnose."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "category": "web-vitals",
+                "kind": "metric"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "categories.performance",
+          "level": "warning",
+          "message": {
+            "text": "categories.performance warning"
+          },
+          "properties": {
+            "id": "categories.performance",
+            "level": "warning",
+            "expected": ">=0.5",
+            "actual": 0.51
+          }
+        },
+        {
+          "ruleId": "categories.accessibility",
+          "level": "note",
+          "message": {
+            "text": "categories.accessibility info"
+          },
+          "properties": {
+            "id": "categories.accessibility",
+            "level": "info",
+            "expected": ">=0.9",
+            "actual": 1
+          }
+        },
+        {
+          "ruleId": "categories.best-practices",
+          "level": "warning",
+          "message": {
+            "text": "categories.best-practices warning"
+          },
+          "properties": {
+            "id": "categories.best-practices",
+            "level": "warning",
+            "expected": ">=0.9",
+            "actual": 0.93
+          }
+        },
+        {
+          "ruleId": "categories.seo",
+          "level": "note",
+          "message": {
+            "text": "categories.seo info"
+          },
+          "properties": {
+            "id": "categories.seo",
+            "level": "info",
+            "expected": ">=0.85",
+            "actual": 0.91
+          }
+        },
+        {
+          "ruleId": "cumulative-layout-shift",
+          "level": "warning",
+          "message": {
+            "text": "cumulative-layout-shift warning"
+          },
+          "properties": {
+            "id": "cumulative-layout-shift",
+            "level": "warning",
+            "expected": "<=0.45",
+            "actual": 0.41762778641171805
+          }
+        },
+        {
+          "ruleId": "largest-contentful-paint",
+          "level": "note",
+          "message": {
+            "text": "largest-contentful-paint info"
+          },
+          "properties": {
+            "id": "largest-contentful-paint",
+            "level": "info",
+            "expected": "<=5000",
+            "actual": 4652.7764
+          }
+        },
+        {
+          "ruleId": "total-blocking-time",
+          "level": "note",
+          "message": {
+            "text": "total-blocking-time info"
+          },
+          "properties": {
+            "id": "total-blocking-time",
+            "level": "info",
+            "expected": "<=300",
+            "actual": 44
+          }
+        },
+        {
+          "ruleId": "interaction-to-next-paint",
+          "level": "note",
+          "message": {
+            "text": "interaction-to-next-paint info"
+          },
+          "properties": {
+            "id": "interaction-to-next-paint",
+            "level": "info",
+            "expected": "<=6000",
+            "actual": 4652.7764
+          }
+        }
+      ]
+    }
+  ]
+}

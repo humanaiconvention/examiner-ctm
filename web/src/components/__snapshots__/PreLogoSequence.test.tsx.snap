@@ -1,0 +1,36 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PreLogoSequence > matches initial render snapshot 1`] = `
+<div
+  aria-atomic="true"
+  aria-labelledby="prelogo-heading"
+  aria-live="polite"
+  aria-modal="true"
+  class="prelogo "
+  role="dialog"
+>
+  <div
+    class="prelogo__backdrop"
+  />
+  <div
+    class="prelogo__content"
+  >
+    <div
+      class="prelogo__stage"
+    >
+      <h1
+        class="prelogo__text"
+        id="prelogo-heading"
+      >
+        What do we need to understand, to shape the future we want?
+      </h1>
+      <button
+        class="prelogo__cta"
+        type="button"
+      >
+        Answer with us
+      </button>
+    </div>
+  </div>
+</div>
+`;

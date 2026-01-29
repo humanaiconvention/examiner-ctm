@@ -1,0 +1,69 @@
+.preview-intro { position: fixed; inset:0; z-index: 9999; display:flex; align-items:center; justify-content:center; font-family: system-ui, sans-serif; pointer-events:auto; }
+.preview-intro__backdrop { position:absolute; inset:0; background:#050505; animation: introFadeBackdrop 600ms ease both; }
+/* Subtle vignette / radial emphasis to draw eye toward center questions */
+.preview-intro__backdrop:before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 50% 48%, rgba(255,255,255,0.06), rgba(0,0,0,0.75) 55%, rgba(0,0,0,0.92)); pointer-events:none; mix-blend-mode:normal; }
+.preview-intro__content { position:relative; padding: 0 2rem; max-width: 960px; width:100%; text-align:center; }
+.preview-intro__heading { position:relative; font-size: clamp(2.05rem, 4vw + 1rem, 4.15rem); line-height:1.13; font-weight:580; color:#f5f5f5; min-height:4.8em; letter-spacing:-0.018em; font-variation-settings:"wght" 580; }
+/* Add a soft underline gradient accent that fades in with CTA phase (CSS hook via data-phase) */
+.preview-intro__heading:after { content:""; position:absolute; left:50%; bottom:-0.6rem; width:38%; height:3px; background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.55) 18%, rgba(255,255,255,.55) 82%, rgba(255,255,255,0) 100%); opacity:0; transform:translateX(-50%) scaleX(.92); transition: opacity 700ms ease 120ms, transform 900ms cubic-bezier(.4,0,.2,1) 120ms; }
+[data-phase="cta"] .preview-intro__heading:after { opacity:0.85; transform:translateX(-50%) scaleX(1); }
+.preview-intro__actions { position:relative; margin-top:2.25rem; animation: fadeIn 600ms ease both; display:inline-flex; align-items:center; gap:.85rem; }
+.preview-intro__morph { position:relative; width:auto; min-width:140px; display:inline-block; }
+.preview-intro__morph button { position:relative; }
+.preview-intro__morph .preview-intro__skip { position:absolute; top:0; left:0; right:0; }
+.preview-intro__morph .preview-intro__cta { position:relative; }
+.preview-intro__cta { position:relative; background:#fff; color:#111; font-size:1rem; padding:0.85rem 1.4rem; border-radius:999px; font-weight:600; border:1px solid #444; cursor:pointer; box-shadow:0 0 0 2px #fff inset, 0 2px 8px -2px rgba(0,0,0,0.4); transition: background .35s, color .35s, transform .5s cubic-bezier(.55,.1,.25,1), box-shadow .35s; opacity:0; transform:scale(.7) translateY(6px); animation: ctaMorphIn 740ms cubic-bezier(.55,.1,.25,1) 40ms forwards; }
+.preview-intro__skip {
+	background: transparent;
+	color: #ccc;
+	border: 1px solid #444;
+	padding: 0.6rem 1.1rem;
+	font-size: 0.9rem;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background .2s, color .2s, border-color .2s;
+}
+.preview-intro__skip:hover,
+.preview-intro__skip:focus-visible {
+	background: #222;
+	color: #fff;
+	border-color: #666;
+	outline: none;
+}
+.preview-intro__skip:active {
+	background: #111;
+}
+.preview-intro__skip:focus-visible {
+	box-shadow: 0 0 0 2px #fff, 0 0 0 4px #2563eb;
+}
+.preview-intro__skip--bloom { animation: skipBloom 620ms cubic-bezier(.55,.1,.25,1) both; will-change: transform, opacity, filter; }
+.preview-intro__skip--retire { pointer-events:none; animation: skipRetire 560ms cubic-bezier(.6,.05,.3,1) forwards; will-change: transform, opacity, filter; }
+.preview-intro__cta { will-change: transform, opacity, filter; }
+
+@keyframes skipBloom { from { opacity:0; transform: scale(.85) translateY(4px); filter:blur(2px); } 40% { opacity:1; } to { opacity:1; transform: scale(1) translateY(0); filter:blur(0);} }
+@keyframes skipRetire { from { opacity:1; transform:scale(1) translateY(0); filter:none; } 55% { opacity:.25; transform:scale(.82) translateY(-4px); filter:blur(1px);} to { opacity:0; transform:scale(.58) translateY(-10px); filter:blur(2px);} }
+@keyframes ctaMorphIn { from { opacity:0; transform:scale(.7) translateY(6px); filter:blur(3px); } 55% { opacity:1; transform:scale(1.05) translateY(-2px); } to { opacity:1; transform:scale(1) translateY(0); filter:blur(0);} }
+.preview-intro__cta:hover, .preview-intro__cta:focus { background:#111; color:#fff; outline:none; }
+.preview-intro__cta:active { transform: scale(.96); }
+
+.intro-question { position:absolute; inset:0; opacity:0; transform:translateY(14px) scale(.985); transition: opacity 720ms cubic-bezier(.55,.1,.25,1), transform 800ms cubic-bezier(.55,.1,.25,1), filter 800ms ease; display:flex; align-items:center; justify-content:center; filter:blur(4px); }
+.intro-question--active { opacity:1; transform:translateY(0) scale(1); filter:blur(0); }
+.preview-intro--xfade .intro-question--active { transition-duration:1100ms; }
+.intro-question--fade-out { opacity:0; transform:translateY(-14px) scale(.985); filter:blur(6px); transition: opacity 1000ms ease, transform 1000ms ease, filter 1000ms ease; }
+
+/* Reduced motion adjustments: remove blur/scale while keeping clarity */
+.preview-intro--reduced .intro-question { transform:none; filter:none; }
+.preview-intro--reduced .intro-question--fade-out { transform:none; filter:none; }
+
+.preview-intro--exiting .preview-intro__backdrop { animation: introFadeBackdropOut 600ms ease forwards; }
+.preview-intro--exiting { animation: fadeOut 600ms ease forwards; }
+
+@keyframes introFadeBackdrop { from { opacity:0; } to { opacity:1; } }
+@keyframes introFadeBackdropOut { from { opacity:1; } to { opacity:0; } }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px);} to {opacity:1; transform:translateY(0);} }
+@keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
+
+/* Reduced motion: show second question & CTA immediately */
+.preview-intro--reduced .intro-question { transition:none; transform:none; }
+.preview-intro--reduced .intro-question--active { opacity:1; }
+.preview-intro--reduced .preview-intro__backdrop { animation:none; }

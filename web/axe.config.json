@@ -1,0 +1,6 @@
+{
+  "rules": {
+    "color-contrast": { "enabled": true }
+  },
+  "disable": []
+}

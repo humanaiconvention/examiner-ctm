@@ -1,0 +1,96 @@
+/* Clean, properly formatted preview styles */
+.section--logo-preview {
+	margin-top: 2rem;
+	padding: 1.5rem 1rem;
+	background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0));
+	border: 1px solid rgba(255,255,255,0.08);
+	border-radius: 12px;
+	backdrop-filter: blur(6px);
+}
+
+.section--logo-preview h2 {
+	margin-top: 0;
+	font-size: 1.3rem;
+	letter-spacing: 0.02em;
+}
+
+.preview-intro {
+	font-size: 0.9rem;
+	opacity: 0.85;
+	margin-top: 0.25rem;
+	max-width: 52ch;
+}
+
+.preview-controls {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1.25rem;
+	align-items: center;
+	margin: 1rem 0 1.25rem;
+	font-size: 0.85rem;
+}
+
+.preview-controls label {
+	display: flex;
+	gap: 0.5rem;
+	align-items: center;
+	white-space: nowrap;
+}
+
+.preview-controls input[type=range] {
+	width: 140px;
+}
+
+.preview-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: 1.75rem;
+	align-items: start;
+}
+
+.preview-cell {
+	position: relative;
+	padding: 0.75rem 0.75rem 1.25rem;
+	border: 1px solid rgba(255,255,255,0.08);
+	border-radius: 10px;
+	background: rgba(255,255,255,0.02);
+}
+
+.preview-label {
+	position: absolute;
+	top: 6px;
+	left: 10px;
+	font-size: 0.65rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	opacity: 0.65;
+}
+
+.preview-cell .logo-humanai {
+	width: 100%;
+	max-width: 240px;
+	margin: 1.25rem auto 0;
+	display: block;
+}
+
+.preview-notes {
+	margin-top: 1.25rem;
+	font-size: 0.75rem;
+	opacity: 0.8;
+}
+
+.preview-notes summary {
+	cursor: pointer;
+	font-weight: 500;
+}
+
+@media (prefers-color-scheme: light) {
+	.section--logo-preview {
+		background: linear-gradient(135deg, rgba(0,0,0,0.04), rgba(0,0,0,0));
+		border-color: rgba(0,0,0,0.12);
+	}
+	.preview-cell {
+		border-color: rgba(0,0,0,0.08);
+		background: rgba(0,0,0,0.02);
+	}
+}

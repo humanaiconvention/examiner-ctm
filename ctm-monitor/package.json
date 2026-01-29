@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "esbuild app.js --bundle --outfile=app.bundle.js --format=iife --global-name=CTMMonitor --loader:.js=jsx",
+    "build": "esbuild app.js --bundle --outfile=app.bundle.v6.1.js --format=iife --global-name=CTMMonitor --loader:.js=jsx",
     "build-simple": "esbuild app-simple.js --bundle --outfile=app.bundle.js --format=iife --global-name=CTMMonitor --loader:.js=jsx"
   },
   "dependencies": {

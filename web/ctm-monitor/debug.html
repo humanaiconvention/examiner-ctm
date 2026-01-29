@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head><title>Fetch Test</title></head>
+<body>
+<pre id="output">Testing...</pre>
+<script>
+const url = "https://raw.githubusercontent.com/humanaiconvention/ctm-monitor/main/parallel_training_metrics.jsonl";
+const output = document.getElementById('output');
+
+fetch(url + '?t=' + Date.now())
+  .then(r => {
+    output.textContent = `Status: ${r.status}\nOK: ${r.ok}\n\n`;
+    return r.text();
+  })
+  .then(text => {
+    const lines = text.split('\n').filter(l => l.trim());
+    output.textContent += `Lines: ${lines.length}\n`;
+    output.textContent += `Last line:\n${lines[lines.length - 1]}`;
+  })
+  .catch(e => {
+    output.textContent = `ERROR: ${e.message}\n${e.stack}`;
+  });
+</script>
+</body>
+</html>

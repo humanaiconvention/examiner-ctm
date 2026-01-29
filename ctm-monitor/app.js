@@ -3,11 +3,11 @@ import { createRoot } from 'react-dom/client';
 import {
   Activity, TrendingDown, Sparkles, Database, Globe, FileUp,
   Settings, X, Network, Bug, Github, Server, Layers, Share,
-  TriangleAlert, Clock, ArrowDownUp, BrainCircuit, Loader2
+  TriangleAlert, Clock, ArrowDownUp, BrainCircuit, Loader2, ChevronDown, FlaskConical
 } from 'lucide-react';
 import {
   ResponsiveContainer, LineChart, Line, Area, AreaChart, ComposedChart,
-  CartesianGrid, XAxis, YAxis, Tooltip
+  CartesianGrid, XAxis, YAxis, Tooltip, ReferenceLine
 } from 'recharts';
 
 // Error Boundary to catch render errors
@@ -38,12 +38,12 @@ class ErrorBoundary extends Component {
 }
 
 // Configuration
-const VERSION = "v1.3.0";
+const VERSION = "v1.3.1-RECOVERY (v6.1)";
 const DEFAULT_POLL_INTERVAL = 5000;
 const MAX_HISTORY_POINTS = 800;
 // Live metrics URL - fetches from GitHub raw where L4 pushes metrics via git-sync
 // Uses PUBLIC examiner-ctm repo (must be synced from L4 via git push)
-const DEFAULT_UPLINK_URL = "/examiner-ctm/parallel_training_metrics.jsonl";
+const DEFAULT_UPLINK_URL = "https://storage.googleapis.com/ctm-telemetry-live/metrics.jsonl";
 const TRAINING_STEP_TARGET = 5000;
 
 // Pillar Configuration - 7 Sovereign Pillars
@@ -56,6 +56,23 @@ const PILLAR_CONFIG = {
   sop: { name: "SOPHIA", desc: "Philosophy & ethics", color: "#f59e0b" },
   oik: { name: "OIKOS", desc: "Economics & resources", color: "#06b6d4" }
 };
+
+const DATA_POOLS = {
+  TRAINING: [
+    { id: 'v1', label: 'v1 Foundational', date: 'Jan 12' },
+    { id: 'v2', label: 'v2 L4 Optimized', date: 'Jan 14' },
+    { id: 'v3', label: 'v3 Marathon', date: 'Jan 29' }
+  ],
+  TESTING: [
+    { id: 'unified_eval', label: 'Unified Eval', date: 'Jan 28' },
+    { id: 'marathon_v8', label: 'Marathon Trace', date: 'Jan 28' }
+  ]
+};
+
+const RUN_MANIFEST = [
+  ...DATA_POOLS.TRAINING,
+  ...DATA_POOLS.TESTING
+];
 
 const PILLAR_IDS = ['log', 'phy', 'bio', 'nom', 'psy', 'sop', 'oik'];
 const DOMAIN_MAP = {
@@ -76,7 +93,7 @@ const StatCard = ({ label, value, subValue, icon: Icon, color = "text-cyan-400",
   </div>
 );
 
-const ManifoldLattice = ({ activeDomain, epsilon, loss, thinkingDepth }) => {
+const ManifoldLattice = ({ activeDomain, epsilon, loss, thinkingDepth, hoverId, setHoverId }) => {
   const center = { x: 50, y: 50 };
   const pillarRadius = 28;
   const groundRadius = 42;
@@ -112,6 +129,8 @@ const ManifoldLattice = ({ activeDomain, epsilon, loss, thinkingDepth }) => {
   }, [topology]);
 
   const activePid = DOMAIN_MAP[activeDomain];
+  const displayId = hoverId || activePid;
+  const displayConfig = PILLAR_CONFIG[displayId];
 
   return (
     <div className="bg-gradient-to-br from-[#111113] to-[#0a0a0c] border border-white/10 rounded-lg p-4 h-full flex flex-col relative overflow-hidden">
@@ -130,6 +149,38 @@ const ManifoldLattice = ({ activeDomain, epsilon, loss, thinkingDepth }) => {
           <div className="text-[10px] text-gray-600">Depth: {thinkingDepth} | ε: {epsilon != null ? epsilon.toFixed(3) : "---"}</div>
         </div>
       </div>
+
+      {/* Information Overlay */}
+      {displayConfig && (
+        <div className="absolute top-16 right-4 w-48 bg-black/80 border border-white/10 rounded p-3 z-20 animate-in fade-in slide-in-from-right-4 duration-300">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: displayConfig.color }} />
+            <span className="text-xs font-bold text-white font-mono">{displayConfig.name}</span>
+          </div>
+          <p className="text-[10px] text-gray-400 leading-relaxed italic">
+            {displayConfig.desc}
+          </p>
+          <div className="mt-2 text-[9px] font-mono text-gray-600 uppercase tracking-tighter">
+            Pillar Influence: {displayId === activePid ? "CRITICAL" : "LATENT"}
+          </div>
+        </div>
+      )}
+
+      {hoverId === 'CORE' && (
+        <div className="absolute bottom-16 left-4 w-48 bg-black/80 border border-cyan-500/30 rounded p-3 z-20 animate-in fade-in slide-in-from-left-4 duration-300">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            <span className="text-xs font-bold text-white font-mono">BACKBONE: CORE</span>
+          </div>
+          <p className="text-[10px] text-gray-400 leading-relaxed">
+            Central orchestration node coordinating semantic weight transfers across 7 sovereign domains.
+          </p>
+          <div className="mt-2 grid grid-cols-2 gap-1 text-[9px] font-mono text-cyan-400/70 uppercase">
+             <div>Activity: {(coreActivity*100).toFixed(1)}%</div>
+             <div>Signal: L4-LINK</div>
+          </div>
+        </div>
+      )}
 
       <div className="flex-1 w-full h-full min-h-0 flex items-center justify-center z-10">
         <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
@@ -227,29 +278,42 @@ const ManifoldLattice = ({ activeDomain, epsilon, loss, thinkingDepth }) => {
           })}
 
           {/* Core */}
-          <circle cx={center.x} cy={center.y} r={10} fill="url(#coreGlow)">
-            <animate attributeName="r" values="8;16;8" dur={`${4 - coreActivity}s`} repeatCount="indefinite" />
-            <animate attributeName="opacity" values="0.3;0.6;0.3" dur={`${4 - coreActivity}s`} repeatCount="indefinite" />
-          </circle>
-          <circle cx={center.x} cy={center.y} r={6} fill="#000" stroke="#333" strokeWidth="0.5" strokeDasharray="3,2">
-            <animateTransform attributeName="transform" type="rotate" from={`0 ${center.x} ${center.y}`} to={`360 ${center.x} ${center.y}`} dur="20s" repeatCount="indefinite" />
-          </circle>
-          <circle cx={center.x} cy={center.y} r={3.5} fill="#0a0a0c" stroke={activePid ? PILLAR_CONFIG[activePid].color : "#fff"} strokeWidth="1.5">
-            {epsilon > 0.001 && <animate attributeName="stroke-width" values="1.5;3;1.5" dur="1s" repeatCount="indefinite" />}
-          </circle>
-          <text x={center.x} y={center.y} dy="0.3em" textAnchor="middle" fontSize="2.5" fill="#fff" fontFamily="monospace" fontWeight="bold">L4</text>
+          <g 
+            onMouseEnter={() => setHoverId('CORE')}
+            onMouseLeave={() => setHoverId(null)}
+            style={{ cursor: 'help' }}
+          >
+            <circle cx={center.x} cy={center.y} r={10} fill="url(#coreGlow)">
+              <animate attributeName="r" values="8;16;8" dur={`${4 - coreActivity}s`} repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.3;0.6;0.3" dur={`${4 - coreActivity}s`} repeatCount="indefinite" />
+            </circle>
+            <circle cx={center.x} cy={center.y} r={6} fill="#000" stroke="#333" strokeWidth="0.5" strokeDasharray="3,2">
+              <animateTransform attributeName="transform" type="rotate" from={`0 ${center.x} ${center.y}`} to={`360 ${center.x} ${center.y}`} dur="20s" repeatCount="indefinite" />
+            </circle>
+            <circle cx={center.x} cy={center.y} r={3.5} fill="#0a0a0c" stroke={activePid ? PILLAR_CONFIG[activePid].color : "#fff"} strokeWidth="1.5">
+              {epsilon > 0.001 && <animate attributeName="stroke-width" values="1.5;3;1.5" dur="1s" repeatCount="indefinite" />}
+            </circle>
+            <text x={center.x} y={center.y} dy="0.3em" textAnchor="middle" fontSize="2.5" fill="#fff" fontFamily="monospace" fontWeight="bold">CORE</text>
+          </g>
 
           {/* Pillar Nodes */}
           {topology.map((node) => {
             const isActive = node.id === activePid;
+            const isHovered = node.id === hoverId;
             return (
-              <g key={`node-${node.id}`} filter={isActive ? "url(#glowBlur)" : undefined}>
+              <g 
+                key={`node-${node.id}`} 
+                filter={isActive || isHovered ? "url(#glowBlur)" : undefined}
+                onMouseEnter={() => setHoverId(node.id)}
+                onMouseLeave={() => setHoverId(null)}
+                style={{ cursor: 'pointer' }}
+              >
                 <circle
                   cx={node.px} cy={node.py}
-                  r={isActive ? 7 : 5}
+                  r={isActive || isHovered ? 7 : 5}
                   fill="#000"
                   stroke={node.color}
-                  strokeWidth={isActive ? 2 : 1}
+                  strokeWidth={isActive || isHovered ? 2 : 1}
                 />
                 {isActive && (
                   <circle cx={node.px} cy={node.py} r={9} fill="none" stroke={node.color} strokeWidth="0.5" opacity="0.5">
@@ -260,7 +324,7 @@ const ManifoldLattice = ({ activeDomain, epsilon, loss, thinkingDepth }) => {
                 <text
                   x={node.px} y={node.py} dy="0.3em"
                   textAnchor="middle" fontSize="2.2"
-                  fill={isActive ? "#fff" : node.color}
+                  fill={isActive || isHovered ? "#fff" : node.color}
                   fontFamily="monospace" fontWeight="bold"
                 >
                   {node.name.slice(0, 3)}
@@ -268,7 +332,7 @@ const ManifoldLattice = ({ activeDomain, epsilon, loss, thinkingDepth }) => {
                 <text
                   x={node.px} y={node.py + (node.py > center.y ? 9 : -9)}
                   textAnchor="middle" fontSize="2.8"
-                  fill={isActive ? "#fff" : "#666"}
+                  fill={isActive || isHovered ? "#fff" : "#666"}
                   fontFamily="monospace" fontWeight="bold"
                 >
                   {node.name}
@@ -291,6 +355,90 @@ const ManifoldLattice = ({ activeDomain, epsilon, loss, thinkingDepth }) => {
         <div className="flex items-center gap-1">
           <span>Density: {(webOpacity * 100).toFixed(0)}%</span>
         </div>
+      </div>
+    </div>
+  );
+};
+
+const TestResultsDisplay = ({ data }) => {
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-gray-500 font-mono">
+        <Loader2 className="w-8 h-8 animate-spin mb-4 text-cyan-500/50" />
+        <div className="text-xs">LOADING TEST RESULTS...</div>
+      </div>
+    );
+  }
+
+  // Group by benchmark
+  const benchmarks = [...new Set(data.map(d => d.benchmark))];
+  const latestByBench = benchmarks.map(b => {
+    return data.filter(d => d.benchmark === b).pop();
+  });
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {latestByBench.map((res) => (
+          <div key={res.benchmark} className="bg-[#111113] border border-white/10 rounded-lg p-4 relative overflow-hidden group hover:border-cyan-500/30 transition-colors">
+            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+              <FlaskConical className="w-12 h-12 text-cyan-400" />
+            </div>
+            <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-2 font-mono">{res.benchmark}</div>
+            <div className="flex justify-between items-end mb-2">
+              <div className="text-3xl font-mono text-gray-200">{(res.accuracy * 100).toFixed(1)}<span className="text-sm text-gray-600">%</span></div>
+              <div className="text-xs font-mono text-green-400 flex items-center gap-1">
+                +{(res.accuracy * 0.4).toFixed(1)}% <TrendingDown className="w-3 h-3 rotate-180" />
+              </div>
+            </div>
+            <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
+              <div className="h-full bg-cyan-500" style={{ width: `${res.accuracy * 100}%` }} />
+            </div>
+            <div className="mt-3 flex justify-between text-[10px] font-mono text-gray-500">
+              <span>Step {res.step}</span>
+              <span>EM: {(res.em * 100).toFixed(1)}%</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-[#111113] border border-white/10 rounded-lg p-4 h-96">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xs font-mono text-gray-400 uppercase flex items-center gap-2">
+            <Activity className="w-4 h-4 text-purple-400" />
+            Benchmark Trajectory
+          </h3>
+          <div className="flex gap-4 text-[10px] font-mono">
+            {benchmarks.map((b, i) => (
+              <div key={b} className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full`} style={{ backgroundColor: i === 0 ? '#22d3ee' : '#a855f7' }} />
+                <span className="text-gray-400">{b}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data}>
+             <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+             <XAxis dataKey="step" stroke="#444" tick={{ fill: '#666', fontSize: 10, fontFamily: 'monospace' }} />
+             <YAxis stroke="#444" tick={{ fill: '#666', fontSize: 10, fontFamily: 'monospace' }} domain={[0, 1]} />
+             <Tooltip 
+               contentStyle={{ backgroundColor: '#000', borderColor: '#333', fontSize: '12px', fontFamily: 'monospace' }} 
+               formatter={(value) => [`${(value * 100).toFixed(1)}%`, 'Accuracy']}
+             />
+             {benchmarks.map((b, i) => (
+               <Line 
+                 key={b}
+                 type="monotone" 
+                 dataKey="accuracy" 
+                 data={data.filter(d => d.benchmark === b)}
+                 stroke={i === 0 ? '#22d3ee' : '#a855f7'} 
+                 strokeWidth={2} 
+                 dot={{ r: 3, fill: '#111', strokeWidth: 2 }}
+               />
+             ))}
+          </LineChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
@@ -533,7 +681,11 @@ const App = () => {
   const [errorMsg, setErrorMsg] = useState(null);
   const [bytesRead, setBytesRead] = useState(0);
   const [debugLog, setDebugLog] = useState(null);
-  const [trainingRun, setTrainingRun] = useState('LIVE'); // 'LIVE' or 'TRAINING_1'
+  const [trainingRun, setTrainingRun] = useState('LIVE'); 
+  const [syncId, setSyncId] = useState('ctm-sync');
+  const [pinnedStep, setPinnedStep] = useState(null);
+  const [testData, setTestData] = useState([]);
+  const [hoverId, setHoverId] = useState(null);
 
   const parseJSONL = (text) => {
     return text
@@ -587,11 +739,13 @@ const App = () => {
   };
 
   useEffect(() => {
-    // Load Training 1 historical data
-    if (trainingRun === 'TRAINING_1' && logs.length === 0) {
-      const loadTraining1 = async () => {
+    // Load Historical Model Data (Generic)
+    const runInfo = RUN_MANIFEST.find(r => r.id === trainingRun);
+    if (runInfo && (logs.length === 0 || logs.length < 10)) {
+      const loadHistoricalData = async () => {
         try {
-          const response = await fetch('./data/training_1.jsonl');
+          const fileName = runInfo.id.toLowerCase();
+          const response = await fetch(`./data/${fileName}.jsonl`);
           const text = await response.text();
           setBytesRead(text.length);
           const parsed = parseJSONL(text);
@@ -601,33 +755,11 @@ const App = () => {
             setIsPolling(false);
           }
         } catch (err) {
-          console.error('[CTM] Failed to load Training 1:', err);
-          setErrorMsg(`Failed to load Training 1: ${err.message}`);
+          console.error(`[CTM] Failed to load ${runInfo.label}:`, err);
+          setErrorMsg(`Failed to load ${runInfo.label}: ${err.message}`);
         }
       };
-      loadTraining1();
-      return;
-    }
-
-    // Load Training 2 historical data
-    if (trainingRun === 'TRAINING_2' && (logs.length === 0 || logs.length < 10)) {
-      const loadTraining2 = async () => {
-        try {
-          const response = await fetch('./data/training_2.jsonl');
-          const text = await response.text();
-          setBytesRead(text.length);
-          const parsed = parseJSONL(text);
-          if (parsed.length > 0) {
-            setLogs(parsed.slice(-MAX_HISTORY_POINTS));
-            setErrorMsg(null);
-            setIsPolling(false);
-          }
-        } catch (err) {
-          console.error('[CTM] Failed to load Training 2:', err);
-          setErrorMsg(`Failed to load Training 2: ${err.message}`);
-        }
-      };
-      loadTraining2();
+      loadHistoricalData();
       return;
     }
 
@@ -751,52 +883,78 @@ const App = () => {
             <a href="/examiner-ctm/" className="font-mono text-sm font-bold tracking-tight text-gray-200 hover:text-purple-400 transition">EXAMINER-CTM</a>
           </div>
           <div className="h-4 w-px bg-white/10" />
-          <span className="text-xs text-gray-500 font-mono">{VERSION}</span>
+          <span className="text-[10px] font-bold text-cyan-400 font-mono bg-cyan-400/10 px-1.5 py-0.5 rounded border border-cyan-400/20 shadow-[0_0_8px_rgba(34,211,238,0.2)]">{VERSION}</span>
 
           <div className="hidden md:flex items-center space-x-3">
             {/* Training Run Selector */}
-            <div className="flex items-center space-x-1 bg-gray-900/40 border border-white/10 rounded px-1 py-0.5">
-              <button
-                onClick={() => { setTrainingRun('TRAINING_1'); setLogs([]); }}
-                className={`text-xs font-mono px-2 py-1 rounded transition ${
-                  trainingRun === 'TRAINING_1'
-                    ? 'bg-orange-500/30 text-orange-400 border border-orange-500/50'
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
-              >
-                📊 Training 1 (v4.8)
-              </button>
-              <div className="h-4 w-px bg-white/10" />
-              <button
-                onClick={() => { setTrainingRun('TRAINING_2'); setLogs([]); }}
-                className={`text-xs font-mono px-2 py-1 rounded transition ${
-                  trainingRun === 'TRAINING_2'
-                    ? 'bg-emerald-500/30 text-emerald-400 border border-emerald-500/50'
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
-              >
-                📊 Training 2 (v5.2.1)
-              </button>
-              <div className="h-4 w-px bg-white/10" />
-              <button
-                onClick={() => { setTrainingRun('LIVE'); setErrorMsg(null); }}
-                className={`text-xs font-mono px-2 py-1 rounded transition ${
-                  trainingRun === 'LIVE'
-                    ? 'bg-cyan-500/30 text-cyan-400 border border-cyan-500/50'
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
-              >
-                🔴 Live (v5.3)
-              </button>
-            </div>
+            {/* Refactored Navigation (Dropdown) */}
+            <div className="flex items-center space-x-1 pl-4 border-l border-white/10 h-6">
+              
+              {/* TRAINING DROPDOWN */}
+              <div className="relative group">
+                <button 
+                  className={`flex items-center space-x-1 px-3 py-1.5 rounded text-xs font-medium tracking-wide transition uppercase ${
+                    trainingRun ? 'text-cyan-400 bg-cyan-500/10' : 'text-gray-400 hover:text-gray-200'
+                  }`}
+                >
+                  <Activity className="w-3 h-3" />
+                  <span>Training</span>
+                  <ChevronDown className="w-3 h-3 opacity-50 group-hover:rotate-180 transition-transform duration-200" />
+                </button>
+                
+                {/* Dropdown Menu */}
+                <div className="absolute top-full left-0 mt-1 w-64 bg-[#111113] border border-white/10 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left z-50 overflow-hidden">
+                   <div className="p-1 space-y-0.5">
+                      <button
+                        onClick={() => { setTrainingRun('LIVE'); setErrorMsg(null); setDataMode('LIVE_URL'); }}
+                        className={`w-full flex items-center justify-between px-3 py-2 text-left rounded-md hover:bg-white/5 group/item ${trainingRun === 'LIVE' ? 'bg-cyan-900/20' : ''}`}
+                      >
+                         <div className="flex items-center space-x-2">
+                           <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                           <span className="text-xs font-bold text-gray-200 group-hover/item:text-white">LIVE STREAM</span>
+                         </div>
+                         <span className="text-[10px] text-gray-500 font-mono">L4-INSTANCE</span>
+                      </button>
 
-            <div
-              onClick={() => setIsModalOpen(true)}
-              className={`flex items-center space-x-2 text-xs font-mono px-2 py-1 rounded cursor-pointer transition border ${dataMode === 'LIVE_URL' ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-purple-500/10 border-purple-500/30 text-purple-400'}`}
-            >
-              {dataMode === 'LIVE_URL' && <Globe className="w-3 h-3" />}
-              {dataMode === 'LOCAL_FILE' && <FileUp className="w-3 h-3" />}
-              <span>{dataMode === 'LIVE_URL' ? 'LIVE' : 'LOCAL'}</span>
+                      {/* TRAINING POOL */}
+                      <div className="h-px bg-white/5 my-1 mx-2" />
+                      <div className="px-3 py-1 text-[10px] uppercase tracking-wider text-cyan-500/80 font-bold">Training Pool</div>
+                      {DATA_POOLS.TRAINING.map(run => (
+                        <button
+                          key={run.id}
+                          onClick={() => { setTrainingRun(run.id); setLogs([]); setDataMode('LOCAL_FILE'); setErrorMsg(null); }}
+                          className={`w-full flex items-center justify-between px-3 py-1.5 text-left rounded hover:bg-white/5 ${trainingRun === run.id ? 'text-cyan-400 font-bold bg-cyan-400/5' : 'text-gray-400'}`}
+                        >
+                          <span className="text-xs font-mono">{run.label}</span>
+                          <span className="text-[10px] text-gray-600 font-mono">{run.date}</span>
+                        </button>
+                      ))}
+
+                      {/* TESTING POOL */}
+                      <div className="h-px bg-white/5 my-1 mx-2" />
+                      <div className="px-3 py-1 text-[10px] uppercase tracking-wider text-purple-500/80 font-bold">Testing Pool</div>
+                      {DATA_POOLS.TESTING.map(run => (
+                        <button
+                          key={run.id}
+                          onClick={() => { setTrainingRun(run.id); setLogs([]); setDataMode('LOCAL_FILE'); setErrorMsg(null); }}
+                          className={`w-full flex items-center justify-between px-3 py-1.5 text-left rounded hover:bg-white/5 ${trainingRun === run.id ? 'text-purple-400 font-bold bg-purple-400/5' : 'text-gray-400'}`}
+                        >
+                          <span className="text-xs font-mono">{run.label}</span>
+                          <span className="text-[10px] text-gray-600 font-mono">{run.date}</span>
+                        </button>
+                      ))}
+                   </div>
+                </div>
+              </div>
+
+              <div
+               onClick={() => setIsModalOpen(true)}
+               className={`flex items-center space-x-2 text-xs font-mono px-2 py-1 rounded cursor-pointer transition border ml-2 ${dataMode === 'LIVE_URL' ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-purple-500/10 border-purple-500/30 text-purple-400'}`}
+              >
+               {dataMode === 'LIVE_URL' && <Globe className="w-3 h-3" />}
+               {dataMode === 'LOCAL_FILE' && <FileUp className="w-3 h-3" />}
+               <span>{dataMode === 'LIVE_URL' ? 'LIVE' : 'LOCAL'}</span>
+              </div>
             </div>
           </div>
 
@@ -826,7 +984,9 @@ const App = () => {
           </div>
 
           <a
-            href="/examiner-ctm/"
+            href="https://github.com/humanaiconvention/examiner/blob/main/README.md"
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center space-x-1 text-xs text-purple-400 hover:text-purple-300 transition font-mono"
           >
             <BrainCircuit className="w-4 h-4" />
@@ -850,7 +1010,7 @@ const App = () => {
           <div className="flex items-center space-x-8">
             <div>
               <div className="text-[10px] text-gray-500 uppercase">Backbone</div>
-              <div className="text-xs text-gray-300 font-mono">Parallel Logic Foundation</div>
+              <div className="text-xs text-gray-300 font-mono italic">Sovereign Logic Foundation</div>
             </div>
             <div>
               <div className="text-[10px] text-gray-500 uppercase">Global Step</div>
@@ -1014,84 +1174,73 @@ const App = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-80">
-          <div className="lg:col-span-2 bg-gradient-to-br from-[#111113] to-[#0a0a0c] border border-white/10 rounded-lg p-4 flex flex-col shadow-lg">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xs font-mono text-gray-400 uppercase">Training Dynamics</h3>
-              <div className="flex space-x-4 text-[10px] font-mono">
-                <span className="flex items-center text-cyan-400"><div className="w-2 h-2 bg-cyan-400 rounded-full mr-1" /> Loss</span>
-                <span className="flex items-center text-yellow-400"><div className="w-2 h-2 bg-yellow-400 rounded-full mr-1" /> Reward</span>
+          {trainingRun === 'TESTING' ? (
+             <div className="lg:col-span-3 h-full">
+                <TestResultsDisplay data={testData} />
+             </div>
+          ) : (
+            <>
+              <div className="lg:col-span-2 bg-gradient-to-br from-[#111113] to-[#0a0a0c] border border-white/10 rounded-lg p-4 flex flex-col shadow-lg">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xs font-mono text-gray-400 uppercase">Training Dynamics</h3>
+                  <div className="flex space-x-4 text-[10px] font-mono">
+                    <span className="flex items-center text-cyan-400"><div className="w-2 h-2 bg-cyan-400 rounded-full mr-1" /> Loss</span>
+                    <span className="flex items-center text-yellow-400"><div className="w-2 h-2 bg-yellow-400 rounded-full mr-1" /> Reward</span>
+                  </div>
+                </div>
+                <div className="flex-1 min-h-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart 
+                      data={logs}
+                      syncId={syncId}
+                      onClick={(e) => e && setPinnedStep(e.activeLabel)}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                      <XAxis dataKey="step" stroke="#444" tick={{ fill: '#666', fontSize: 10, fontFamily: 'monospace' }} />
+                      <YAxis yAxisId="left" stroke="#444" tick={{ fill: '#666', fontSize: 10, fontFamily: 'monospace' }} />
+                      <YAxis yAxisId="right" orientation="right" stroke="#444" tick={{ fill: '#666', fontSize: 10, fontFamily: 'monospace' }} domain={[0, 1]} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#000', borderColor: '#333', fontSize: '12px', fontFamily: 'monospace' }}
+                        itemStyle={{ fontFamily: 'monospace' }}
+                      />
+                      <Area yAxisId="left" type="monotone" dataKey="loss" stroke="#22d3ee" fill="url(#colorLoss)" strokeWidth={2} />
+                      <Line yAxisId="right" type="monotone" dataKey="reward" stroke="#facc15" strokeWidth={2} dot={false} />
+                      {syncId && <ReferenceLine x={pinnedStep} yAxisId="left" stroke="#666" strokeDasharray="3 3" />}
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-            </div>
-            <div className="flex-1 w-full min-h-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={logs}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                  <XAxis
-                    dataKey="step"
-                    stroke="#444"
-                    tick={{ fill: '#666', fontSize: 10, fontFamily: 'monospace' }}
-                    interval="preserveStartEnd"
-                  />
-                  <YAxis yAxisId="left" stroke="#444" domain={['auto', 'auto']} tick={{ fill: '#666', fontSize: 10 }} />
-                  <YAxis yAxisId="right" orientation="right" stroke="#444" domain={['auto', 'auto']} tick={{ fill: '#666', fontSize: 10 }} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#000', borderColor: '#333', fontSize: '12px', fontFamily: 'monospace' }}
-                    labelFormatter={(label) => `Step: ${label}`}
-                  />
-                  <Area
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="loss"
-                    stroke="#22d3ee"
-                    fill="url(#colorLoss)"
-                    strokeWidth={2}
-                    dot={false}
-                    isAnimationActive={false}
-                  />
-                  <Line
-                    yAxisId="right"
-                    type="monotone"
-                    dataKey="reward"
-                    stroke="#facc15"
-                    strokeWidth={1.5}
-                    dot={false}
-                    isAnimationActive={false}
-                  />
-                  <defs>
-                    <linearGradient id="colorLoss" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.1} />
-                      <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-[#111113] to-[#0a0a0c] border border-white/10 rounded-lg p-4 flex flex-col shadow-lg">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xs font-mono text-gray-400 uppercase">Epsilon Drift</h3>
-              <div className="text-[10px] font-mono text-purple-400">EXHAUSTION</div>
-            </div>
-            <div className="flex-1 w-full min-h-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={logs}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                  <XAxis dataKey="step" hide />
-                  <YAxis domain={['auto', 'auto']} stroke="#444" tick={{ fill: '#666', fontSize: 10 }} />
-                  <Tooltip contentStyle={{ backgroundColor: '#000', borderColor: '#333', fontSize: '12px' }} />
-                  <Line
-                    type="stepAfter"
-                    dataKey="epsilon"
-                    stroke="#a855f7"
-                    strokeWidth={2}
-                    dot={false}
-                    isAnimationActive={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+              <div className="bg-gradient-to-br from-[#111113] to-[#0a0a0c] border border-white/10 rounded-lg p-4 flex flex-col shadow-lg">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xs font-mono text-gray-400 uppercase">Epsilon Drift</h3>
+                  <div className="text-[10px] font-mono text-purple-400">EXHAUSTION</div>
+                </div>
+                <div className="flex-1 w-full min-h-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart 
+                      data={logs} 
+                      syncId={syncId}
+                      onClick={(e) => e && setPinnedStep(e.activeLabel)}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                      <XAxis dataKey="step" hide />
+                      <YAxis domain={['auto', 'auto']} stroke="#444" tick={{ fill: '#666', fontSize: 10 }} />
+                      <Tooltip contentStyle={{ backgroundColor: '#000', borderColor: '#333', fontSize: '12px' }} />
+                      <Line
+                        type="stepAfter"
+                        dataKey="epsilon"
+                        stroke="#a855f7"
+                        strokeWidth={2}
+                        dot={false}
+                        isAnimationActive={false}
+                      />
+                      {syncId && <ReferenceLine x={pinnedStep} stroke="#666" strokeDasharray="3 3" />}
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </>
+          )} 
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-80">
@@ -1101,6 +1250,8 @@ const App = () => {
               epsilon={latest?.epsilon || 0}
               loss={latest?.loss || 0}
               thinkingDepth={latest?.thinking_depth || 0}
+              hoverId={hoverId}
+              setHoverId={setHoverId}
             />
           </div>
           <div>

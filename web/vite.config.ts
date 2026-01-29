@@ -93,25 +93,6 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, 'src'),
       },
     },
-    // Provide test-time aliases so vitest can resolve lightweight mocks for optional runtime modules
-  ...(mode === 'test' ? {
-    resolve: {
-      alias: {
-        // match subpath imports like '@langchain/core/runnables' -> packages/@langchain/core/runnables.js
-        '@langchain/': path.resolve(__dirname, '..', 'packages', '@langchain') + path.sep,
-        '@langchain/core/': path.resolve(__dirname, '..', 'packages', '@langchain', 'core') + path.sep,
-        '@langchain/langgraph/': path.resolve(__dirname, '..', 'packages', '@langchain', 'langgraph') + path.sep,
-  // explicit subpath mappings
-  '@langchain/core/runnables': path.resolve(__dirname, '..', 'packages', '@langchain', 'core', 'runnables.js'),
-  '@langchain/core/prompts': path.resolve(__dirname, '..', 'packages', '@langchain', 'core', 'prompts.js'),
-  '@langchain/core/tools': path.resolve(__dirname, '..', 'packages', '@langchain', 'core', 'tools.js'),
-        // keep short aliases for exact imports as well
-        '@langchain': path.resolve(__dirname, '..', 'packages', '@langchain'),
-        '@langchain/core': path.resolve(__dirname, '..', 'packages', '@langchain', 'core'),
-        '@langchain/langgraph': path.resolve(__dirname, '..', 'packages', '@langchain', 'langgraph')
-      }
-    }
-  } : {}),
     build: {
       rollupOptions: {
         output: {

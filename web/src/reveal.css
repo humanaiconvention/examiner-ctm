@@ -1,0 +1,39 @@
+/* Progressive reveal sequencing for main content after intro gate */
+/* While intro pending, hide only main content shell, not the gate itself. */
+body.intro-pending .page > :not(.intro-gate):not(.preview-intro-gate) {
+  visibility: hidden;
+}
+body.intro-pending .intro-gate, body.intro-pending .preview-intro-gate { visibility: visible; }
+body.intro-active .page { visibility: visible; }
+
+/* Base hidden state for reveal elements */
+[data-reveal] { opacity: 0; transform: translateY(12px); transition: opacity .5s ease, transform .6s cubic-bezier(.22,.61,.36,1); }
+body.reveal-ready [data-reveal] { opacity: 1; transform: translateY(0); }
+
+/* Stagger via incremental delays derived from data-reveal-order */
+[data-reveal][data-reveal-order] { transition-delay: calc(var(--reveal-delay, 0ms) + (attr(data-reveal-order integer) * 60ms)); }
+
+/* Fallback for browsers without attr() in calc (graceful; apply JS inline delay) */
+.no-attr-delay [data-reveal][data-reveal-order] { transition-delay: var(--reveal-delay, 0ms); }
+
+/* Reduced motion: skip translate, shorten duration */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { transform: none; transition: opacity .25s ease; }
+}
+
+/* Hero specific subtle fade-in to reduce perceptual flash */
+body.reveal-ready .hero__logo-wrap--enter { animation: heroFadeIn .7s ease forwards; }
+@keyframes heroFadeIn { from { opacity:0; filter:blur(2px); } to { opacity:1; filter:blur(0); } }
+
+/* Slow first-load variant (~5x longer staggering -> 20% of original speed) */
+body.reveal-slow.reveal-ready [data-reveal] {
+  transition-duration: 2.5s, 2.5s; /* opacity, transform */
+}
+body.reveal-slow.reveal-ready [data-reveal][data-reveal-order] {
+  /* Multiply base 60ms by 5 */
+  transition-delay: calc(var(--reveal-delay, 0ms) + (attr(data-reveal-order integer) * 300ms));
+}
+.no-attr-delay.reveal-slow.reveal-ready [data-reveal][data-reveal-order] {
+  /* JS fallback will overwrite inline, but provide baseline */
+  transition-delay: var(--reveal-delay, 0ms);
+}

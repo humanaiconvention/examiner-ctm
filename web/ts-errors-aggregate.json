@@ -1,0 +1,23 @@
+{
+  "generatedAt": "2025-09-29T18:29:37.064Z",
+  "configs": [
+    {
+      "config": "tsconfig.app.json",
+      "errors": 0,
+      "codes": {}
+    },
+    {
+      "config": "tsconfig.json",
+      "errors": 0,
+      "codes": {}
+    },
+    {
+      "config": "tsconfig.node.json",
+      "errors": 0,
+      "codes": {}
+    }
+  ],
+  "totalsByCode": {},
+  "totalErrors": 0,
+  "topCodes": []
+}

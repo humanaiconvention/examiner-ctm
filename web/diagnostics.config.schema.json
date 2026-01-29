@@ -1,0 +1,118 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Diagnostics Config",
+  "type": "object",
+  "required": ["schemaVersion"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "routes": { "type": "array", "items": { "type": "string" } },
+    "thresholds": {
+      "type": "object",
+      "properties": {
+        "maxHtmlMs": { "type": ["integer", "null"], "minimum": 0 },
+        "maxBundleMs": { "type": ["integer", "null"], "minimum": 0 },
+        "universalMaxMs": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    },
+    "budgets": {
+      "type": "object",
+      "properties": {
+        "maxMainBundleGzip": { "type": ["integer", "null"], "minimum": 0 },
+        "maxTotalJsGzip": { "type": ["integer", "null"], "minimum": 0 },
+        "maxTotalCssGzip": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    },
+    "lighthouse": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "minScores": {
+          "type": "object",
+          "properties": {
+            "performance": { "type": "number" },
+            "accessibility": { "type": "number" },
+            "best-practices": { "type": "number" },
+            "seo": { "type": "number" },
+            "pwa": { "type": "number" }
+          }
+        },
+        "maxVitals": {
+          "type": "object",
+          "properties": {
+            "cls": { "type": "number" },
+            "lcp": { "type": "number" },
+            "tbt": { "type": "number" },
+            "inp": { "type": "number" },
+            "fcp": { "type": "number" }
+          }
+        },
+        "warnMargins": {
+          "type": "object",
+          "properties": {
+            "score": { "type": "number" },
+            "cls": { "type": "number" },
+            "lcpMs": { "type": "number" },
+            "tbtMs": { "type": "number" },
+            "inpMs": { "type": "number" }
+          }
+        },
+        "failOnAnyAssertion": { "type": "boolean" },
+        "strict": { "type": "boolean" }
+      }
+    },
+    "regression": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "window": { "type": "integer", "minimum": 1 },
+        "baselinePercentile": { "type": "integer", "minimum": 50, "maximum": 95, "description": "Percentile (e.g. 50=median, 75) used for baseline instead of median" },
+        "performanceDropWarn": { "type": "number" },
+        "performanceDropFail": { "type": "number" },
+        "bundleGrowthWarnPct": { "type": "number" },
+        "bundleGrowthFailPct": { "type": "number" },
+        "totalJsGrowthWarnPct": { "type": "number" },
+        "totalJsGrowthFailPct": { "type": "number" },
+        "vitalsIncreaseWarnPct": { "type": "number" },
+        "vitalsIncreaseFailPct": { "type": "number" },
+        "improvementMinRelativePct": { "type": "number", "description": "Minimum relative % (0.01=1%) improvement required" },
+        "improvementMinAbsolute": { "type": "number", "description": "Minimum absolute improvement (same units as metric)" }
+      }
+    },
+    "history": {
+      "type": "object",
+      "properties": {
+        "file": { "type": "string" },
+        "maxEntries": { "type": "integer", "minimum": 1 },
+        "compactAfter": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "output": {
+      "type": "object",
+      "properties": {
+        "htmlDashboard": { "type": "boolean" },
+        "open": { "type": "boolean" }
+      }
+    },
+    "notifications": {
+      "type": "object",
+      "properties": {
+        "slackWebhookEnv": { "type": "string" },
+        "reportUrlEnv": { "type": "string" },
+        "webhooks": { "type": "object", "additionalProperties": { "type": "string" } },
+        "on": { "type": "array", "items": { "type": "string", "enum": [ "failure", "regressionFail", "improvement", "improvementStreak" ] } },
+        "maxFailuresInMessage": { "type": "integer", "minimum": 1 },
+        "improvementStreakLength": { "type": "integer", "minimum": 2 }
+      },
+      "additionalProperties": false
+  },
+  "artifactUpload": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "command": { "type": "string", "description": "Shell command to upload artifacts (HTML + JSON)" },
+        "reportUrlFile": { "type": "string", "description": "Path to file containing resulting public report URL after upload" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

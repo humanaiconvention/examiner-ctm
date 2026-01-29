@@ -1,0 +1,8 @@
+[
+    {
+      "origin": ["https://humanaiconvention.com", "https://www.humanaiconvention.com", "http://localhost:5173", "http://localhost:4173", "https://human-ai-convention.github.io"],
+      "method": ["GET", "HEAD"],
+      "responseHeader": ["Content-Type", "Cache-Control", "ETag"],
+      "maxAgeSeconds": 3600
+    }
+]

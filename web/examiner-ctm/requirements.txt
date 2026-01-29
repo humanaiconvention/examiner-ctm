@@ -1,0 +1,39 @@
+# Examiner-CTM v5.3 Requirements
+# Core dependencies for training with Recursive Weight Derivation
+
+# PyTorch (install separately with CUDA support)
+# torch>=2.0.0
+# torchvision
+# torchaudio
+
+# Transformers and tokenizers
+transformers>=4.35.0
+tokenizers>=0.15.0
+sentence-transformers>=2.2.0
+
+# Triton for custom kernels
+triton>=2.1.0
+
+# RL Environment (v5.0 Gym Interface)
+gymnasium>=0.29.0
+
+# CUDA Tile Optimization (optional but recommended for L4)
+# torch-cuda-tile>=0.1.0
+
+# Numerical and data
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Async and networking
+aiohttp>=3.8.0
+websockets>=11.0
+
+# Utilities
+tqdm>=4.65.0
+python-dotenv>=1.0.0
+
+# Search and grounding
+requests>=2.28.0
+
+# Optional: NeMo Gym (heavy install, uncomment if needed)
+# nemo_toolkit[all]>=1.20.0

@@ -1,0 +1,142 @@
+{
+  "meta": {
+    "startTime": "2025-10-02T03:51:44.168Z",
+    "host": "http://localhost:5085",
+    "port": 5085,
+    "endTime": "2025-10-02T03:52:24.270Z",
+    "build": false,
+    "bundle": "/assets/index-CXBgwnfZ.js",
+    "extraBundles": [],
+    "integrity": "sha256-Dk1c035/MRLI45HEGoJ6epXz/UR5vpwFMfOOw7MKyc0=",
+    "sriHash": "sha256-Dk1c035/MRLI45HEGoJ6epXz/UR5vpwFMfOOw7MKyc0=",
+    "gzipSizes": [
+      {
+        "target": "bundle:main",
+        "gzip": 88071
+      }
+    ],
+    "cssAssets": [
+      {
+        "file": "assets/index-O46auVme.css",
+        "raw": 32062,
+        "gzip": 7438
+      }
+    ]
+  },
+  "results": [
+    {
+      "target": "/",
+      "type": "html",
+      "ok": true,
+      "status": 200,
+      "length": 3288,
+      "ms": 4
+    },
+    {
+      "target": "/learn-more",
+      "type": "html",
+      "ok": true,
+      "status": 200,
+      "length": 3288,
+      "ms": 3
+    },
+    {
+      "target": "/preview-questions",
+      "type": "html",
+      "ok": true,
+      "status": 200,
+      "length": 3288,
+      "ms": 3
+    },
+    {
+      "target": "/explore",
+      "type": "html",
+      "ok": true,
+      "status": 200,
+      "length": 3288,
+      "ms": 2
+    },
+    {
+      "target": "bundle:main",
+      "type": "bundle",
+      "ok": true,
+      "status": 200,
+      "length": 271499,
+      "ms": 5
+    }
+  ],
+  "lighthouse": {
+    "mode": "exec-collect",
+    "collectAttempts": 1,
+    "retries": 0,
+    "assertAttempts": 0,
+    "scores": {
+      "performance": 0.51,
+      "accessibility": 1,
+      "best-practices": 0.93,
+      "seo": 0.91
+    },
+    "metrics": {
+      "cls": 0.41762778641171805,
+      "lcp": 4652.7764,
+      "tbt": 44,
+      "inp": 4652.7764,
+      "fcp": 1659.7763999999997
+    },
+    "error": null,
+    "assertions": [
+      {
+        "id": "categories.performance",
+        "level": "warning",
+        "expected": ">=0.5",
+        "actual": 0.51
+      },
+      {
+        "id": "categories.accessibility",
+        "level": "info",
+        "expected": ">=0.9",
+        "actual": 1
+      },
+      {
+        "id": "categories.best-practices",
+        "level": "warning",
+        "expected": ">=0.9",
+        "actual": 0.93
+      },
+      {
+        "id": "categories.seo",
+        "level": "info",
+        "expected": ">=0.85",
+        "actual": 0.91
+      },
+      {
+        "id": "cumulative-layout-shift",
+        "level": "warning",
+        "expected": "<=0.45",
+        "actual": 0.41762778641171805
+      },
+      {
+        "id": "largest-contentful-paint",
+        "level": "info",
+        "expected": "<=5000",
+        "actual": 4652.7764
+      },
+      {
+        "id": "total-blocking-time",
+        "level": "info",
+        "expected": "<=300",
+        "actual": 44
+      },
+      {
+        "id": "interaction-to-next-paint",
+        "level": "info",
+        "expected": "<=6000",
+        "actual": 4652.7764
+      }
+    ]
+  },
+  "playwright": null,
+  "failures": [],
+  "success": true,
+  "deltas": null
+}
