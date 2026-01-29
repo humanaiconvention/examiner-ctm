@@ -4,20 +4,6 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script>
-      (function (l) {
-        if (l.search && l.search.length > 1 && l.search[1] === '/') {
-          var decoded = l.search
-            .slice(1)
-            .split('&')
-            .map(function (s) {
-              return s.replace(/~and~/g, '&');
-            })
-            .join('&');
-          window.history.replaceState(null, null, l.pathname.slice(0, -1) + decoded + l.hash);
-        }
-      })(window.location);
-    </script>
   <title>HumanAI Convention – We will know — together</title>
     <meta
       name="description"
@@ -38,7 +24,7 @@
     <meta name="robots" content="index,follow" />
     <!-- Basic security headers cannot be fully set via HTML; placeholder CSP meta (supplement with real header at CDN) -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none';" />
-    <meta name="x-app-version" content="0.3.4+ccfe40807714">
+    <meta name="x-app-version" content="0.3.4+5cfc120f45f3">
     <!-- Font: Fraunces variable for quotes -->
   <!-- Preload hero image to improve LCP -->
   <link rel="preload" as="image" href="/hero-night-map.jpg" imagesrcset="/hero-night-map.jpg 1920w" />
@@ -54,13 +40,13 @@
       window.__ANALYTICS_CONSENT__ = localStorage.getItem('haic:analyticsConsent') === 'granted';
     </script>
     <!-- Insert GTM script tag here when container ID is issued -->
-    <script type="module" crossorigin src="/assets/index-DTdfWDqu.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/analytics-errors-CC2HdOEk.js">
-    <link rel="modulepreload" crossorigin href="/assets/analytics-core-BhNu_vsJ.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-DuPJzRNu.css">
+    <script type="module" crossorigin src="/assets/index-DGyzZO7d.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/analytics-errors-CMEIYE25.js">
+    <link rel="modulepreload" crossorigin href="/assets/analytics-core-Bh-KxoFz.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-BRlDEGNK.css">
   </head>
   <body>
     <div id="root"></div>
-    <script>window.__APP_VERSION__ = {"name":"web","version":"0.3.4","commit":"ccfe40807714","fullCommit":"ccfe40807714095e6149fd017ee31d87a3432eb9","buildRev":"0.3.4+ccfe40807714.20260124","logoHash":"2c4258137a47edc3"};</script>
+    <script>window.__APP_VERSION__ = {"name":"web","version":"0.3.4","commit":"5cfc120f45f3","fullCommit":"5cfc120f45f3041189fed12c98c0b8d821419c93","buildRev":"0.3.4+5cfc120f45f3.20260129","logoHash":"2c4258137a47edc3"};</script>
   </body>
 </html>
