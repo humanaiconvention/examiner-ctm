@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Examiner-CTM | Live Training</title>
+  <meta name="description" content="Real-time training monitor for Examiner-CTM - watch an AI learn across 7 cognitive domains">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #0a0a0c; color: #e0e0e0; font-family: system-ui, -apple-system, sans-serif; }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 5px currentColor; }
+      50% { box-shadow: 0 0 15px currentColor, 0 0 20px currentColor; }
+    }
+    .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+
+    @keyframes gradient-animate {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .gradient-animate { background-size: 200% 200%; animation: gradient-animate 3s ease infinite; }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #111; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #444; }
+
+    #loading {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0a0a0c;
+      z-index: 9999;
+    }
+    #loading.hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div id="loading">
+    <div style="text-align: center;">
+      <div style="width: 48px; height: 48px; border: 3px solid #333; border-top-color: #22d3ee; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+      <div style="margin-top: 16px; font-family: monospace; color: #666;">Loading Examiner-CTM...</div>
+    </div>
+  </div>
+  <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+
+  <div id="root"></div>
+
+  <script>
+    // Global error handler to catch React re-render crashes
+    window.onerror = function(msg, url, line, col, error) {
+      document.getElementById('loading')?.classList.add('hidden');
+      document.getElementById('root').innerHTML = '<pre style="color:#f87171;padding:20px;font-family:monospace;background:#1a1a1a;margin:20px;border-radius:8px;border:1px solid #333">RUNTIME ERROR:\n' + msg + '\n\nLine: ' + line + ':' + col + '\n\n' + (error?.stack || '') + '</pre>';
+      return true;
+    };
+    window.onunhandledrejection = function(e) {
+      console.error('Unhandled rejection:', e.reason);
+    };
+  </script>
+  <script src="app.bundle.v6.1.js"></script>
+  <script>
+    // Hide loading screen after React mounts or on error
+    setTimeout(() => {
+      const loading = document.getElementById('loading');
+      if (loading) loading.classList.add('hidden');
+    }, 3000);
+
+    // Also hide when React renders
+    const observer = new MutationObserver(() => {
+      const root = document.getElementById('root');
+      if (root && root.children.length > 0) {
+        document.getElementById('loading')?.classList.add('hidden');
+        observer.disconnect();
+      }
+    });
+    observer.observe(document.getElementById('root'), { childList: true });
+  </script>
+</body>
+</html>

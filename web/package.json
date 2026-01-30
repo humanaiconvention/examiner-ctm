@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "version:gen": "node scripts/generate-version.mjs",
-    "build": "npm run version:gen && tsc -b && vite build && npm run postbuild:health",
+    "build": "npm run version:gen && tsc -b && vite build && npm run postbuild:health && cp dist/index.html dist/404.html || copy dist\\index.html dist\\404.html",
     "build:prod": "npm run csp:prod && npm run build",
     "build:analyze": "npm run version:gen && tsc -b && vite build --mode analyze",
     "lint": "eslint .",
