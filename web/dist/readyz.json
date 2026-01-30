@@ -1,9 +1,9 @@
 {
   "status": "ready",
-  "indexHash": "cb89cc6b1c5dc52ca73aefcac3f11357c470a3cc896d40e928df76182489750d",
-  "commit": "cd6ddd96a66c",
+  "indexHash": "7cf7ac07d46cc6ed151841b8ec46131a268011a66e76cecde314ab260b2b7fe8",
+  "commit": "1622c41329c1",
   "version": "0.3.4",
-  "generatedAt": "2026-01-30T04:04:24.058Z",
+  "generatedAt": "2026-01-30T04:32:26.373Z",
   "assets": [
     {
       "file": "analytics-core-Bh-KxoFz.js",
@@ -31,29 +31,24 @@
       "size": 161120
     },
     {
-      "file": "Explore-DGh50arg.js",
-      "sha256": "04fc57d9043d662cd648591c70ed31f47ac51917886d72ca77d9e98b74d9bd49",
+      "file": "Explore-DeSHtttX.js",
+      "sha256": "ffba8ede002153f41b2bee221572f72dace5812a84fd6972a1ca5656cd278daf",
       "size": 2157
     },
     {
-      "file": "Framework-CEGJNPHR.js",
-      "sha256": "5fa976ccc3e61765a6182c88938a366fe5e2d371f4fed97a677916c1b7e61d8b",
+      "file": "Framework-DjSCieaK.js",
+      "sha256": "2ed7bb8df882d2657bba38e76f3a94b7e8cdf50c6392e45f2950ce5d87db211e",
       "size": 8260
     },
     {
-      "file": "Governance-BJNkR4bt.js",
-      "sha256": "165ca4a78499b54fa28e86474c2463a054de45dcd14196748d00637fdb5884e2",
+      "file": "Governance-iGQD0-jB.js",
+      "sha256": "dcb2f9ce5ba7e0838b9cc320816cb8c269c6f3b9f6cdb7277ac186e7b61eb387",
       "size": 1876
     },
     {
-      "file": "HowWeWork-C8p47RaL.js",
-      "sha256": "24ba8e9fdf23f92621b2b5177ac1587e3a702080209b89a315e1379c0d6e31ab",
+      "file": "HowWeWork-D5xZSF18.js",
+      "sha256": "86ff5d67da2522bd305ed2e2244a14585aa8219ac244145bd6fb6c33fe76cce9",
       "size": 1770
-    },
-    {
-      "file": "index-BIvSWsE-.js",
-      "sha256": "05ebd8994f7c07cd52fe514373ea82ed513190288a18a670162c816664bb9bdc",
-      "size": 253044
     },
     {
       "file": "index-BRlDEGNK.css",
@@ -61,18 +56,23 @@
       "size": 18753
     },
     {
+      "file": "index-CFLukG1U.js",
+      "sha256": "e8e2f824cf64cba1a85465946d7127f4b5800ddcfa059d5f1f000f91a71c5c9b",
+      "size": 253044
+    },
+    {
       "file": "index-CK9TCgMY.js",
       "sha256": "dbc982fdea8f33112776b1051b88473c475f8a023a0fc015e856296f5e5ffd4a",
       "size": 2765
     },
     {
-      "file": "LearnMore-CQYaElAp.js",
-      "sha256": "3bd4cdf3594c133a5edbdf1ce8f73fb17f58271e5d9532d347fee50147f80617",
-      "size": 5876
+      "file": "LearnMore-ao5iVNph.js",
+      "sha256": "6fcb5c3dd7d3e348c6aa592516ed84789b16c1a85714d1d861140526dabd4328",
+      "size": 7554
     },
     {
-      "file": "Mission-B-XfrD2j.js",
-      "sha256": "84c086c6b3ee5ec521d1dce62f9f5eefccf0e26000c2e9c87ebb2ee439481c2e",
+      "file": "Mission-CxPTXnJJ.js",
+      "sha256": "a2888b5b4cb188bc7766c5a0112db5a2a6a3b7da811ea45e4239a93640e08dc8",
       "size": 1455
     },
     {
@@ -81,8 +81,8 @@
       "size": 649
     },
     {
-      "file": "PreviewQuestions-BFPBL8nE.js",
-      "sha256": "d2ce8b1ea4e6d25a731b52ff724e2b29295fa8d2fd4d166cec852fc1b5f66285",
+      "file": "PreviewQuestions-CeR9hE8a.js",
+      "sha256": "60e218acda8df0a028bfbf3a771ca48de1e3f2c0c0de8ff30ca7ba07a0dac967",
       "size": 5861
     },
     {
@@ -91,23 +91,23 @@
       "size": 1950
     },
     {
-      "file": "QuoteSpotlight-DrF1bkUF.js",
-      "sha256": "15a8dc54f9ab503d6aa9365f3ff090b22b3a436dd32fb5326bb8b50181c1a560",
+      "file": "QuoteSpotlight-DfQ1_BHW.js",
+      "sha256": "fc90ae6768b05be3d3656f8e1cf4c356fc923037ea74cadb2f71060663a2814a",
       "size": 9212
     },
     {
-      "file": "Roadmap-b9yjiNE3.js",
-      "sha256": "7af57bee0b54324bf0a00c61ab91e67ed06e895e95a22778a74f8a3b36004973",
+      "file": "Roadmap-CHc9D93k.js",
+      "sha256": "993cd35413cc33d28d17f14ad8763cda5c2097d46568ac7a80fedd47e7d528a3",
       "size": 1698
     },
     {
-      "file": "Values-D_zysYua.js",
-      "sha256": "402d714dd1a13ea84c8de68e6f57b112336ddf9e2a1b926864dc91786f4adcd3",
+      "file": "Values-CGE7J-Hz.js",
+      "sha256": "c9f4868ba0cd54e6cd6737b441d05676bb42512e556846d23a06201e0153c2a0",
       "size": 2011
     },
     {
-      "file": "Vision-C0sY32Zg.js",
-      "sha256": "ce61a4caf9e17d321c2094c09086a92b2aad9794255ac96d83a21aabfa3a43b8",
+      "file": "Vision-BN66oRYA.js",
+      "sha256": "6b35c41e81cb36c934a7abfefbe556b8c5f38476c69eee9af9684e4af7d08857",
       "size": 2307
     },
     {
@@ -116,5 +116,5 @@
       "size": 3169
     }
   ],
-  "totalAssetBytes": 496498
+  "totalAssetBytes": 498176
 }
