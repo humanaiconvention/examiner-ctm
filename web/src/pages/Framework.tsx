@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import SubPageHeader from '../components/SubPageHeader'
 import '../App.css'
 import { trackEvent } from '../analytics'
 
@@ -10,20 +11,15 @@ export default function Framework() {
 
   return (
     <div className="learn-page" data-page="framework">
-      <header className="hero hero--lean" role="banner">
-        <div className="hero__inner hero__inner--narrow">
-          <nav aria-label="Breadcrumb" className="breadcrumb">
-            <ol>
-              <li><a href="/" onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}>Home</a></li>
-              <li aria-current="page">Framework</li>
-            </ol>
-          </nav>
-          <h1>The Framework</h1>
-          <p className="lede">A unified approach to aligning artificial intelligence with human viability.</p>
-        </div>
-      </header>
+      <SubPageHeader activePage="framework" />
 
       <main className="learn-main" id="content">
+        <div className="learn-block learn-block--intro" style={{ paddingTop: '4rem', paddingBottom: '2rem' }}>
+          <div className="learn-block__inner">
+            <h1>The Framework</h1>
+            <p className="lede">A unified approach to aligning artificial intelligence with human viability.</p>
+          </div>
+        </div>
         <section className="learn-block" aria-labelledby="architecture-heading">
           <div className="learn-block__inner">
             <h2 id="architecture-heading" className="learn-heading">Architecture of Alignment</h2>
