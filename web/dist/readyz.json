@@ -1,9 +1,9 @@
 {
   "status": "ready",
-  "indexHash": "3fd07d996005dd82407dcf8f719dd7056b0614ad41266130f43d03029a5d882f",
-  "commit": "ff49d77cbea6",
+  "indexHash": "77fab6f3e0a3233ec8d22401587d5647f52154c260a031f3355147c3cfa547da",
+  "commit": "38fa8d6f11da",
   "version": "0.3.4",
-  "generatedAt": "2026-01-30T05:04:13.646Z",
+  "generatedAt": "2026-01-30T05:16:14.406Z",
   "assets": [
     {
       "file": "analytics-core-Bh-KxoFz.js",
@@ -31,29 +31,29 @@
       "size": 161120
     },
     {
-      "file": "Explore-Bfs0a3jL.js",
-      "sha256": "88c149aa07d5f1eee9c36a503c398dce4c0c0b0a1eef922b0a0af435f8075898",
+      "file": "Explore-C04kR5tO.js",
+      "sha256": "1ba4d80d503bd9516cb5c0cc2d7c51705bff5abce8770869d1b4bb50d4173b14",
       "size": 2157
     },
     {
-      "file": "Framework-BpZeVs8M.js",
-      "sha256": "0a8b261093b855accf1efcd4dc50ac90014735be13f2d64e9e7f799bdd207113",
+      "file": "FAQ-B7easyJA.js",
+      "sha256": "3728f9b016afd783338938db9ee48d4962128e0f1e8b5d69be05a4de2e947e62",
+      "size": 6442
+    },
+    {
+      "file": "Framework-DwxrJVtn.js",
+      "sha256": "54335fc5051e71a852142103e00c2cb20f0dec4dfe9c254dd21e880155b28347",
       "size": 8260
     },
     {
-      "file": "Governance-B_MBSuHK.js",
-      "sha256": "4d4fef3788370dbf5ded50616b7542da8bb7ad6f2b931da635bff9111ee8d4f7",
+      "file": "Governance-CO-tvYqC.js",
+      "sha256": "2768a2184222d1c356b4fcd36a1605ff39829cc034788faf0c3a58a9423dd916",
       "size": 1876
     },
     {
-      "file": "HowWeWork-B8tLUC5Y.js",
-      "sha256": "7fee1b51b7c840f3764cb86b88265d02a099d9170219d6b41b5eaa8a6c6a4113",
+      "file": "HowWeWork-CUQY2zR6.js",
+      "sha256": "450c967019e25418d90ad3df34f70b0746de3e7f37ec0f89aeda61e8339ad785",
       "size": 1770
-    },
-    {
-      "file": "index-b0t0q-R1.js",
-      "sha256": "ee76858a01e228f77d6abf07ebb2e478d590cff7029e4f5cee26269f600b26bb",
-      "size": 253044
     },
     {
       "file": "index-BRlDEGNK.css",
@@ -66,13 +66,18 @@
       "size": 2765
     },
     {
-      "file": "LearnMore-DY-YSxzv.js",
-      "sha256": "bcae9a287977e1e77e44fa6453d9eeb434294b13615231b6eba0ca8b80899a50",
-      "size": 7554
+      "file": "index-DRcmRN12.js",
+      "sha256": "b1b4a0bf4f604404f75200d5080f5407970f36dc3003f27e7603b59a3dcf8ddd",
+      "size": 253192
     },
     {
-      "file": "Mission-DXXoafCV.js",
-      "sha256": "d0c8155daab09d58e1cb7666dc5bdd7d6714f2a64600ad090fb969c41ec16302",
+      "file": "LearnMore-B_IkqthX.js",
+      "sha256": "0576c11b050718520afe32c0eb1e7f550e3b0fd4082e259ba0a2997c92f21ab4",
+      "size": 7617
+    },
+    {
+      "file": "Mission-DGcmrHYK.js",
+      "sha256": "43f43a932492b355ccd616ad5dc06d2e213dcfd580633206062b3db118874e52",
       "size": 1455
     },
     {
@@ -81,13 +86,13 @@
       "size": 649
     },
     {
-      "file": "PreviewQuestions-B0Qj9FoS.js",
-      "sha256": "b8d90a0ec7e59be378c4041722968464eb70bc24867a3cd0cfd55f3452a18318",
-      "size": 1887
+      "file": "PreviewQuestions-B62NGUAk.js",
+      "sha256": "24beec3e23b70d0e02b28fbbf732d37bf3d4320b26d67a10b9074d11479c0192",
+      "size": 2178
     },
     {
-      "file": "QuoteSpotlight-CbsjS6f8.js",
-      "sha256": "bef959a5db9236ff1eac09d44285e3d042cb46b953fbf3e3573fa96fdb54bf9f",
+      "file": "QuoteSpotlight-Bcbovw27.js",
+      "sha256": "b684686de252cb51ed0eb4e0813a2852acb0a8685d82862f3a2cb99e11901fad",
       "size": 9212
     },
     {
@@ -96,18 +101,18 @@
       "size": 1950
     },
     {
-      "file": "Roadmap-QJp8SLS7.js",
-      "sha256": "994538bf532674f5debb645f32439af6966428db0d96a193c40e529c2725fb84",
+      "file": "Roadmap--c88VD2b.js",
+      "sha256": "ab93e4ce3f9c25b0bcea4388a7ea431050b511b8f53e01a41cbd69fb58b54343",
       "size": 1698
     },
     {
-      "file": "Values-DWvBfhOk.js",
-      "sha256": "3b691c29bd647db87e25761afaded13fad916059125d0da66eff0488da601ff7",
+      "file": "Values-eqXntaDc.js",
+      "sha256": "5f65a15c48db6d845dff425be7df6e670b5af9e3958eec5454d597b8152d3c85",
       "size": 2011
     },
     {
-      "file": "Vision-GUDw0fr8.js",
-      "sha256": "5db7ff1338e453995cd4094416ac8ce913940665e2c4b26d68275975cd8cde1c",
+      "file": "Vision-CG8Dgag_.js",
+      "sha256": "e549654cade9bb0375df0dd538e2f5a769ca79cb6dd291275492e1095c0bfa6f",
       "size": 2307
     },
     {
@@ -116,5 +121,5 @@
       "size": 3169
     }
   ],
-  "totalAssetBytes": 494202
+  "totalAssetBytes": 501146
 }
