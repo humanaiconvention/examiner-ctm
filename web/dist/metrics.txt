@@ -1,9 +1,9 @@
 # HELP web_build_info Static build metadata
 # TYPE web_build_info gauge
-web_build_info{version="0.3.4",commit="1622c41329c1"} 1
+web_build_info{version="0.3.4",commit="ff49d77cbea6"} 1
 # HELP web_total_asset_bytes Total bytes of hashed js/css assets
 # TYPE web_total_asset_bytes gauge
-web_total_asset_bytes 498176
+web_total_asset_bytes 494202
 # HELP web_asset_size_bytes Size of individual asset files
 # TYPE web_asset_size_bytes gauge
 web_asset_size_bytes{file="analytics-core-Bh-KxoFz.js",sha256="541548da22031bc5e86594f9be22fedc86416299138b9c74aca3fdb170ec181b"} 11370
@@ -11,20 +11,20 @@ web_asset_size_bytes{file="analytics-engagement-DgI1MVx4.js",sha256="d21b9089902
 web_asset_size_bytes{file="analytics-errors-CMEIYE25.js",sha256="f2f85c95faa0cbf6213f6ebaa20e608c1f593205e1263de0185812bd8c4bd229"} 757
 web_asset_size_bytes{file="analytics-perf-DczAFNJ1.js",sha256="7861f06f987bcc7d78fc5c07416be6628ca36630f5b1107b2ccbc11d83bcfb09"} 253
 web_asset_size_bytes{file="appInsights-CQqw4eea.js",sha256="824ceff462dc8b94db103bf23adb43ec6f5fa02b12fb11cadbd5a4bdf4230a7e"} 161120
-web_asset_size_bytes{file="Explore-DeSHtttX.js",sha256="ffba8ede002153f41b2bee221572f72dace5812a84fd6972a1ca5656cd278daf"} 2157
-web_asset_size_bytes{file="Framework-DjSCieaK.js",sha256="2ed7bb8df882d2657bba38e76f3a94b7e8cdf50c6392e45f2950ce5d87db211e"} 8260
-web_asset_size_bytes{file="Governance-iGQD0-jB.js",sha256="dcb2f9ce5ba7e0838b9cc320816cb8c269c6f3b9f6cdb7277ac186e7b61eb387"} 1876
-web_asset_size_bytes{file="HowWeWork-D5xZSF18.js",sha256="86ff5d67da2522bd305ed2e2244a14585aa8219ac244145bd6fb6c33fe76cce9"} 1770
+web_asset_size_bytes{file="Explore-Bfs0a3jL.js",sha256="88c149aa07d5f1eee9c36a503c398dce4c0c0b0a1eef922b0a0af435f8075898"} 2157
+web_asset_size_bytes{file="Framework-BpZeVs8M.js",sha256="0a8b261093b855accf1efcd4dc50ac90014735be13f2d64e9e7f799bdd207113"} 8260
+web_asset_size_bytes{file="Governance-B_MBSuHK.js",sha256="4d4fef3788370dbf5ded50616b7542da8bb7ad6f2b931da635bff9111ee8d4f7"} 1876
+web_asset_size_bytes{file="HowWeWork-B8tLUC5Y.js",sha256="7fee1b51b7c840f3764cb86b88265d02a099d9170219d6b41b5eaa8a6c6a4113"} 1770
+web_asset_size_bytes{file="index-b0t0q-R1.js",sha256="ee76858a01e228f77d6abf07ebb2e478d590cff7029e4f5cee26269f600b26bb"} 253044
 web_asset_size_bytes{file="index-BRlDEGNK.css",sha256="ecc7b1126dcea58cae83bfacadc2178a4045f5740d915ddf43dc4d37e4002a1b"} 18753
-web_asset_size_bytes{file="index-CFLukG1U.js",sha256="e8e2f824cf64cba1a85465946d7127f4b5800ddcfa059d5f1f000f91a71c5c9b"} 253044
 web_asset_size_bytes{file="index-CK9TCgMY.js",sha256="dbc982fdea8f33112776b1051b88473c475f8a023a0fc015e856296f5e5ffd4a"} 2765
-web_asset_size_bytes{file="LearnMore-ao5iVNph.js",sha256="6fcb5c3dd7d3e348c6aa592516ed84789b16c1a85714d1d861140526dabd4328"} 7554
-web_asset_size_bytes{file="Mission-CxPTXnJJ.js",sha256="a2888b5b4cb188bc7766c5a0112db5a2a6a3b7da811ea45e4239a93640e08dc8"} 1455
+web_asset_size_bytes{file="LearnMore-DY-YSxzv.js",sha256="bcae9a287977e1e77e44fa6453d9eeb434294b13615231b6eba0ca8b80899a50"} 7554
+web_asset_size_bytes{file="Mission-DXXoafCV.js",sha256="d0c8155daab09d58e1cb7666dc5bdd7d6714f2a64600ad090fb969c41ec16302"} 1455
 web_asset_size_bytes{file="pillars-DeDEIQ_u.js",sha256="2533e10e1a279c9b6db8827dc4998efeead494efc42e131c2125793e1d739ff6"} 649
-web_asset_size_bytes{file="PreviewQuestions-CeR9hE8a.js",sha256="60e218acda8df0a028bfbf3a771ca48de1e3f2c0c0de8ff30ca7ba07a0dac967"} 5861
+web_asset_size_bytes{file="PreviewQuestions-B0Qj9FoS.js",sha256="b8d90a0ec7e59be378c4041722968464eb70bc24867a3cd0cfd55f3452a18318"} 1887
+web_asset_size_bytes{file="QuoteSpotlight-CbsjS6f8.js",sha256="bef959a5db9236ff1eac09d44285e3d042cb46b953fbf3e3573fa96fdb54bf9f"} 9212
 web_asset_size_bytes{file="QuoteSpotlight-DEKtzAsU.css",sha256="7198a7bd16b9aca2b40a9050230b6673f0423c5c94b387f223ea7aa72980637c"} 1950
-web_asset_size_bytes{file="QuoteSpotlight-DfQ1_BHW.js",sha256="fc90ae6768b05be3d3656f8e1cf4c356fc923037ea74cadb2f71060663a2814a"} 9212
-web_asset_size_bytes{file="Roadmap-CHc9D93k.js",sha256="993cd35413cc33d28d17f14ad8763cda5c2097d46568ac7a80fedd47e7d528a3"} 1698
-web_asset_size_bytes{file="Values-CGE7J-Hz.js",sha256="c9f4868ba0cd54e6cd6737b441d05676bb42512e556846d23a06201e0153c2a0"} 2011
-web_asset_size_bytes{file="Vision-BN66oRYA.js",sha256="6b35c41e81cb36c934a7abfefbe556b8c5f38476c69eee9af9684e4af7d08857"} 2307
+web_asset_size_bytes{file="Roadmap-QJp8SLS7.js",sha256="994538bf532674f5debb645f32439af6966428db0d96a193c40e529c2725fb84"} 1698
+web_asset_size_bytes{file="Values-DWvBfhOk.js",sha256="3b691c29bd647db87e25761afaded13fad916059125d0da66eff0488da601ff7"} 2011
+web_asset_size_bytes{file="Vision-GUDw0fr8.js",sha256="5db7ff1338e453995cd4094416ac8ce913940665e2c4b26d68275975cd8cde1c"} 2307
 web_asset_size_bytes{file="web-vitals-Bn_I2dZs.js",sha256="97c625fd89954cd582bacb7c0c0de1114801aadd29c237469380c9909d4fb9ae"} 3169
