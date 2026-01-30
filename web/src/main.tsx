@@ -19,6 +19,8 @@ const Roadmap = React.lazy(() => import('./pages/Roadmap'))
 const Explore = React.lazy(() => import('./pages/Explore'))
 const Framework = React.lazy(() => import('./pages/Framework'))
 const PreviewQuestions = React.lazy(() => import('./pages/PreviewQuestions'))
+const TechnicalDeepDive = React.lazy(() => import('./pages/TechnicalDeepDive'))
+const Convention = React.lazy(() => import('./pages/Convention'))
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import AnalyticsLoadDiagnostics from './components/AnalyticsLoadDiagnostics'
 // Deferred analytics: lightweight stubs replaced after dynamic import.
@@ -401,6 +403,9 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/convene" element={<Explore />} />
           <Route path="/preview" element={<PreviewQuestions />} />
           <Route path="/preview-questions" element={<PreviewQuestions />} />
+          <Route path="/technical-deep-dive" element={<TechnicalDeepDive />} />
+          <Route path="/faq" element={<Convention />} />
+          <Route path="/convention" element={<Convention />} />
         </Routes>
       </ChunkLoadBoundary>
     </BrowserRouter>
